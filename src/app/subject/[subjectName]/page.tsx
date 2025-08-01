@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,23 +19,30 @@ type GeneratedContent = {
 
 // Custom hook for managing state with localStorage
 const useSubjectData = (subjectName: string) => {
-  const getInitialState = <T,>(key: string, defaultValue: T): T => {
-    if (typeof window === 'undefined') return defaultValue;
+  const getInitialText = () => {
+    if (typeof window === 'undefined') return '';
     try {
-      const item = localStorage.getItem(`${subjectName}_${key}`);
-      return item ? JSON.parse(item) : defaultValue;
+      const item = localStorage.getItem(`${subjectName}_text`);
+      return item || '';
     } catch (error) {
-      console.error(`Error reading from localStorage: ${key}`, error);
-      return defaultValue;
+      console.error(`Error reading text from localStorage`, error);
+      return '';
     }
   };
 
-  const [text, setTextState] = useState<string>(() => getInitialState('text', ''));
-  const [generatedContent, setGeneratedContentState] = useState<GeneratedContent>(() => getInitialState('content', {
-    summary: null,
-    flashcards: null,
-    mcqs: null,
-  }));
+  const getInitialContent = (): GeneratedContent => {
+     if (typeof window === 'undefined') return { summary: null, flashcards: null, mcqs: null };
+     try {
+       const item = localStorage.getItem(`${subjectName}_content`);
+       return item ? JSON.parse(item) : { summary: null, flashcards: null, mcqs: null };
+     } catch (error) {
+       console.error(`Error reading content from localStorage`, error);
+       return { summary: null, flashcards: null, mcqs: null };
+     }
+  };
+
+  const [text, setTextState] = useState<string>(getInitialText);
+  const [generatedContent, setGeneratedContentState] = useState<GeneratedContent>(getInitialContent);
 
   const setText = (newText: string) => {
     setTextState(newText);
