@@ -9,7 +9,6 @@ import { PanelLeft } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -152,7 +151,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full",
+              "group/sidebar-wrapper",
               className
             )}
             ref={ref}
@@ -168,8 +167,8 @@ const SidebarProvider = React.forwardRef<
 SidebarProvider.displayName = "SidebarProvider"
 
 const Sidebar = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div"> & {
+  HTMLElement,
+  React.ComponentProps<"aside"> & {
     side?: "left" | "right"
   }
 >(
@@ -186,7 +185,7 @@ const Sidebar = React.forwardRef<
     
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile}>
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
@@ -206,12 +205,12 @@ const Sidebar = React.forwardRef<
 
     return (
         <aside
-        ref={ref as React.Ref<HTMLElement>}
+        ref={ref}
         data-state={state}
         data-collapsed={state === 'collapsed'}
         data-side={side}
         className={cn(
-          "group hidden md:flex flex-col h-screen bg-card text-card-foreground border-r transition-[width] duration-300",
+          "group hidden md:flex flex-col h-screen bg-card text-card-foreground border-r transition-[width] duration-300 z-10",
           state === 'expanded' && 'w-[var(--sidebar-width)]',
           state === 'collapsed' && 'w-[var(--sidebar-width-icon)]',
           className

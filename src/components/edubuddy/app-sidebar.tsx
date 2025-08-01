@@ -20,6 +20,7 @@ import {
   Settings,
   Info,
   PanelLeft,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -32,36 +33,34 @@ const menuItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { state, toggleSidebar } = useSidebar();
+  const { toggleSidebar } = useSidebar();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
-    if (href === "/subjects") return pathname === "/" || pathname.startsWith('/subject');
+    if (href === "/subjects") return pathname.startsWith('/subject') || pathname === '/subjects';
     return pathname.startsWith(href);
   };
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center justify-end w-full">
-          <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              >
-              <PanelLeft
-                  className="transition-transform duration-300 h-5 w-5"
-                  style={{
-                  transform: state === "expanded" ? "rotate(180deg)" : "rotate(0deg)",
-                  }}
-              />
-                <span className="sr-only">Toggle Sidebar</span>
-          </Button>
+       <SidebarHeader className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-2">
+            <BookOpen className="h-7 w-7 text-primary" />
+            <h1 className="text-2xl font-bold tracking-tight text-foreground group-data-[collapsed=true]:hidden">
+                EduBuddy
+            </h1>
         </div>
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            >
+            <PanelLeft className="h-5 w-5" />
+            <span className="sr-only">Toggle Sidebar</span>
+        </Button>
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarSeparator />
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
@@ -78,8 +77,6 @@ export default function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-      </SidebarFooter>
     </Sidebar>
   );
 }

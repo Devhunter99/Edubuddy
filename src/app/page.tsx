@@ -1,145 +1,42 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PlusCircle, Book } from "lucide-react";
-
-import AppHeader from "@/components/edubuddy/app-header";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SidebarInset } from "@/components/ui/sidebar";
-
-// Simple in-memory/localStorage subject store for prototyping
-const useSubjects = () => {
-  const [subjects, setSubjects] = useState<string[]>([]);
-
-  useEffect(() => {
-    // This check is important to avoid "window is not defined" error during SSR
-    if (typeof window !== "undefined") {
-      try {
-        const storedSubjects = localStorage.getItem("subjects");
-        if (storedSubjects) {
-          setSubjects(JSON.parse(storedSubjects));
-        }
-      } catch (error) {
-        console.error("Failed to parse subjects from localStorage", error);
-        setSubjects([]);
-      }
-    }
-  }, []);
-
-  const addSubject = (newSubject: string) => {
-    if (newSubject && !subjects.includes(newSubject)) {
-      const updatedSubjects = [...subjects, newSubject];
-      setSubjects(updatedSubjects);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("subjects", JSON.stringify(updatedSubjects));
-      }
-    }
-  };
-
-  return { subjects, addSubject };
-};
+import Image from "next/image";
 
 export default function Home() {
-  const { subjects, addSubject } = useSubjects();
-  const [newSubject, setNewSubject] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleAddSubject = () => {
-    if (newSubject.trim()) {
-      addSubject(newSubject.trim());
-      setNewSubject("");
-      setIsDialogOpen(false);
-    }
-  };
-
   return (
-    <SidebarInset>
-      <div className="flex flex-col min-h-screen bg-background font-body">
-        <AppHeader />
-        <main className="flex-grow container mx-auto p-4 md:p-8">
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl flex items-center justify-between">
-                <span>My Subjects</span>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <PlusCircle className="mr-2 h-4 w-4" /> Add Subject
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Add New Subject</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="subject-name">
-                          Name
-                        </Label>
-                        <Input
-                          id="subject-name"
-                          value={newSubject}
-                          onChange={(e) => setNewSubject(e.target.value)}
-                          placeholder="e.g. Biology"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                       <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                      <Button onClick={handleAddSubject}>Add Subject</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardTitle>
-              <CardDescription>
-                Select a subject to start studying or add a new one.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {subjects.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {subjects.map((subject) => (
-                    <Link href={`/subject/${encodeURIComponent(subject)}`} key={subject}>
-                      <Card className="hover:shadow-md hover:border-primary transition-all duration-200 cursor-pointer">
-                        <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                           <Book className="h-10 w-10 text-primary mb-3" />
-                          <h3 className="font-semibold">{subject}</h3>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 border-2 border-dashed rounded-lg">
-                  <p className="text-muted-foreground">No subjects yet.</p>
-                  <p className="text-muted-foreground">
-                    Click "Add Subject" to get started!
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </main>
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-background overflow-hidden">
+      <div 
+        className="absolute inset-0 z-0 opacity-20"
+        style={{
+          backgroundImage: `url('https://placehold.co/1200x800/000000/FFFFFF.png?text=abstract+art')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(8px)',
+        }}
+        data-ai-hint="abstract art"
+      />
+      <div className="relative z-10 flex flex-col items-center text-center p-4">
+        <h1 className="text-5xl md:text-7xl font-extrabold text-foreground mb-4 leading-tight">
+          Discover,
+          <br />
+          collect, and sell
+          <br />
+          extraordinary
+          <br />
+          <span className="text-primary">NFTS</span>
+        </h1>
+        <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mb-8">
+          The premier marketplace for exploring and trading unique digital assets.
+        </p>
+        <Link href="/subjects">
+            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg px-12 py-6 rounded-full shadow-lg shadow-primary/50 transition-transform transform hover:scale-105">
+              Let's Get Started
+            </Button>
+        </Link>
       </div>
-    </SidebarInset>
+    </div>
   );
 }
