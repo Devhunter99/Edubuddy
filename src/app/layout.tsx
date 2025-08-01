@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/edubuddy/app-sidebar";
 
 export const metadata: Metadata = {
@@ -26,8 +26,12 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <SidebarProvider>
-          <AppSidebar />
-          <main>{children}</main>
+          <div className="flex">
+            <AppSidebar />
+            <SidebarInset>
+              {children}
+            </SidebarInset>
+          </div>
         </SidebarProvider>
         <Toaster />
       </body>

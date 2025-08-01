@@ -70,6 +70,7 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
+    const [isClient, setIsClient] = React.useState(false)
 
     const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
@@ -90,6 +91,7 @@ const SidebarProvider = React.forwardRef<
     );
 
     React.useEffect(() => {
+        setIsClient(true);
         if (typeof window !== 'undefined') {
             const cookieValue = document.cookie
                 .split('; ')
@@ -123,7 +125,7 @@ const SidebarProvider = React.forwardRef<
       return () => window.removeEventListener("keydown", handleKeyDown)
     }, [toggleSidebar])
 
-    const state = open ? "expanded" : "collapsed"
+    const state = !isClient ? "expanded" : open ? "expanded" : "collapsed";
 
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
@@ -228,11 +230,15 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  const { state, isMobile } = useSidebar();
+  
   return (
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-[margin-left] duration-300",
+        !isMobile && state === 'expanded' && 'md:ml-[var(--sidebar-width)]',
+        !isMobile && state === 'collapsed' && 'md:ml-[var(--sidebar-width-icon)]',
         className
       )}
       {...props}
