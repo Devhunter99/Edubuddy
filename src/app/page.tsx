@@ -67,25 +67,29 @@ export default function Home() {
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
-    const [recentFlashcard, setRecentFlashcard] = useState<GenerateFlashcardsOutput['flashcards'][0] | null>(null);
-    const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
+    const [importantPoint, setImportantPoint] = useState<string | null>(null);
+    const [isPointLoading, setIsPointLoading] = useState(false);
 
     useEffect(() => {
-        const fetchFlashcard = async () => {
+        const fetchImportantPoint = async () => {
             if (!allNotesText.trim()) return;
 
-            setIsFlashcardLoading(true);
+            setIsPointLoading(true);
             try {
+                // We'll reuse the flashcard flow but just use the 'question' as the important point.
                 const result = await generateFlashcards({ text: allNotesText });
-                setRecentFlashcard(result.flashcards[0] || null);
+                if (result.flashcards.length > 0) {
+                  // Combining question and answer for a more complete point.
+                  setImportantPoint(`${result.flashcards[0].question} ${result.flashcards[0].answer}`);
+                }
             } catch (error) {
-                console.error("Failed to generate flashcards:", error);
+                console.error("Failed to generate important point:", error);
             } finally {
-                setIsFlashcardLoading(false);
+                setIsPointLoading(false);
             }
         };
 
-        fetchFlashcard();
+        fetchImportantPoint();
     }, [allNotesText]);
 
 
@@ -129,19 +133,15 @@ export default function Home() {
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-foreground mb-6">Dashboard</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {/* Flashcards */}
+                    {/* Important Point */}
                      <Card className="lg:col-span-2 shadow-md hover:shadow-primary/20 transition-shadow p-6 flex flex-col justify-center">
-                        {isFlashcardLoading ? (
+                        {isPointLoading ? (
                             <Skeleton className="h-24" />
-                        ) : recentFlashcard ? (
-                            <div>
-                                <p className="text-lg font-semibold">{recentFlashcard.question}</p>
-                                <p className="text-muted-foreground mt-2">{recentFlashcard.answer}</p>
-                            </div>
+                        ) : importantPoint ? (
+                           <p className="text-lg font-semibold">{importantPoint}</p>
                         ) : (
-                            <p className="text-sm text-muted-foreground text-center">Add some notes to see a flashcard here.</p>
+                            <p className="text-sm text-muted-foreground text-center">Add some notes to see a key point here.</p>
                         )}
-                         <Button variant="outline" size="sm" className="w-full mt-4" disabled>View All Flashcards</Button>
                     </Card>
 
                     {/* Subjects */}

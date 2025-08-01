@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-flashcards.ts
 'use server';
 
@@ -22,10 +23,10 @@ export type GenerateFlashcardsInput = z.infer<typeof GenerateFlashcardsInputSche
 const GenerateFlashcardsOutputSchema = z.object({
   flashcards: z.array(
     z.object({
-      question: z.string().describe('The flashcard question.'),
-      answer: z.string().describe('The flashcard answer.'),
+      question: z.string().describe('The flashcard question, or a short important point.'),
+      answer: z.string().describe('The flashcard answer, or an elaboration of the point.'),
     })
-  ).describe('An array of flashcards generated from the text.'),
+  ).describe('An array of flashcards or important points generated from the text.'),
 });
 export type GenerateFlashcardsOutput = z.infer<typeof GenerateFlashcardsOutputSchema>;
 
@@ -37,13 +38,14 @@ const prompt = ai.definePrompt({
   name: 'generateFlashcardsPrompt',
   input: {schema: GenerateFlashcardsInputSchema},
   output: {schema: GenerateFlashcardsOutputSchema},
-  prompt: `You are an expert in generating flashcards from text.
+  prompt: `You are an expert in generating flashcards and summarizing key information from text.
 
-  Generate 5 question-answer flashcards from the following text.
+  From the following text, either generate a few question-answer flashcards OR extract a few short, important, standout points.
+  If you extract points, use the 'question' field for a short title or the point itself, and the 'answer' field for a brief elaboration.
 
   Text: {{{text}}}
 
-  Format the flashcards as a JSON array of objects, where each object has a "question" and an "answer" field.
+  Format the output as a JSON array of objects, where each object has a "question" and an "answer" field.
   `,
 });
 
