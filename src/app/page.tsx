@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { generateMCQ, type GenerateMCQOutput, type GenerateMCQInput } from "@/ai/flows/generate-mcq";
+import { generateFlashcards, type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
 import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
@@ -14,6 +15,7 @@ import DashboardCard from "@/components/edubuddy/dashboard-card";
 import { StudyTimer } from "@/components/edubuddy/study-timer";
 import McqItem from "@/components/edubuddy/mcq-item";
 import RandomMcqCard from "@/components/edubuddy/random-mcq-card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -65,6 +67,29 @@ export default function Home() {
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
+    const [recentFlashcards, setRecentFlashcards] = useState<GenerateFlashcardsOutput['flashcards'] | null>(null);
+    const [areFlashcardsLoading, setAreFlashcardsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchFlashcards = async () => {
+            if (!allNotesText.trim()) return;
+
+            setAreFlashcardsLoading(true);
+            try {
+                const result = await generateFlashcards({ text: allNotesText });
+                // We only want to show 2 on the dashboard
+                setRecentFlashcards(result.flashcards.slice(0, 2));
+            } catch (error) {
+                console.error("Failed to generate flashcards:", error);
+                // Don't show a toast, fail silently
+            } finally {
+                setAreFlashcardsLoading(false);
+            }
+        };
+
+        fetchFlashcards();
+    }, [allNotesText]);
+
 
     const handleGenerateQuiz = async () => {
         if (!allNotesText.trim()) {
@@ -114,14 +139,21 @@ export default function Home() {
                         className="lg:col-span-2"
                     >
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                            <Card className="bg-card-foreground/5 p-3">
-                               <p className="text-sm font-semibold">What is the powerhouse of the cell?</p>
-                               <p className="text-sm text-muted-foreground mt-1">Mitochondria</p>
-                            </Card>
-                            <Card className="bg-card-foreground/5 p-3">
-                               <p className="text-sm font-semibold">What is 2 + 2?</p>
-                               <p className="text-sm text-muted-foreground mt-1">4</p>
-                            </Card>
+                            {areFlashcardsLoading ? (
+                                <>
+                                    <Skeleton className="h-24" />
+                                    <Skeleton className="h-24" />
+                                </>
+                            ) : recentFlashcards && recentFlashcards.length > 0 ? (
+                                recentFlashcards.map((card, index) => (
+                                    <Card key={index} className="bg-card-foreground/5 p-3">
+                                       <p className="text-sm font-semibold">{card.question}</p>
+                                       <p className="text-sm text-muted-foreground mt-1">{card.answer}</p>
+                                    </Card>
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground col-span-2">Add some notes to see your flashcards here.</p>
+                            )}
                         </div>
                          <Button variant="outline" className="w-full mt-4" disabled>View All Flashcards</Button>
                     </DashboardCard>
