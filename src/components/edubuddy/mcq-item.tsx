@@ -29,14 +29,15 @@ export default function McqItem({ mcq, index }: McqItemProps) {
     setSelectedAnswer(value);
     setIsChecked(false);
   }
-
-  const cleanCorrectAnswer = mcq.correctAnswer.replace(/\*$/, "");
-
+  
   const getOptionStatus = (option: string) => {
     if (!isChecked) return "default";
-    const cleanOption = option.replace(/\*$/, "");
-    if (cleanOption === cleanCorrectAnswer) return "correct";
-    if (cleanOption === selectedAnswer) return "incorrect";
+    const isCorrect = option === mcq.correctAnswer;
+    const isSelected = option === selectedAnswer;
+
+    if (isCorrect) return "correct";
+    if (isSelected && !isCorrect) return "incorrect";
+    
     return "default";
   };
   
@@ -54,7 +55,6 @@ export default function McqItem({ mcq, index }: McqItemProps) {
           disabled={isChecked}
         >
           {mcq.options.map((option, i) => {
-            const cleanOption = option.replace(/\*$/, "");
             const status = getOptionStatus(option);
             const isCorrect = status === 'correct';
             const isIncorrect = status === 'incorrect';
@@ -75,11 +75,11 @@ export default function McqItem({ mcq, index }: McqItemProps) {
                 )}
               >
                 <RadioGroupItem
-                  value={cleanOption}
+                  value={option}
                   id={`option-${index}-${i}`}
                   className="shrink-0"
                 />
-                <span className="flex-grow">{cleanOption}</span>
+                <span className="flex-grow">{option}</span>
                 {isCorrect && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
                 {isIncorrect && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
               </Label>
@@ -97,4 +97,3 @@ export default function McqItem({ mcq, index }: McqItemProps) {
     </Card>
   );
 }
-

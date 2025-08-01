@@ -23,9 +23,9 @@ const GenerateMCQOutputSchema = z.object({
     z.object({
       question: z.string().describe('The multiple-choice question.'),
       options: z.array(z.string()).describe('The four options for the question.'),
-      correctAnswer: z.string().describe('The correct answer, marked with an asterisk.'),
+      correctAnswer: z.string().describe('The correct answer from the options list.'),
     })
-  ).describe('An array of multiple-choice questions with 4 options each, and one correct answer marked with an asterisk.'),
+  ).describe('An array of multiple-choice questions with 4 options each.'),
   progress: z.string().describe('A short summary of the MCQ generation process.'),
 });
 export type GenerateMCQOutput = z.infer<typeof GenerateMCQOutputSchema>;
@@ -40,11 +40,15 @@ const generateMCQPrompt = ai.definePrompt({
   output: {schema: GenerateMCQOutputSchema},
   prompt: `You are an expert educator creating multiple-choice questions from text.
 
-  Create {{questionCount}} multiple-choice questions from the following text, with four options each. The difficulty of the questions should be {{difficulty}}. Mark the correct answer with an asterisk.
+  Create {{questionCount}} multiple-choice questions from the following text, with four options each.
+  The difficulty of the questions should be {{difficulty}}.
+
+  For each question, provide a 'question' text, an array of four 'options', and a 'correctAnswer' field containing the exact text of the correct option.
+  DO NOT put any asterisks or markers in the 'options' array itself.
 
   Text: {{{text}}}
 
-  Format the response as a JSON object with a 'mcqs' field that is an array of question objects. Each question object should have 'question', 'options' (an array of four strings), and 'correctAnswer' fields.
+  Format the response as a JSON object with a 'mcqs' field that is an array of question objects.
 
   Include a 'progress' field with a short summary of the MCQ generation process.
   `,
