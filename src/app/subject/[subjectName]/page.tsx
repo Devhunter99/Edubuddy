@@ -26,6 +26,8 @@ export type Note = {
   generatedContent: GeneratedContent;
 }
 
+const ALL_NOTES_ID = "all-notes";
+
 // Custom hook for managing state with localStorage
 const useSubjectNotes = (subjectName: string) => {
   const getInitialNotes = (): Note[] => {
@@ -58,11 +60,18 @@ const useSubjectNotes = (subjectName: string) => {
 
   const [notes, setNotesState] = useState<Note[]>(getInitialNotes);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  
+  // State for content generated from all notes
+  const [allNotesGeneratedContent, setAllNotesGeneratedContent] = useState<GeneratedContent>({ summary: null, flashcards: null, mcqs: null });
+
 
    useEffect(() => {
     if (notes.length > 0 && !activeNoteId) {
       setActiveNoteId(notes[0].id);
     }
+     if (notes.length === 0) {
+      setActiveNoteId(null);
+     }
    }, [notes, activeNoteId]);
 
   const saveNotes = (newNotes: Note[]) => {
@@ -92,8 +101,20 @@ const useSubjectNotes = (subjectName: string) => {
   };
 
   const activeNote = notes.find(n => n.id === activeNoteId);
+  
+  const allNotesText = notes.map(n => `## ${n.title}\n\n${n.text}`).join('\n\n---\n\n');
 
-  return { notes, activeNote, activeNoteId, setActiveNoteId, addNote, updateNote };
+  return { 
+    notes, 
+    activeNote, 
+    activeNoteId, 
+    setActiveNoteId, 
+    addNote, 
+    updateNote,
+    allNotesText,
+    allNotesGeneratedContent,
+    setAllNotesGeneratedContent,
+  };
 }
 
 
@@ -102,7 +123,17 @@ export default function SubjectPage() {
   const params = useParams();
   const subjectName = decodeURIComponent(params.subjectName as string);
 
-  const { notes, activeNote, activeNoteId, setActiveNoteId, addNote, updateNote } = useSubjectNotes(subjectName);
+  const { 
+    notes, 
+    activeNote, 
+    activeNoteId, 
+    setActiveNoteId, 
+    addNote, 
+    updateNote,
+    allNotesText,
+    allNotesGeneratedContent,
+    setAllNotesGeneratedContent
+  } = useSubjectNotes(subjectName);
   
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState({
@@ -115,11 +146,15 @@ export default function SubjectPage() {
     setIsClient(true);
   }, []);
 
+  const isAllNotesView = activeNoteId === ALL_NOTES_ID;
+  const currentText = isAllNotesView ? allNotesText : activeNote?.text ?? "";
+  const currentContent = isAllNotesView ? allNotesGeneratedContent : activeNote?.generatedContent;
+
   const handleGenerateAll = async () => {
-    if (!activeNote || !activeNote.text.trim()) {
+    if (!currentText.trim()) {
       toast({
         title: "Input required",
-        description: "Please select a note and paste some text to generate content.",
+        description: "Please select a note with text or add some notes to the subject.",
         variant: "destructive",
       });
       return;
@@ -127,7 +162,7 @@ export default function SubjectPage() {
 
     setIsLoading({ summary: true, flashcards: true, mcqs: true });
     
-    const { text } = activeNote;
+    const text = currentText;
 
     const summaryPromise = generateSummary({ lectureNotes: text }).catch(err => {
       console.error("Summary generation failed:", err);
@@ -153,24 +188,26 @@ export default function SubjectPage() {
       mcqsPromise
     ]);
 
-    if (activeNoteId) {
-       updateNote(activeNoteId, {
-         generatedContent: {
-           summary: summaryResult,
-           flashcards: flashcardsResult,
-           mcqs: mcqsResult
-         }
-       });
+    const newContent = {
+      summary: summaryResult,
+      flashcards: flashcardsResult,
+      mcqs: mcqsResult
+    };
+
+    if (isAllNotesView) {
+      setAllNotesGeneratedContent(newContent);
+    } else if (activeNoteId) {
+       updateNote(activeNoteId, { generatedContent: newContent });
     }
 
     setIsLoading({ summary: false, flashcards: false, mcqs: false });
   };
   
   const handleRegenerate = async (type: keyof GeneratedContent) => {
-    if (!activeNote || !activeNote.text.trim()) {
+    if (!currentText.trim()) {
       toast({
         title: "Input required",
-        description: "Please paste some text to regenerate content.",
+        description: "There is no text to regenerate content from.",
         variant: "destructive",
       });
       return;
@@ -181,16 +218,19 @@ export default function SubjectPage() {
     try {
       let result: GenerateSummaryOutput | GenerateFlashcardsOutput | GenerateMCQOutput | null = null;
       if (type === 'summary') {
-        result = await generateSummary({ lectureNotes: activeNote.text });
+        result = await generateSummary({ lectureNotes: currentText });
       } else if (type === 'flashcards') {
-        result = await generateFlashcards({ text: activeNote.text });
+        result = await generateFlashcards({ text: currentText });
       } else if (type === 'mcqs') {
-        result = await generateMCQ({ text: activeNote.text });
+        result = await generateMCQ({ text: currentText });
       }
       
-      if (activeNoteId) {
-        const newContent = { ...activeNote.generatedContent, [type]: result };
-        updateNote(activeNoteId, { generatedContent: newContent });
+      const newContent = { ...currentContent, [type]: result };
+
+      if (isAllNotesView) {
+        setAllNotesGeneratedContent(newContent as GeneratedContent);
+      } else if (activeNoteId) {
+        updateNote(activeNoteId, { generatedContent: newContent as GeneratedContent });
       }
 
     } catch (error) {
@@ -202,7 +242,7 @@ export default function SubjectPage() {
   };
 
   const handleSetText = (newText: string) => {
-    if (activeNoteId) {
+    if (activeNoteId && !isAllNotesView) {
       updateNote(activeNoteId, { text: newText });
     }
   };
@@ -218,21 +258,23 @@ export default function SubjectPage() {
             activeNoteId={activeNoteId}
             onSelectNote={setActiveNoteId}
             onAddNote={addNote}
+            allNotesId={ALL_NOTES_ID}
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12">
             <div className="lg:max-w-xl xl:max-w-2xl">
               <InputSection
-                text={activeNote?.text ?? ""}
+                text={currentText}
                 setText={handleSetText}
                 onSubmit={handleGenerateAll}
                 isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs}
                 disabled={!activeNoteId}
+                isAllNotesView={isAllNotesView}
               />
             </div>
             <div className="mt-8 lg:mt-0">
             {isClient ? (
               <OutputSection
-                content={activeNote?.generatedContent ?? { summary: null, flashcards: null, mcqs: null }}
+                content={currentContent ?? { summary: null, flashcards: null, mcqs: null }}
                 isLoading={isLoading}
                 onRegenerate={handleRegenerate}
                 key={activeNoteId} // Re-mount when note changes
