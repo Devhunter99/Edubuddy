@@ -3,8 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PlusCircle, Search, Star, Heart } from "lucide-react";
-import Image from "next/image";
+import { PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +12,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -30,15 +28,16 @@ import { SidebarInset } from "@/components/ui/sidebar";
 
 const useSubjects = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     if (typeof window !== "undefined") {
       try {
         const storedSubjects = localStorage.getItem("subjects");
         if (storedSubjects) {
           setSubjects(JSON.parse(storedSubjects));
         } else {
-          // Pre-populate with some default subjects if none are stored
           const defaultSubjects = ["Hologram hand left", "Hologram hand right", "Liquid sculpture", "Crystal rock"];
           setSubjects(defaultSubjects);
           localStorage.setItem("subjects", JSON.stringify(defaultSubjects));
@@ -59,12 +58,26 @@ const useSubjects = () => {
       }
     }
   };
+  
+  const getNoteCount = (subject: string) => {
+    if(!isClient) return '...';
+    try {
+        const notesRaw = localStorage.getItem(subject);
+        if (notesRaw) {
+            const notes = JSON.parse(notesRaw);
+            return Array.isArray(notes) ? `${notes.length} Note${notes.length !== 1 ? 's' : ''}` : 'No notes yet';
+        }
+    } catch {
+        return 'No notes yet';
+    }
+    return 'No notes yet';
+  }
 
-  return { subjects, addSubject };
+  return { subjects, addSubject, getNoteCount };
 };
 
 export default function SubjectsPage() {
-  const { subjects, addSubject } = useSubjects();
+  const { subjects, addSubject, getNoteCount } = useSubjects();
   const [newSubject, setNewSubject] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -75,13 +88,6 @@ export default function SubjectsPage() {
       setIsDialogOpen(false);
     }
   };
-
-  const subjectImages = [
-    "https://placehold.co/400x400/8A2BE2/FFFFFF.png?text=hand",
-    "https://placehold.co/400x400/1E90FF/FFFFFF.png?text=hand",
-    "https://placehold.co/400x400/FF1493/FFFFFF.png?text=liquid",
-    "https://placehold.co/400x400/32CD32/FFFFFF.png?text=crystal",
-  ];
 
   return (
     <SidebarInset>
@@ -124,22 +130,14 @@ export default function SubjectsPage() {
 
           {subjects.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {subjects.map((subject, index) => (
+              {subjects.map((subject) => (
                 <Link href={`/subject/${encodeURIComponent(subject)}`} key={subject}>
-                    <Card className="bg-card border-border rounded-2xl overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105">
+                    <Card className="bg-card border-border rounded-lg group transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-105 flex flex-col justify-between min-h-[120px] p-6">
                       <CardHeader className="p-0">
-                        <Image 
-                          src={subjectImages[index % subjectImages.length]} 
-                          alt={subject} 
-                          width={400} 
-                          height={400} 
-                          className="object-cover w-full h-64"
-                          data-ai-hint="hologram hand"
-                        />
-                      </CardHeader>
-                      <CardContent className="p-4">
                         <CardTitle className="text-lg font-semibold truncate">{subject}</CardTitle>
-                        <CardDescription>{(localStorage.getItem(subject)?.length || 0) > 2 ? `${JSON.parse(localStorage.getItem(subject)!).length} Notes` : 'No notes yet'}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-0 mt-auto">
+                        <CardDescription>{getNoteCount(subject)}</CardDescription>
                       </CardContent>
                     </Card>
                 </Link>
