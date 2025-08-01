@@ -1,56 +1,71 @@
-diff --git a/node_modules/pdf-parse/lib/pdf.js b/node_modules/pdf-parse/lib/pdf.js
-index 2356149..3a4a04d 100644
---- a/node_modules/pdf-parse/lib/pdf.js
-+++ b/node_modules/pdf-parse/lib/pdf.js
+diff --git a/node_modules/pdf-parse/lib/pdf-parse.js b/node_modules/pdf-parse/lib/pdf-parse.js
+index b548544..0ec09b3 100644
+--- a/node_modules/pdf-parse/lib/pdf-parse.js
++++ b/node_modules/pdf-parse/lib/pdf-parse.js
 @@ -10,7 +10,7 @@
  'use strict';
  
- const { getDocument, PDFDataRangeTransport, shadow } = require('pdfjs-dist/legacy/build/pdf.js');
--const { Util } = require('pdfjs-dist/legacy/build/pdf.js').shared;
-+// const { Util } = require('pdfjs-dist/legacy/build/pdf.js').shared;
- const { createValidAbsoluteUrl } = require('pdfjs-dist/legacy/build/pdf.js').web;
- const { DOMParser } = require('@xmldom/xmldom');
- const { pdffont } = require('./pdffont.js');
-@@ -21,7 +21,7 @@
+ const { getDocument, PDFDataRangeTransport } = require('pdfjs-dist/legacy/build/pdf.js');
+-const { Readable } = require('stream');
++// const { Readable } = require('stream');
  
- shadow(global, 'DOMParser', DOMParser);
+ const DEFAULT_OPTIONS = {
+     //page range
+@@ -34,7 +34,7 @@
+     return new Promise( (resolve, reject) => {
+         let ret = {
+             numpages: 0,
+-            numrender: 0,
++            numrender: 0, 
+             info: null,
+             metadata: null,
+             text: '',
+@@ -52,7 +52,7 @@
+                 // Using a PDFDataRangeTransport allows for progressive loading of the PDF file.
+                 // It's recommended for custom HTTP servers that support range requests.
+                 let transport = new PDFDataRangeTransport(data.byteLength, data);
+-                resolve(getDocument({data, transport}));
++                return getDocument({data, transport});
+             }
+             // For Node.js supporting Readable streams.
+             // #if NODE_JS
+@@ -62,7 +62,7 @@
+             //         const readable = new Readable();
+             //         readable._read = () => {};
+             //         readable.push(data);
+-            //         readable.push(null);
++            //         readable.push(null); 
+             //         return readable;
+             //     }
+             // #endif
+@@ -71,7 +71,7 @@
+         };
  
--let PDFJS = {};
-+// let PDFJS = {};
+         loadingTask.then(function(doc) {
+-            ret.numpages = doc.numPages;
++            ret.numpages = doc.numPages; 
  
- //see https://github.com/mozilla/pdf.js/issues/15728
- function DOMCanvasFactory(options) {}
-@@ -148,7 +148,7 @@ class PDFJSClass {
-     	let textContent = await page.getTextContent();
-     	let lastY, text = '',
- 			roman = { "romans": [], "text": [] };
--		let line_text = [];
-+		// let line_text = [];
+             let metaDataPromise = doc.getMetadata().catch(function(err) {
+                 return reject(err);
+@@ -101,7 +101,7 @@
+                         // Render the page or whatever here...
+                     });
+                 });
+-            });
++            }); 
  
- 		// let TBF = {
- 		// 	page: [],
-@@ -207,17 +207,17 @@ class PDFJSClass {
- 				// TBF.page.push(TBF.line);
- 			}
- 			if(item.str?.length){
--				line_text.push(item.str);
-+				// line_text.push(item.str);
- 			}
- 		}
+             let lastPromise = Promise.resolve();
+             let getPageText = function (pageNum) {
+@@ -126,9 +126,9 @@
+             lastPromise.then(function () {
+                 resolve(ret);
+             }).catch(reject);
+-
++ 
+         }).catch(reject);
+-    });
++    }); 
+ };
  
--		if (line_text.length) {
--			this.#ProcessLine(line_text, roman);
--			this.#ParseResult(roman, text);
--		}
-+		// if (line_text.length) {
-+		// 	this.#ProcessLine(line_text, roman);
-+		// 	this.#ParseResult(roman, text);
-+		// }
- 		
--		TBF.page.push(TBF.line);
--		TBF.text = text;
-+		// TBF.page.push(TBF.line);
-+		// TBF.text = text;
- 		
-     	return TBF;
-     }
+ module.exports = PDF;
+\ No newline at end of file
