@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -205,9 +206,10 @@ const Sidebar = React.forwardRef<
         <div
         ref={ref}
         data-state={state}
+        data-collapsed={state === 'collapsed'}
         data-side={side}
         className={cn(
-          "hidden md:flex flex-col h-screen bg-card text-card-foreground border-r transition-[width] duration-300",
+          "group hidden md:flex flex-col h-screen bg-card text-card-foreground border-r transition-[width] duration-300",
           state === 'expanded' && 'w-[var(--sidebar-width)]',
           state === 'collapsed' && 'w-[var(--sidebar-width-icon)]',
           className
@@ -368,7 +370,7 @@ const SidebarMenuButton = React.forwardRef<
       </Comp>
     )
 
-    if (state === 'expanded') {
+    if (state === 'expanded' || isMobile) {
       return button;
     }
     

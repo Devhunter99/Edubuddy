@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -60,8 +61,8 @@ export default function AppSidebar() {
                   isActive={isActive(item.href)}
                   tooltip={item.label}
                 >
-                  <item.icon />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5" />
+                  <span className="group-data-[collapsed]:hidden">{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -75,7 +76,7 @@ export default function AppSidebar() {
           onClick={toggleSidebar}
         >
           <PanelLeft
-            className="transition-transform duration-300"
+            className="transition-transform duration-300 h-5 w-5"
             style={{
               transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
             }}
