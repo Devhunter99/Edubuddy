@@ -13,15 +13,19 @@ import { cn } from "@/lib/utils";
 interface McqItemProps {
   mcq: GenerateMCQOutput["mcqs"][0];
   index: number;
+  onAnswer?: (index: number, selectedAnswer: string, isCorrect: boolean) => void;
 }
 
-export default function McqItem({ mcq, index }: McqItemProps) {
+export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isChecked, setIsChecked] = useState(false);
 
   const handleCheckAnswer = () => {
     if (selectedAnswer) {
       setIsChecked(true);
+      if (onAnswer) {
+        onAnswer(index, selectedAnswer, selectedAnswer === mcq.correctAnswer);
+      }
     }
   };
 
@@ -87,7 +91,7 @@ export default function McqItem({ mcq, index }: McqItemProps) {
           })}
         </RadioGroup>
       </CardContent>
-      {!isChecked && (
+      {onAnswer && !isChecked && (
         <CardFooter className="p-4 pt-0 justify-end">
             <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
               Check Answer
@@ -97,3 +101,5 @@ export default function McqItem({ mcq, index }: McqItemProps) {
     </Card>
   );
 }
+
+    

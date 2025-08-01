@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
 import { StudyTimer } from "@/components/edubuddy/study-timer";
 import McqItem from "@/components/edubuddy/mcq-item";
@@ -23,6 +23,8 @@ import {
 import { type Note } from "@/app/subject/[subjectName]/page";
 import HighlightsBanner from "@/components/edubuddy/highlights-banner";
 import ShortcutButton from "@/components/edubuddy/shortcut-button";
+import QuizResultsSummary from "@/components/edubuddy/quiz-results-summary";
+import type { QuizResult } from "@/lib/types";
 
 
 const useSubjects = () => {
@@ -68,7 +70,43 @@ export default function Home() {
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
     
-    const handleGenerateQuiz = async () => {
+    // State for quiz answers and results
+    const [quizAnswers, setQuizAnswers] = useState<Record<number, { selected: string; isCorrect: boolean }>>({});
+    const [showResults, setShowResults] = useState(false);
+
+    const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
+      setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
+    };
+
+    const allQuestionsAnswered = dailyQuiz?.mcqs && Object.keys(quizAnswers).length === dailyQuiz.mcqs.length;
+
+    useEffect(() => {
+      if (allQuestionsAnswered) {
+        setShowResults(true);
+
+        const newResult: QuizResult = {
+          id: `quiz-${Date.now()}`,
+          subjectName: 'Daily Quiz',
+          timestamp: new Date().toISOString(),
+          mcqs: dailyQuiz!.mcqs,
+          answers: quizAnswers,
+          score: Object.values(quizAnswers).filter(a => a.isCorrect).length,
+        };
+
+        const history: QuizResult[] = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+        history.unshift(newResult);
+        localStorage.setItem('quizHistory', JSON.stringify(history));
+
+      }
+    }, [allQuestionsAnswered, dailyQuiz, quizAnswers]);
+
+
+    const handleGenerateQuiz = async (retake = false) => {
+        if (!retake && dailyQuiz) {
+             setIsQuizDialogOpen(true);
+             return;
+        }
+
         if (!allNotesText.trim()) {
             toast({
                 title: "No notes found",
@@ -79,6 +117,11 @@ export default function Home() {
         }
 
         setIsQuizLoading(true);
+        setDailyQuiz(null);
+        setQuizAnswers({});
+        setShowResults(false);
+        setIsQuizDialogOpen(true);
+
         try {
             const quiz = await generateMCQ({
                 text: allNotesText,
@@ -86,7 +129,6 @@ export default function Home() {
                 questionCount: 5,
             });
             setDailyQuiz(quiz);
-            setIsQuizDialogOpen(true);
         } catch (error) {
             console.error("Failed to generate quiz:", error);
             toast({
@@ -94,6 +136,7 @@ export default function Home() {
                 description: "Something went wrong. Please try again.",
                 variant: "destructive"
             });
+            setIsQuizDialogOpen(false);
         } finally {
             setIsQuizLoading(false);
         }
@@ -116,9 +159,18 @@ export default function Home() {
                              <StudyTimer />
                         </DialogContent>
                     </Dialog>
-                    <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
+                    <Dialog open={isQuizDialogOpen} onOpenChange={(open) => {
+                      if(!open) {
+                        // Reset quiz state when dialog closes, unless showing results
+                         if (dailyQuiz && !showResults) {
+                           setDailyQuiz(null);
+                           setQuizAnswers({});
+                         }
+                      }
+                      setIsQuizDialogOpen(open);
+                    }}>
                         <DialogTrigger asChild>
-                           <ShortcutButton icon={BrainCircuit} label="Daily Quiz" onClick={handleGenerateQuiz} />
+                           <ShortcutButton icon={BrainCircuit} label="Daily Quiz" onClick={() => handleGenerateQuiz()} />
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-2xl bg-card border-border">
                             <DialogHeader>
@@ -129,10 +181,22 @@ export default function Home() {
                                         <div className="flex justify-center items-center h-40">
                                             <Loader2 className="h-8 w-8 animate-spin" />
                                         </div>
+                                    ) : showResults ? (
+                                        <QuizResultsSummary 
+                                            mcqs={dailyQuiz!.mcqs}
+                                            answers={quizAnswers}
+                                            onRetake={() => handleGenerateQuiz(true)}
+                                            onFinish={() => setIsQuizDialogOpen(false)}
+                                        />
                                     ) : dailyQuiz?.mcqs ? (
                                         <div className="space-y-4">
                                             {dailyQuiz.mcqs.map((mcq, index) => (
-                                                <McqItem key={index} mcq={mcq} index={index}/>
+                                                <McqItem 
+                                                    key={`${dailyQuiz.mcqs[0].question}-${index}`} 
+                                                    mcq={mcq} 
+                                                    index={index}
+                                                    onAnswer={handleAnswer}
+                                                />
                                             ))}
                                         </div>
                                     ) : (
@@ -141,6 +205,7 @@ export default function Home() {
                                 </div>
                         </DialogContent>
                     </Dialog>
+                    <ShortcutButton href="/results" icon={PieChart} label="Results" />
                      <ShortcutButton href="/settings" icon={Settings} label="Settings" />
                 </div>
 
@@ -212,9 +277,9 @@ export default function Home() {
                         </p>
                          <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button className="w-full mt-4" onClick={handleGenerateQuiz} disabled={isQuizLoading}>
+                                <Button className="w-full mt-4" onClick={() => handleGenerateQuiz()} disabled={isQuizLoading}>
                                      {isQuizLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                     {isQuizLoading ? 'Generating...' : (dailyQuiz ? 'Retake Quiz' : 'Start Quiz')}
+                                     {isQuizLoading ? 'Generating...' : (dailyQuiz ? 'View Quiz' : 'Start Quiz')}
                                 </Button>
                             </DialogTrigger>
                              <DialogContent className="sm:max-w-2xl bg-card border-border">
@@ -222,10 +287,26 @@ export default function Home() {
                                     <DialogTitle>Daily Quiz</DialogTitle>
                                 </DialogHeader>
                                  <div className="py-4 max-h-[70vh] overflow-y-auto">
-                                     {dailyQuiz?.mcqs ? (
+                                     {isQuizLoading ? (
+                                        <div className="flex justify-center items-center h-40">
+                                            <Loader2 className="h-8 w-8 animate-spin" />
+                                        </div>
+                                    ) : showResults ? (
+                                        <QuizResultsSummary 
+                                            mcqs={dailyQuiz!.mcqs}
+                                            answers={quizAnswers}
+                                            onRetake={() => handleGenerateQuiz(true)}
+                                            onFinish={() => setIsQuizDialogOpen(false)}
+                                        />
+                                    ) : dailyQuiz?.mcqs ? (
                                          <div className="space-y-4">
                                              {dailyQuiz.mcqs.map((mcq, index) => (
-                                                 <McqItem key={index} mcq={mcq} index={index}/>
+                                                 <McqItem 
+                                                    key={`${dailyQuiz.mcqs[0].question}-${index}`} 
+                                                    mcq={mcq} 
+                                                    index={index}
+                                                    onAnswer={handleAnswer}
+                                                />
                                              ))}
                                          </div>
                                      ) : (
@@ -242,3 +323,5 @@ export default function Home() {
     </SidebarInset>
   );
 }
+
+    

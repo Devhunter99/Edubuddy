@@ -14,6 +14,9 @@ import McqItem from "./mcq-item";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
+import type { QuizResult } from "@/lib/types";
+import QuizResultsSummary from "./quiz-results-summary";
 
 type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
@@ -32,6 +35,7 @@ interface OutputSectionProps {
   mcqDifficulty: GenerateMCQInput['difficulty'];
   setMcqDifficulty: (difficulty: GenerateMCQInput['difficulty']) => void;
   isAllNotesView?: boolean;
+  subjectName?: string;
 }
 
 const downloadText = (filename: string, text: string) => {
@@ -52,8 +56,42 @@ const formatMcqsForDownload = (mcqs: GenerateMCQOutput['mcqs']) => {
   return mcqs.map((m, i) => `${i + 1}. ${m.question}\n${m.options.map(o => `   - ${o}`).join('\n')}\nCorrect Answer: ${m.correctAnswer}`).join('\n\n');
 };
 
-export default function OutputSection({ content, isLoading, onRegenerate, mcqDifficulty, setMcqDifficulty, isAllNotesView = false }: OutputSectionProps) {
-  
+export default function OutputSection({ content, isLoading, onRegenerate, mcqDifficulty, setMcqDifficulty, isAllNotesView = false, subjectName = "Notes" }: OutputSectionProps) {
+  const [quizAnswers, setQuizAnswers] = useState<Record<number, { selected: string; isCorrect: boolean }>>({});
+  const [showResults, setShowResults] = useState(false);
+  const [mcqKey, setMcqKey] = useState(Date.now());
+
+  const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
+    setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
+  };
+
+  const allQuestionsAnswered = content.mcqs && Object.keys(quizAnswers).length === content.mcqs.mcqs.length;
+
+  useEffect(() => {
+    if (allQuestionsAnswered) {
+      setShowResults(true);
+      const newResult: QuizResult = {
+        id: `quiz-${Date.now()}`,
+        subjectName: subjectName,
+        timestamp: new Date().toISOString(),
+        mcqs: content.mcqs!.mcqs,
+        answers: quizAnswers,
+        score: Object.values(quizAnswers).filter(a => a.isCorrect).length,
+      };
+      const history: QuizResult[] = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+      history.unshift(newResult);
+      localStorage.setItem('quizHistory', JSON.stringify(history));
+    }
+  }, [allQuestionsAnswered, content.mcqs, quizAnswers, subjectName]);
+
+  const handleRetakeMcqs = () => {
+    setQuizAnswers({});
+    setShowResults(false);
+    onRegenerate('mcqs');
+    setMcqKey(Date.now());
+  };
+
+
   const renderEmptyState = () => (
     <Card className="flex flex-col items-center justify-center min-h-[40vh] text-center p-8 border-dashed">
       <Sparkles className="h-12 w-12 text-muted-foreground/50 mb-4" />
@@ -65,7 +103,8 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   );
 
   const isAnythingLoading = Object.values(isLoading).some(Boolean);
-  const isEverythingEmpty = Object.values(content).every(c => c === null || (Array.isArray(c) && c.length === 0));
+  const isEverythingEmpty = Object.values(content).every(c => c === null || (c as any)?.length === 0 || (c as any)?.mcqs?.length === 0 || (c as any)?.flashcards?.length === 0 );
+
 
   if (!isAnythingLoading && isEverythingEmpty) {
     return renderEmptyState();
@@ -74,10 +113,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   const renderSummary = () => {
     if (!content.summary) return null;
     const summaryText = content.summary.summary;
-
-    // Split by newline and also handle numbered lists that might not have newlines
     const points = summaryText.split(/\n|\s(?=\d+\.\s)/).filter(s => s.trim().length > 0);
-
     return (
       <ul className="list-disc pl-5 space-y-2 text-base">
         {points.map((point, index) => (
@@ -198,7 +234,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
                       </SelectContent>
                     </Select>
                   </div>
-                  {content.mcqs && content.mcqs.mcqs.length > 0 && (
+                  {content.mcqs && content.mcqs.mcqs.length > 0 && !showResults && (
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => onRegenerate('mcqs')} disabled={isLoading.mcqs}>
                         <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
@@ -214,10 +250,21 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
               <div className="space-y-4">
                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
               </div>
+            ) : showResults ? (
+               <QuizResultsSummary 
+                  mcqs={content.mcqs!.mcqs}
+                  answers={quizAnswers}
+                  onRetake={handleRetakeMcqs}
+              />
             ) : content.mcqs && content.mcqs.mcqs.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4" key={mcqKey}>
                 {content.mcqs.mcqs.map((mcq, index) => (
-                  <McqItem key={index} mcq={mcq} index={index} />
+                  <McqItem 
+                    key={index} 
+                    mcq={mcq} 
+                    index={index}
+                    onAnswer={handleAnswer} 
+                 />
                 ))}
               </div>
             ) : ( 
@@ -232,3 +279,5 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
     </>
   );
 }
+
+    

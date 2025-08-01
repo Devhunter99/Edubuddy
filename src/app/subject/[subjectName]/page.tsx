@@ -15,19 +15,7 @@ import OutputSection from "@/components/edubuddy/output-section";
 import NotesToolbar from "@/components/edubuddy/notes-toolbar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
-
-export type GeneratedContent = {
-  summary: GenerateSummaryOutput | null;
-  flashcards: GenerateFlashcardsOutput | null;
-  mcqs: GenerateMCQOutput | null;
-};
-
-export type Note = {
-  id: string;
-  title: string;
-  text: string;
-  generatedContent: GeneratedContent;
-}
+import type { GeneratedContent, Note } from "@/lib/types";
 
 const ALL_NOTES_ID = "all-notes";
 
@@ -196,48 +184,44 @@ export default function SubjectPage() {
 
     setIsLoading({ summary: true, flashcards: true, mcqs: true });
 
-    const summaryPromise = generateSummary({ lectureNotes: text }).catch(err => {
-      console.error("Summary generation failed:", err);
-      toast({ title: "Error", description: "Failed to generate summary.", variant: "destructive" });
-      return null;
-    });
+    try {
+      const [summaryResult, flashcardsResult, mcqsResult] = await Promise.all([
+        generateSummary({ lectureNotes: text }).catch(err => {
+          console.error("Summary generation failed:", err);
+          toast({ title: "Error", description: "Failed to generate summary.", variant: "destructive" });
+          return null;
+        }),
+        generateFlashcards({ text }).catch(err => {
+          console.error("Flashcard generation failed:", err);
+          toast({ title: "Error", description: "Failed to generate flashcards.", variant: "destructive" });
+          return null;
+        }),
+        generateMCQ({ text, difficulty: mcqDifficulty, questionCount: 5 }).catch(err => {
+          console.error("MCQ generation failed:", err);
+          toast({ title: "Error", description: "Failed to generate MCQs.", variant: "destructive" });
+          return null;
+        })
+      ]);
 
-    const flashcardsPromise = generateFlashcards({ text }).catch(err => {
-      console.error("Flashcard generation failed:", err);
-      toast({ title: "Error", description: "Failed to generate flashcards.", variant: "destructive" });
-      return null;
-    });
+      const newContent = {
+        summary: summaryResult,
+        flashcards: flashcardsResult,
+        mcqs: mcqsResult
+      };
 
-    const mcqsPromise = generateMCQ({ text, difficulty: mcqDifficulty }).catch(err => {
-      console.error("MCQ generation failed:", err);
-      toast({ title: "Error", description: "Failed to generate MCQs.", variant: "destructive" });
-      return null;
-    });
-
-    const [summaryResult, flashcardsResult, mcqsResult] = await Promise.all([
-      summaryPromise,
-      flashcardsPromise,
-      mcqsPromise
-    ]);
-
-    const newContent = {
-      summary: summaryResult,
-      flashcards: flashcardsResult,
-      mcqs: mcqsResult
-    };
-
-    if (forAllNotes) {
-      setAllNotesGeneratedContent(newContent);
-      setActiveView('all-notes');
-      setActiveNoteId(null);
-    } else {
-       const finalNoteId = noteIdToUpdate || activeNoteId;
-       if (finalNoteId) {
-          updateNote(finalNoteId, { generatedContent: newContent });
-       }
+      if (forAllNotes) {
+        setAllNotesGeneratedContent(newContent);
+        setActiveView('all-notes');
+        setActiveNoteId(null);
+      } else {
+         const finalNoteId = noteIdToUpdate || activeNoteId;
+         if (finalNoteId) {
+            updateNote(finalNoteId, { generatedContent: newContent });
+         }
+      }
+    } finally {
+        setIsLoading({ summary: false, flashcards: false, mcqs: false });
     }
-
-    setIsLoading({ summary: false, flashcards: false, mcqs: false });
   }
 
   const handleGenerateForCurrentNote = () => {
@@ -269,7 +253,7 @@ export default function SubjectPage() {
       } else if (type === 'flashcards') {
         result = await generateFlashcards({ text: currentText });
       } else if (type === 'mcqs') {
-        result = await generateMCQ({ text: currentText, difficulty: mcqDifficulty });
+        result = await generateMCQ({ text: currentText, difficulty: mcqDifficulty, questionCount: 5 });
       }
       
       const newContent: GeneratedContent = { ...(currentContent as GeneratedContent), [type]: result };
@@ -313,7 +297,7 @@ export default function SubjectPage() {
             
             const { text } = await processPdf({ pdfDataUri });
 
-            const newNote = addNote(file.name.replace('.pdf', ''), text);
+            addNote(file.name.replace('.pdf', ''), text);
             
             toast({
                 title: "PDF Uploaded",
@@ -328,17 +312,15 @@ export default function SubjectPage() {
         toast({ title: "Error", description: "Failed to process the PDF.", variant: "destructive" });
     } finally {
         setIsUploading(false);
-        // Reset file input
         if(fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
 
-  if (isUploading) {
+  if (!isClient) {
     return (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-lg text-muted-foreground">Processing your PDF, please wait...</p>
         </div>
     )
   }
@@ -363,14 +345,14 @@ export default function SubjectPage() {
                 text={activeNote?.text ?? ""}
                 setText={handleSetText}
                 onSubmit={handleGenerateForCurrentNote}
-                isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs}
+                isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs || isUploading}
                 disabled={!activeNoteId}
                 onPdfUpload={handlePdfUpload}
                 fileInputRef={fileInputRef}
+                isUploading={isUploading}
               />
             </div>
             <div className="mt-8 lg:mt-0">
-            {isClient ? (
               <OutputSection
                 content={currentContent ?? { summary: null, flashcards: null, mcqs: null }}
                 isLoading={isLoading}
@@ -379,17 +361,8 @@ export default function SubjectPage() {
                 setMcqDifficulty={setMcqDifficulty}
                 key={isAllNotesView ? ALL_NOTES_ID : activeNoteId} // Re-mount when view changes
                 isAllNotesView={isAllNotesView}
+                subjectName={isAllNotesView ? 'All Notes' : activeNote?.title}
               />
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="h-10 bg-muted w-1/3 rounded-md"></div>
-                  <div className="h-10 bg-muted w-1/3 rounded-md"></div>
-                  <div className="h-10 bg-muted w-1/3 rounded-md"></div>
-                </div>
-                <div className="h-[60vh] bg-muted rounded-md"></div>
-              </div>
-            )}
             </div>
           </div>
         </main>

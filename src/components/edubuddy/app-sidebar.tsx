@@ -21,12 +21,14 @@ import {
   Info,
   PanelLeft,
   BookOpen,
+  PieChart,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
 const menuItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/subjects", label: "Subjects", icon: Library },
+  { href: "/results", label: "Results", icon: PieChart },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/about", label: "About", icon: Info },
 ];
@@ -80,3 +82,5 @@ export default function AppSidebar() {
     </Sidebar>
   );
 }
+
+    
