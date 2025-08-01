@@ -66,6 +66,22 @@ export default function OutputSection({ content, isLoading, onRegenerate }: Outp
     return renderEmptyState();
   }
   
+  const renderSummary = () => {
+    if (!content.summary) return null;
+    const summaryText = content.summary.summary;
+
+    // Split by newline and also handle numbered lists that might not have newlines
+    const points = summaryText.split(/\n|\s(?=\d+\.\s)/).filter(s => s.trim().length > 0);
+
+    return (
+      <ul className="list-disc pl-5 space-y-2 text-base">
+        {points.map((point, index) => (
+          <li key={index}>{point.replace(/^\d+\.\s*/, '').replace(/^- /, '')}</li>
+        ))}
+      </ul>
+    )
+  }
+
   return (
     <Tabs defaultValue="summary" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
@@ -97,11 +113,7 @@ export default function OutputSection({ content, isLoading, onRegenerate }: Outp
                 <Skeleton className="h-5 w-4/5" />
               </div>
             ) : content.summary ? (
-              <ul className="list-disc pl-5 space-y-2 text-base">
-                {content.summary.summary.split('\n').filter(s => s.trim().length > 0).map((point, index) => (
-                  <li key={index}>{point.replace(/^- /, '')}</li>
-                ))}
-              </ul>
+              renderSummary()
             ) : ( <p className="text-muted-foreground text-center pt-16">Generate a summary to see it here.</p> )}
           </CardContent>
         </Card>
