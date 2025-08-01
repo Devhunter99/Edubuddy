@@ -10,7 +10,6 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
-import { StudyTimer } from "@/components/edubuddy/study-timer";
 import McqItem from "@/components/edubuddy/mcq-item";
 import RandomMcqCard from "@/components/edubuddy/random-mcq-card";
 import {
@@ -151,14 +150,7 @@ export default function Home() {
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-center items-center gap-4 sm:gap-8 mb-8">
                     <ShortcutButton href="/subjects" icon={Book} label="Subjects" />
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <ShortcutButton icon={Timer} label="Study Timer" />
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-sm bg-card border-border">
-                             <StudyTimer />
-                        </DialogContent>
-                    </Dialog>
+                    <ShortcutButton href="/study-timer" icon={Timer} label="Study Timer" />
                     <Dialog open={isQuizDialogOpen} onOpenChange={(open) => {
                       if(!open) {
                         // Reset quiz state when dialog closes, unless showing results
@@ -258,11 +250,16 @@ export default function Home() {
                         title="Study Timer"
                         icon={Timer}
                         description="Focus your study sessions."
-                        className="flex flex-col justify-center items-center text-center lg:col-span-1"
+                        className="lg:col-span-1"
                     >
-                       <div className="w-full max-w-xs">
-                         <StudyTimer />
-                       </div>
+                        <p className="text-sm text-muted-foreground mt-2">
+                            Set a timer and get in the zone for a productive study session.
+                        </p>
+                       <Link href="/study-timer" className="mt-4">
+                            <Button variant="outline" className="w-full">
+                                Go to Timer <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
                     </DashboardCard>
 
                     {/* Daily Quiz */}
@@ -323,5 +320,3 @@ export default function Home() {
     </SidebarInset>
   );
 }
-
-    

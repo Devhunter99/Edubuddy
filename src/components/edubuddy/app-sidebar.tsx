@@ -22,6 +22,7 @@ import {
   PanelLeft,
   BookOpen,
   PieChart,
+  Timer,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
@@ -30,6 +31,7 @@ import React from "react";
 const menuItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/subjects", label: "Subjects", icon: Library },
+  { href: "/study-timer", label: "Study Timer", icon: Timer },
   { href: "/results", label: "Results", icon: PieChart },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/about", label: "About", icon: Info },
