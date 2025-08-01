@@ -106,6 +106,26 @@ export default function Home() {
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-foreground mb-6">Dashboard</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {/* Flashcards */}
+                     <DashboardCard
+                        title="Recent Flashcards"
+                        icon={Layers}
+                        description="Review your latest cards."
+                        className="lg:col-span-2"
+                    >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <Card className="bg-card-foreground/5 p-3">
+                               <p className="text-sm font-semibold">What is the powerhouse of the cell?</p>
+                               <p className="text-sm text-muted-foreground mt-1">Mitochondria</p>
+                            </Card>
+                            <Card className="bg-card-foreground/5 p-3">
+                               <p className="text-sm font-semibold">What is 2 + 2?</p>
+                               <p className="text-sm text-muted-foreground mt-1">4</p>
+                            </Card>
+                        </div>
+                         <Button variant="outline" className="w-full mt-4" disabled>View All Flashcards</Button>
+                    </DashboardCard>
+
                     {/* Subjects */}
                     <DashboardCard
                         title="My Subjects"
@@ -188,27 +208,6 @@ export default function Home() {
                         className="lg:col-span-2"
                     >
                       <RandomMcqCard allNotesText={allNotesText} />
-                    </DashboardCard>
-
-
-                    {/* Flashcards */}
-                     <DashboardCard
-                        title="Recent Flashcards"
-                        icon={Layers}
-                        description="Review your latest cards."
-                        className="lg:col-span-2"
-                    >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                            <Card className="bg-card-foreground/5 p-3">
-                               <p className="text-sm font-semibold">What is the powerhouse of the cell?</p>
-                               <p className="text-sm text-muted-foreground mt-1">Mitochondria</p>
-                            </Card>
-                            <Card className="bg-card-foreground/5 p-3">
-                               <p className="text-sm font-semibold">What is 2 + 2?</p>
-                               <p className="text-sm text-muted-foreground mt-1">4</p>
-                            </Card>
-                        </div>
-                         <Button variant="outline" className="w-full mt-4" disabled>View All Flashcards</Button>
                     </DashboardCard>
                 </div>
             </div>
