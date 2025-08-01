@@ -1,24 +1,124 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Book, FileText, Timer, BrainCircuit, Layers, ArrowRight } from "lucide-react";
+import DashboardCard from "@/components/edubuddy/dashboard-card";
+import { StudyTimer } from "@/components/edubuddy/study-timer";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+const useSubjects = () => {
+  const [subjects, setSubjects] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const storedSubjects = localStorage.getItem("subjects");
+        if (storedSubjects) {
+          setSubjects(JSON.parse(storedSubjects));
+        }
+      } catch (error) {
+        console.error("Failed to parse subjects from localStorage", error);
+        setSubjects([]);
+      }
+    }
+  }, []);
+
+  return { subjects };
+};
 
 export default function Home() {
+    const { subjects } = useSubjects();
+
   return (
     <SidebarInset>
       <div className="flex flex-col min-h-screen">
         <AppHeader />
-        <main className="flex flex-col items-center justify-center flex-grow text-center p-4">
-          <h1 className="text-4xl font-bold mb-4">Welcome to EduBuddy</h1>
-          <p className="text-muted-foreground mb-8">
-            Your AI-powered study partner.
-          </p>
-          <Link href="/subjects">
-            <Button size="lg">Let's Get Started</Button>
-          </Link>
+        <main className="flex-grow bg-background p-4 sm:p-6 md:p-8">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-3xl font-bold text-foreground mb-6">Dashboard</h1>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {/* Subjects */}
+                    <DashboardCard
+                        title="My Subjects"
+                        icon={Book}
+                        description="Jump back into your studies."
+                        className="lg:col-span-2"
+                    >
+                        <div className="mt-4 space-y-2">
+                             {subjects.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {subjects.slice(0, 4).map(subject => (
+                                        <Link href={`/subject/${encodeURIComponent(subject)}`} key={subject}>
+                                            <Button variant="secondary" size="sm">{subject}</Button>
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No subjects yet.</p>
+                            )}
+                        </div>
+                         <Link href="/subjects" className="mt-4">
+                            <Button variant="outline" size="sm" className="w-full">
+                                View All Subjects <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </DashboardCard>
+                    
+                    {/* Study Timer */}
+                     <DashboardCard
+                        title="Study Timer"
+                        icon={Timer}
+                        description="Focus your study sessions."
+                        className="flex flex-col justify-center items-center text-center"
+                    >
+                       <div className="w-full max-w-xs">
+                         <StudyTimer />
+                       </div>
+                    </DashboardCard>
+
+                    {/* Daily Quiz */}
+                    <DashboardCard
+                        title="Daily Quiz"
+                        icon={BrainCircuit}
+                        description="Test your knowledge."
+                    >
+                        <p className="text-sm text-muted-foreground mt-2">
+                            A quick quiz based on your recent activity.
+                        </p>
+                        <Button className="w-full mt-4">Start Quiz</Button>
+                    </DashboardCard>
+
+                    {/* Flashcards */}
+                     <DashboardCard
+                        title="Recent Flashcards"
+                        icon={Layers}
+                        description="Review your latest cards."
+                        className="lg:col-span-2"
+                    >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <Card className="bg-card-foreground/5 p-3">
+                               <p className="text-sm font-semibold">What is the powerhouse of the cell?</p>
+                               <p className="text-sm text-muted-foreground mt-1">Mitochondria</p>
+                            </Card>
+                            <Card className="bg-card-foreground/5 p-3">
+                               <p className="text-sm font-semibold">What is 2 + 2?</p>
+                               <p className="text-sm text-muted-foreground mt-1">4</p>
+                            </Card>
+                        </div>
+                         <Button variant="outline" className="w-full mt-4" disabled>View All Flashcards</Button>
+                    </DashboardCard>
+                </div>
+            </div>
         </main>
       </div>
     </SidebarInset>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -22,13 +23,21 @@ export function StudyTimer() {
     } else if (timeRemaining === 0) {
       setIsActive(false);
       // Optional: Add a notification or sound
-      new window.Notification("EduBuddy", { body: "Time's up! Great work." });
+      if (typeof window !== 'undefined' && "Notification" in window && Notification.permission === "granted") {
+        new window.Notification("EduBuddy", { body: "Time's up! Great work." });
+      }
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [isActive, timeRemaining]);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && "Notification" in window) {
+      Notification.requestPermission();
+    }
+  },[])
 
   useEffect(() => {
     setTimeRemaining(duration);
@@ -57,11 +66,10 @@ export function StudyTimer() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <h4 className="font-semibold text-lg font-headline">Study Timer</h4>
-      <p className="text-5xl font-bold font-mono text-primary tabular-nums">
+    <div className="flex flex-col items-center gap-4 py-4">
+      <div className="text-5xl font-bold font-mono text-primary tabular-nums tracking-wider">
         {formatTime(timeRemaining)}
-      </p>
+      </div>
       <div className="flex w-full justify-center gap-2">
         {PRESETS.map((p) => (
           <Button
