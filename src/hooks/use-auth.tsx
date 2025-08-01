@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
@@ -26,16 +26,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
-      if (!user) {
-        // if user is not logged in and not on an auth page, redirect to login
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
-            router.push('/login');
-        }
-      }
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   const googleLogin = () => {
     const provider = new GoogleAuthProvider();

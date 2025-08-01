@@ -31,9 +31,14 @@ import { useRouter } from "next/navigation";
 const useSubjects = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [allNotesText, setAllNotesText] = useState<string>("");
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (isClient) {
       try {
         const storedSubjects = localStorage.getItem("subjects");
         const subjectList: string[] = storedSubjects ? JSON.parse(storedSubjects) : [];
@@ -58,7 +63,7 @@ const useSubjects = () => {
         setSubjects([]);
       }
     }
-  }, []);
+  }, [isClient]);
 
   return { subjects, allNotesText };
 };
@@ -77,13 +82,6 @@ export default function Home() {
     const [quizAnswers, setQuizAnswers] = useState<Record<number, { selected: string; isCorrect: boolean }>>({});
     const [showResults, setShowResults] = useState(false);
 
-    useEffect(() => {
-      if (!loading && !user) {
-        router.push('/login');
-      }
-    }, [user, loading, router]);
-
-
     const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
       setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
     };
@@ -93,6 +91,8 @@ export default function Home() {
     useEffect(() => {
       if (allQuestionsAnswered) {
         setShowResults(true);
+
+        if (!user) return; // Don't save for guests
 
         const newResult: QuizResult = {
           id: `quiz-${Date.now()}`,
@@ -108,10 +108,16 @@ export default function Home() {
         localStorage.setItem('quizHistory', JSON.stringify(history));
 
       }
-    }, [allQuestionsAnswered, dailyQuiz, quizAnswers]);
+    }, [allQuestionsAnswered, dailyQuiz, quizAnswers, user]);
 
 
     const handleGenerateQuiz = async (retake = false) => {
+        if (!user) {
+            toast({ title: "Login Required", description: "Please log in to generate quizzes and save your progress.", variant: "destructive" });
+            router.push('/login');
+            return;
+        }
+
         if (!retake && dailyQuiz) {
              setIsQuizDialogOpen(true);
              return;
@@ -152,7 +158,7 @@ export default function Home() {
         }
     };
 
-  if (loading || !user) {
+  if (loading) {
     return (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -241,11 +247,11 @@ export default function Home() {
                     <DashboardCard
                         title="My Subjects"
                         icon={Book}
-                        description="Jump back into your studies."
+                        description={user ? "Jump back into your studies." : "Log in to save subjects."}
                         className="lg:col-span-2"
                     >
                         <div className="mt-4 space-y-2">
-                             {subjects.length > 0 ? (
+                             {subjects.length > 0 && user ? (
                                 <div className="flex flex-wrap gap-2">
                                     {subjects.slice(0, 4).map(subject => (
                                         <Link href={`/subject/${encodeURIComponent(subject)}`} key={subject}>
@@ -254,7 +260,7 @@ export default function Home() {
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-sm text-muted-foreground">No subjects yet.</p>
+                                <p className="text-sm text-muted-foreground">{user ? "No subjects yet." : "Log in to create and manage subjects."}</p>
                             )}
                         </div>
                          <Link href="/subjects" className="mt-4">
@@ -295,7 +301,7 @@ export default function Home() {
                             <DialogTrigger asChild>
                                 <Button className="w-full mt-4" onClick={() => handleGenerateQuiz()} disabled={isQuizLoading}>
                                      {isQuizLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                     {isQuizLoading ? 'Generating...' : (dailyQuiz ? 'View Quiz' : 'Start Quiz')}
+                                     {isQuizLoading ? 'Generating...' : (dailyQuiz && user ? 'View Quiz' : 'Start Quiz')}
                                 </Button>
                             </DialogTrigger>
                              <DialogContent className="sm:max-w-2xl bg-card border-border">
