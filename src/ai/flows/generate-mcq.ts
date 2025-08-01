@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const GenerateMCQInputSchema = z.object({
   text: z.string().describe('The text to generate MCQs from.'),
+  difficulty: z.enum(['easy', 'normal', 'hard']).describe('The difficulty of the MCQs to generate.'),
 });
 export type GenerateMCQInput = z.infer<typeof GenerateMCQInputSchema>;
 
@@ -38,7 +39,7 @@ const generateMCQPrompt = ai.definePrompt({
   output: {schema: GenerateMCQOutputSchema},
   prompt: `You are an expert educator creating multiple-choice questions from text.
 
-  Create 10 multiple-choice questions from the following text, with four options each.  Mark the correct answer with an asterisk.
+  Create 10 multiple-choice questions from the following text, with four options each. The difficulty of the questions should be {{difficulty}}. Mark the correct answer with an asterisk.
 
   Text: {{{text}}}
 

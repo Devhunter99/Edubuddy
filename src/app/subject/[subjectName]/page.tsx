@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { generateSummary, type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
 import { generateFlashcards, type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
-import { generateMCQ, type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
+import { generateMCQ, type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
 
 import AppHeader from "@/components/edubuddy/app-header";
 import InputSection from "@/components/edubuddy/input-section";
@@ -141,7 +141,8 @@ export default function SubjectPage() {
     flashcards: false,
     mcqs: false,
   });
-  
+  const [mcqDifficulty, setMcqDifficulty] = useState<GenerateMCQInput['difficulty']>('normal');
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -176,7 +177,7 @@ export default function SubjectPage() {
       return null;
     });
 
-    const mcqsPromise = generateMCQ({ text }).catch(err => {
+    const mcqsPromise = generateMCQ({ text, difficulty: mcqDifficulty }).catch(err => {
       console.error("MCQ generation failed:", err);
       toast({ title: "Error", description: "Failed to generate MCQs.", variant: "destructive" });
       return null;
@@ -222,7 +223,7 @@ export default function SubjectPage() {
       } else if (type === 'flashcards') {
         result = await generateFlashcards({ text: currentText });
       } else if (type === 'mcqs') {
-        result = await generateMCQ({ text: currentText });
+        result = await generateMCQ({ text: currentText, difficulty: mcqDifficulty });
       }
       
       const newContent = { ...currentContent, [type]: result };
@@ -278,6 +279,8 @@ export default function SubjectPage() {
                 content={currentContent ?? { summary: null, flashcards: null, mcqs: null }}
                 isLoading={isLoading}
                 onRegenerate={handleRegenerate}
+                mcqDifficulty={mcqDifficulty}
+                setMcqDifficulty={setMcqDifficulty}
                 key={activeNoteId} // Re-mount when note changes
               />
             ) : (

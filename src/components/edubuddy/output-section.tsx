@@ -3,7 +3,7 @@
 
 import { type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
 import { type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
-import { type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
+import { type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Flashcard from "./flashcard";
 import McqItem from "./mcq-item";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
@@ -27,6 +29,8 @@ interface OutputSectionProps {
     mcqs: boolean;
   };
   onRegenerate: (type: keyof GeneratedContent) => void;
+  mcqDifficulty: GenerateMCQInput['difficulty'];
+  setMcqDifficulty: (difficulty: GenerateMCQInput['difficulty']) => void;
 }
 
 const downloadText = (filename: string, text: string) => {
@@ -47,7 +51,7 @@ const formatMcqsForDownload = (mcqs: GenerateMCQOutput['mcqs']) => {
   return mcqs.map((m, i) => `${i + 1}. ${m.question}\n${m.options.map(o => `   - ${o}`).join('\n')}\nCorrect Answer: ${m.correctAnswer}`).join('\n\n');
 };
 
-export default function OutputSection({ content, isLoading, onRegenerate }: OutputSectionProps) {
+export default function OutputSection({ content, isLoading, onRegenerate, mcqDifficulty, setMcqDifficulty }: OutputSectionProps) {
   
   const renderEmptyState = () => (
     <Card className="flex flex-col items-center justify-center min-h-[40vh] text-center p-8 border-dashed">
@@ -161,16 +165,35 @@ export default function OutputSection({ content, isLoading, onRegenerate }: Outp
           <CardContent className="p-0">
              <div className="flex justify-between items-center mb-4 px-1">
               <h3 className="text-lg font-semibold font-headline">Multiple Choice Questions</h3>
-              {content.mcqs && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => onRegenerate('mcqs')} disabled={isLoading.mcqs}>
-                    <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadText('mcqs.txt', formatMcqsForDownload(content.mcqs!.mcqs))}>
-                    <Download className="mr-2 h-4 w-4" /> Download
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="difficulty-select" className="text-sm font-medium">Difficulty:</Label>
+                    <Select
+                      value={mcqDifficulty}
+                      onValueChange={(value) => setMcqDifficulty(value as GenerateMCQInput['difficulty'])}
+                      disabled={isLoading.mcqs}
+                    >
+                      <SelectTrigger id="difficulty-select" className="w-[120px]">
+                        <SelectValue placeholder="Select difficulty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {content.mcqs && (
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => onRegenerate('mcqs')} disabled={isLoading.mcqs}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadText('mcqs.txt', formatMcqsForDownload(content.mcqs!.mcqs))}>
+                        <Download className="mr-2 h-4 w-4" /> Download
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
             </div>
             {isLoading.mcqs ? (
               <div className="space-y-4">
