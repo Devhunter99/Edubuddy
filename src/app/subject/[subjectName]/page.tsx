@@ -319,9 +319,6 @@ export default function SubjectPage() {
                 title: "PDF Uploaded",
                 description: `${file.name} has been added as a new note.`,
             });
-
-            // Auto-generate content for the new note
-            await handleGenerate(text, false, newNote.id);
         };
         reader.onerror = () => {
           throw new Error("Failed to read the file.");
