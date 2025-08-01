@@ -1,7 +1,8 @@
 
 "use client";
 
-import { Bell, BookOpen, Clock, Menu, Settings, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, BookOpen, Clock, Menu, Settings, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,6 +22,13 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const canGoBack = typeof window !== 'undefined' && window.history.length > 1;
+  const isHomePage = pathname === '/';
+
+
   return (
     <header className="border-b bg-card">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
@@ -34,6 +42,16 @@ export default function AppHeader() {
             <Menu className="h-6 w-6" />
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
+          {canGoBack && !isHomePage && (
+             <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.back()}
+              >
+                <ArrowLeft className="h-6 w-6" />
+                <span className="sr-only">Go back</span>
+              </Button>
+          )}
           <BookOpen className="h-7 w-7 text-primary" />
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-headline">
             EduBuddy
