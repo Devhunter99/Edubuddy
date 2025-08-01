@@ -1,3 +1,4 @@
+
 "use client";
 
 import { type Dispatch, type SetStateAction } from "react";
@@ -9,12 +10,13 @@ import { Loader2 } from "lucide-react";
 
 interface InputSectionProps {
   text: string;
-  setText: Dispatch<SetStateAction<string>>;
+  setText: (text: string) => void;
   onSubmit: () => void;
   isLoading: boolean;
+  disabled?: boolean;
 }
 
-export default function InputSection({ text, setText, onSubmit, isLoading }: InputSectionProps) {
+export default function InputSection({ text, setText, onSubmit, isLoading, disabled = false }: InputSectionProps) {
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -30,18 +32,19 @@ export default function InputSection({ text, setText, onSubmit, isLoading }: Inp
           </Label>
           <Textarea
             id="notes-input"
-            placeholder="Paste your notes here..."
+            placeholder={disabled ? "Add or select a note to start." : "Paste your notes here..."}
             value={text}
             onChange={(e) => setText(e.target.value)}
             className="min-h-[40vh] text-base resize-y"
             aria-label="Lecture notes input"
+            disabled={disabled}
           />
         </div>
       </CardContent>
       <CardFooter>
         <Button
           onClick={onSubmit}
-          disabled={isLoading}
+          disabled={isLoading || disabled}
           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
           size="lg"
         >
@@ -54,3 +57,5 @@ export default function InputSection({ text, setText, onSubmit, isLoading }: Inp
     </Card>
   );
 }
+
+    
