@@ -1,8 +1,14 @@
+
 "use client";
 
+import { useState } from "react";
 import { type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface McqItemProps {
   mcq: GenerateMCQOutput["mcqs"][0];
@@ -10,34 +16,87 @@ interface McqItemProps {
 }
 
 export default function McqItem({ mcq, index }: McqItemProps) {
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [isChecked, setIsChecked] = useState(false);
+
+  const handleCheckAnswer = () => {
+    if (selectedAnswer) {
+      setIsChecked(true);
+    }
+  };
+
+  const handleSelectAnswer = (value: string) => {
+    setSelectedAnswer(value);
+    setIsChecked(false);
+  }
+
+  const cleanCorrectAnswer = mcq.correctAnswer.replace(/\*$/, "");
+
+  const getOptionStatus = (option: string) => {
+    if (!isChecked) return "default";
+    const cleanOption = option.replace(/\*$/, "");
+    if (cleanOption === cleanCorrectAnswer) return "correct";
+    if (cleanOption === selectedAnswer) return "incorrect";
+    return "default";
+  };
+  
   return (
-    <AccordionItem value={`item-${index}`}>
-      <AccordionTrigger className="text-left hover:no-underline">
-        <span className="font-semibold mr-2">{index + 1}.</span> {mcq.question}
-      </AccordionTrigger>
-      <AccordionContent>
-        <ul className="space-y-2 pl-4 pt-2">
+    <Card className="shadow-md">
+      <CardContent className="p-4">
+        <p className="font-semibold mb-4">
+          <span className="mr-2">{index + 1}.</span>
+          {mcq.question}
+        </p>
+        <RadioGroup
+          value={selectedAnswer ?? undefined}
+          onValueChange={handleSelectAnswer}
+          className="space-y-2"
+        >
           {mcq.options.map((option, i) => {
-            const isCorrect = option === mcq.correctAnswer;
             const cleanOption = option.replace(/\*$/, "");
+            const status = getOptionStatus(option);
+            const isCorrect = status === 'correct';
+            const isIncorrect = status === 'incorrect';
+
             return (
-              <li
+              <Label
                 key={i}
-                className={`flex items-start gap-2 p-2 rounded-md ${
-                  isCorrect ? "bg-primary/10" : ""
-                }`}
-              >
-                {isCorrect ? (
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                ) : (
-                  <div className="h-5 w-5 shrink-0" />
+                htmlFor={`option-${index}-${i}`}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer",
+                  {
+                    "border-transparent bg-card hover:bg-muted/80": status === "default",
+                    "border-green-500 bg-green-500/10 text-green-800 font-semibold": isCorrect,
+                    "border-red-500 bg-red-500/10 text-red-800 font-semibold": isIncorrect,
+                    "border-muted": status !== 'default',
+                  }
                 )}
+              >
+                <RadioGroupItem
+                  value={cleanOption}
+                  id={`option-${index}-${i}`}
+                  className="shrink-0"
+                  disabled={isChecked}
+                />
                 <span className="flex-grow">{cleanOption}</span>
-              </li>
+                {isCorrect && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
+                {isIncorrect && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
+              </Label>
             );
           })}
-        </ul>
-      </AccordionContent>
-    </AccordionItem>
+        </RadioGroup>
+      </CardContent>
+      <CardFooter className="p-4 justify-end">
+        {!isChecked ? (
+          <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
+            Check Answer
+          </Button>
+        ) : (
+          <Button onClick={() => handleSelectAnswer(selectedAnswer!)} variant="secondary" size="sm">
+            Try Again
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }

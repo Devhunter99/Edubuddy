@@ -1,3 +1,4 @@
+
 "use client";
 
 import { type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
@@ -11,7 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Flashcard from "./flashcard";
 import McqItem from "./mcq-item";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Accordion } from "@/components/ui/accordion";
 
 type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
@@ -145,9 +145,9 @@ export default function OutputSection({ content, isLoading, onRegenerate }: Outp
         </Card>
       </TabsContent>
       <TabsContent value="mcqs">
-        <Card className="min-h-[60vh]">
-          <CardContent className="p-6">
-             <div className="flex justify-between items-center mb-4">
+        <Card className="min-h-[60vh] bg-transparent border-none shadow-none">
+          <CardContent className="p-0">
+             <div className="flex justify-between items-center mb-4 px-1">
               <h3 className="text-lg font-semibold font-headline">Multiple Choice Questions</h3>
               {content.mcqs && (
                 <div className="flex gap-2">
@@ -162,15 +162,19 @@ export default function OutputSection({ content, isLoading, onRegenerate }: Outp
             </div>
             {isLoading.mcqs ? (
               <div className="space-y-4">
-                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
               </div>
             ) : content.mcqs ? (
-              <Accordion type="single" collapsible className="w-full">
+              <div className="space-y-4">
                 {content.mcqs.mcqs.map((mcq, index) => (
                   <McqItem key={index} mcq={mcq} index={index} />
                 ))}
-              </Accordion>
-            ) : ( <p className="text-muted-foreground text-center pt-16">Generate MCQs to see them here.</p> )}
+              </div>
+            ) : ( 
+              <Card className="min-h-[50vh] flex items-center justify-center">
+                <p className="text-muted-foreground text-center">Generate MCQs to see them here.</p>
+              </Card>
+            )}
           </CardContent>
         </Card>
       </TabsContent>
