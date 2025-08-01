@@ -205,7 +205,7 @@ const Sidebar = React.forwardRef<
     }
 
     return (
-        <div
+        <aside
         ref={ref}
         data-state={state}
         data-collapsed={state === 'collapsed'}
@@ -219,7 +219,7 @@ const Sidebar = React.forwardRef<
         {...props}
       >
         {children}
-      </div>
+      </aside>
     )
   }
 )
@@ -230,15 +230,11 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
-  const { state, isMobile } = useSidebar();
-  
   return (
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background transition-[margin-left] duration-300",
-        !isMobile && state === 'expanded' && 'md:ml-[var(--sidebar-width)]',
-        !isMobile && state === 'collapsed' && 'md:ml-[var(--sidebar-width-icon)]',
+        "flex min-h-svh flex-1 flex-col bg-background",
         className
       )}
       {...props}

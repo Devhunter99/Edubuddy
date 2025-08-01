@@ -26,11 +26,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <SidebarProvider>
-          <div className="flex">
-            <AppSidebar />
-            <SidebarInset>
-              {children}
-            </SidebarInset>
+          <AppSidebar />
+          <div className="flex flex-col flex-1">
+            {children}
           </div>
         </SidebarProvider>
         <Toaster />
