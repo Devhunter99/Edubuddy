@@ -19,6 +19,7 @@ export type GenerateHighlightsInput = z.infer<typeof GenerateHighlightsInputSche
 
 const GenerateHighlightsOutputSchema = z.object({
   highlights: z.array(z.string()).describe('An array of up to 10 short, standout highlight points from the text.'),
+  progress: z.string().describe('A short summary of the highlight generation process.'),
 });
 export type GenerateHighlightsOutput = z.infer<typeof GenerateHighlightsOutputSchema>;
 
@@ -36,7 +37,7 @@ const prompt = ai.definePrompt({
 
   Text: {{{text}}}
 
-  Format the output as a JSON object with a 'highlights' field containing an array of strings.
+  Format the output as a JSON object with a 'highlights' field containing an array of strings, and a 'progress' field with a short summary of the generation process.
   `,
 });
 
