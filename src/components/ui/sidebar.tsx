@@ -358,6 +358,11 @@ const SidebarMenuButton = React.forwardRef<
   ) => {
     const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const button = (
       <Comp
@@ -375,6 +380,10 @@ const SidebarMenuButton = React.forwardRef<
         {children}
       </Comp>
     )
+
+    if (!isClient) {
+        return <Skeleton className="h-10 w-full" />;
+    }
 
     if (state === 'expanded' || isMobile) {
       return button;
