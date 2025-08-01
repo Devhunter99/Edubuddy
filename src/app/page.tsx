@@ -4,18 +4,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { generateMCQ, type GenerateMCQOutput, type GenerateMCQInput } from "@/ai/flows/generate-mcq";
-import { generateFlashcards, type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
 import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, FileText, Timer, BrainCircuit, Layers, ArrowRight, Loader2, Shuffle } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
 import { StudyTimer } from "@/components/edubuddy/study-timer";
 import McqItem from "@/components/edubuddy/mcq-item";
 import RandomMcqCard from "@/components/edubuddy/random-mcq-card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +21,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { type Note } from "@/app/subject/[subjectName]/page";
+import HighlightsBanner from "@/components/edubuddy/highlights-banner";
+
 
 const useSubjects = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -67,32 +66,7 @@ export default function Home() {
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
-    const [importantPoint, setImportantPoint] = useState<string | null>(null);
-    const [isPointLoading, setIsPointLoading] = useState(false);
-
-    useEffect(() => {
-        const fetchImportantPoint = async () => {
-            if (!allNotesText.trim()) return;
-
-            setIsPointLoading(true);
-            try {
-                // We'll reuse the flashcard flow but just use the 'question' as the important point.
-                const result = await generateFlashcards({ text: allNotesText });
-                if (result.flashcards.length > 0) {
-                  // Combining question and answer for a more complete point.
-                  setImportantPoint(`${result.flashcards[0].question} ${result.flashcards[0].answer}`);
-                }
-            } catch (error) {
-                console.error("Failed to generate important point:", error);
-            } finally {
-                setIsPointLoading(false);
-            }
-        };
-
-        fetchImportantPoint();
-    }, [allNotesText]);
-
-
+    
     const handleGenerateQuiz = async () => {
         if (!allNotesText.trim()) {
             toast({
@@ -132,18 +106,23 @@ export default function Home() {
         <main className="flex-grow bg-background p-4 sm:p-6 md:p-8">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-foreground mb-6">Dashboard</h1>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {/* Important Point */}
-                     <Card className="lg:col-span-2 shadow-md hover:shadow-primary/20 transition-shadow p-6 flex flex-col justify-center">
-                        {isPointLoading ? (
-                            <Skeleton className="h-24" />
-                        ) : importantPoint ? (
-                           <p className="text-lg font-semibold">{importantPoint}</p>
-                        ) : (
-                            <p className="text-sm text-muted-foreground text-center">Add some notes to see a key point here.</p>
-                        )}
-                    </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    {/* Highlights Banner */}
+                    <div className="md:col-span-2 lg:col-span-4">
+                      <HighlightsBanner allNotesText={allNotesText} />
+                    </div>
 
+                    {/* Random Question */}
+                     <DashboardCard
+                        title="Random Question"
+                        icon={Shuffle}
+                        description="Quick practice."
+                        className="lg:col-span-2"
+                    >
+                      <RandomMcqCard allNotesText={allNotesText} />
+                    </DashboardCard>
+                    
                     {/* Subjects */}
                     <DashboardCard
                         title="My Subjects"
@@ -176,7 +155,7 @@ export default function Home() {
                         title="Study Timer"
                         icon={Timer}
                         description="Focus your study sessions."
-                        className="flex flex-col justify-center items-center text-center"
+                        className="flex flex-col justify-center items-center text-center lg:col-span-1"
                     >
                        <div className="w-full max-w-xs">
                          <StudyTimer />
@@ -188,6 +167,7 @@ export default function Home() {
                         title="Daily Quiz"
                         icon={BrainCircuit}
                         description="Test your knowledge."
+                         className="lg:col-span-1"
                     >
                         <p className="text-sm text-muted-foreground mt-2">
                             A quick quiz based on your recent activity.
@@ -216,16 +196,6 @@ export default function Home() {
                                  </div>
                              </DialogContent>
                         </Dialog>
-                    </DashboardCard>
-                    
-                    {/* Random Question */}
-                     <DashboardCard
-                        title="Random Question"
-                        icon={Shuffle}
-                        description="Quick practice."
-                        className="lg:col-span-2"
-                    >
-                      <RandomMcqCard allNotesText={allNotesText} />
                     </DashboardCard>
                 </div>
             </div>
