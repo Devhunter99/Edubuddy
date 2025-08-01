@@ -1,18 +1,20 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { generateSummary, type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
 import { generateFlashcards, type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
 import { generateMCQ, type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
+import { processPdf } from "@/ai/flows/process-pdf";
 
 import AppHeader from "@/components/edubuddy/app-header";
 import InputSection from "@/components/edubuddy/input-section";
 import OutputSection from "@/components/edubuddy/output-section";
 import NotesToolbar from "@/components/edubuddy/notes-toolbar";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { Loader2 } from "lucide-react";
 
 export type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
@@ -98,16 +100,17 @@ const useSubjectNotes = (subjectName: string) => {
     }
   }
 
-  const addNote = () => {
+  const addNote = (title?: string, text?: string) => {
     const newNote: Note = {
       id: `note-${Date.now()}`,
-      title: `New Note ${notes.length + 1}`,
-      text: '',
+      title: title || `New Note ${notes.length + 1}`,
+      text: text || '',
       generatedContent: { summary: null, flashcards: null, mcqs: null },
     };
     const updatedNotes = [...notes, newNote];
     saveNotes(updatedNotes);
     setActiveNoteId(newNote.id);
+    return newNote;
   };
   
   const updateNote = (noteId: string, updatedFields: Partial<Note>) => {
@@ -153,6 +156,7 @@ export default function SubjectPage() {
   } = useSubjectNotes(subjectName);
   
   const [isClient, setIsClient] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState({
     summary: false,
     flashcards: false,
@@ -160,6 +164,8 @@ export default function SubjectPage() {
   });
   const [mcqDifficulty, setMcqDifficulty] = useState<GenerateMCQInput['difficulty']>('normal');
   const [activeView, setActiveView] = useState<'note' | 'all-notes'>('note');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -285,6 +291,55 @@ export default function SubjectPage() {
     }
   };
 
+  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+        toast({ title: "Invalid File", description: "Please upload a PDF file.", variant: "destructive" });
+        return;
+    }
+
+    setIsUploading(true);
+
+    try {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            const pdfDataUri = reader.result as string;
+            
+            const { text } = await processPdf({ pdfDataUri });
+
+            const newNote = addNote(file.name.replace('.pdf', ''), text);
+            
+            toast({
+                title: "PDF Uploaded",
+                description: `${file.name} has been added as a new note.`,
+            });
+
+            // Auto-generate content for the new note
+            await handleGenerate(text, false);
+        };
+    } catch (error) {
+        console.error("PDF processing failed:", error);
+        toast({ title: "Error", description: "Failed to process the PDF.", variant: "destructive" });
+    } finally {
+        setIsUploading(false);
+        // Reset file input
+        if(fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+
+  if (isUploading) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-lg text-muted-foreground">Processing your PDF, please wait...</p>
+        </div>
+    )
+  }
+
   return (
     <SidebarInset>
     <div className="flex flex-col min-h-screen bg-background font-body">
@@ -294,7 +349,7 @@ export default function SubjectPage() {
               notes={notes}
               activeNoteId={activeNoteId}
               onSelectNote={setActiveNoteId}
-              onAddNote={addNote}
+              onAddNote={() => addNote()}
               onGenerateFromAllNotes={handleGenerateForAllNotes}
               isClient={isClient}
               subjectName={subjectName}
@@ -307,6 +362,8 @@ export default function SubjectPage() {
                 onSubmit={handleGenerateForCurrentNote}
                 isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs}
                 disabled={!activeNoteId}
+                onPdfUpload={handlePdfUpload}
+                fileInputRef={fileInputRef}
               />
             </div>
             <div className="mt-8 lg:mt-0">
