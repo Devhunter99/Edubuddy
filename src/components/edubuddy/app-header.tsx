@@ -2,6 +2,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Bell, BookOpen, Clock, Menu, Settings, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +25,12 @@ export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
+  const [canGoBack, setCanGoBack] = useState(false);
 
-  const canGoBack = typeof window !== 'undefined' && window.history.length > 1;
+  useEffect(() => {
+    setCanGoBack(typeof window !== 'undefined' && window.history.length > 1);
+  }, []);
+
   const isHomePage = pathname === '/';
 
 
