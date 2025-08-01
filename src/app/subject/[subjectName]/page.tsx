@@ -184,7 +184,7 @@ export default function SubjectPage() {
   const currentText = isAllNotesView ? allNotesText : activeNote?.text ?? "";
   const currentContent = isAllNotesView ? allNotesGeneratedContent : activeNote?.generatedContent;
 
-  const handleGenerate = async (text: string, forAllNotes: boolean) => {
+  const handleGenerate = async (text: string, forAllNotes: boolean, noteIdToUpdate?: string) => {
      if (!text.trim()) {
       toast({
         title: "Input required",
@@ -230,8 +230,11 @@ export default function SubjectPage() {
       setAllNotesGeneratedContent(newContent);
       setActiveView('all-notes');
       setActiveNoteId(null);
-    } else if (activeNoteId) {
-       updateNote(activeNoteId, { generatedContent: newContent });
+    } else {
+       const finalNoteId = noteIdToUpdate || activeNoteId;
+       if (finalNoteId) {
+          updateNote(finalNoteId, { generatedContent: newContent });
+       }
     }
 
     setIsLoading({ summary: false, flashcards: false, mcqs: false });
@@ -318,8 +321,11 @@ export default function SubjectPage() {
             });
 
             // Auto-generate content for the new note
-            await handleGenerate(text, false);
+            await handleGenerate(text, false, newNote.id);
         };
+        reader.onerror = () => {
+          throw new Error("Failed to read the file.");
+        }
     } catch (error) {
         console.error("PDF processing failed:", error);
         toast({ title: "Error", description: "Failed to process the PDF.", variant: "destructive" });
@@ -333,7 +339,7 @@ export default function SubjectPage() {
 
   if (isUploading) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
             <p className="text-lg text-muted-foreground">Processing your PDF, please wait...</p>
         </div>
@@ -394,3 +400,5 @@ export default function SubjectPage() {
     </SidebarInset>
   );
 }
+
+    
