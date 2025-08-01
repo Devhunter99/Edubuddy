@@ -15,7 +15,6 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import {
-  BookOpen,
   Home,
   Library,
   Settings,
@@ -44,13 +43,7 @@ export default function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between group-data-[collapsed=false]:gap-2 w-full">
-          <div className="flex items-center gap-2 group-data-[collapsed=true]:justify-center flex-1">
-            <BookOpen className="h-7 w-7 text-primary" />
-            <h1 className="text-2xl font-bold tracking-tight text-foreground font-headline group-data-[collapsed=true]:hidden">
-              EduBuddy
-            </h1>
-          </div>
+        <div className="flex items-center justify-end w-full">
           <Button
               variant="ghost"
               size="icon"
