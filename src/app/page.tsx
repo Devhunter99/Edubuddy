@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
 import { StudyTimer } from "@/components/edubuddy/study-timer";
 import McqItem from "@/components/edubuddy/mcq-item";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { type Note } from "@/app/subject/[subjectName]/page";
 import HighlightsBanner from "@/components/edubuddy/highlights-banner";
+import ShortcutButton from "@/components/edubuddy/shortcut-button";
 
 
 const useSubjects = () => {
@@ -105,7 +106,44 @@ export default function Home() {
         <AppHeader />
         <main className="flex-grow bg-background p-4 sm:p-6 md:p-8">
             <div className="max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold text-foreground mb-6">Dashboard</h1>
+                <div className="flex justify-center items-center gap-4 sm:gap-8 mb-8">
+                    <ShortcutButton href="/subjects" icon={Book} label="Subjects" />
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <ShortcutButton icon={Timer} label="Study Timer" />
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-sm bg-card border-border">
+                             <StudyTimer />
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
+                        <DialogTrigger asChild>
+                           <ShortcutButton icon={BrainCircuit} label="Daily Quiz" onClick={handleGenerateQuiz} />
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl bg-card border-border">
+                            <DialogHeader>
+                                <DialogTitle>Daily Quiz</DialogTitle>
+                            </DialogHeader>
+                                <div className="py-4 max-h-[70vh] overflow-y-auto">
+                                    {isQuizLoading ? (
+                                        <div className="flex justify-center items-center h-40">
+                                            <Loader2 className="h-8 w-8 animate-spin" />
+                                        </div>
+                                    ) : dailyQuiz?.mcqs ? (
+                                        <div className="space-y-4">
+                                            {dailyQuiz.mcqs.map((mcq, index) => (
+                                                <McqItem key={index} mcq={mcq} index={index}/>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p>No quiz generated yet.</p>
+                                    )}
+                                </div>
+                        </DialogContent>
+                    </Dialog>
+                     <ShortcutButton href="/settings" icon={Settings} label="Settings" />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     
                     {/* Highlights Banner */}
