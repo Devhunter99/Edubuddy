@@ -7,4 +7,5 @@ import '@/ai/flows/generate-flashcards.ts';
 import '@/ai/flows/generate-summary.ts';
 import '@/ai/flows/generate-highlights.ts';
 import '@/ai/flows/process-pdf.ts';
+import '@/ai/tools/search.ts';
 

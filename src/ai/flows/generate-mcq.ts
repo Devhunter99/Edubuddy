@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { searchTool } from '../tools/search';
 
 const GenerateMCQInputSchema = z.object({
   text: z.string().describe('The text to generate MCQs from.'),
@@ -38,10 +39,13 @@ const generateMCQPrompt = ai.definePrompt({
   name: 'generateMCQPrompt',
   input: {schema: GenerateMCQInputSchema},
   output: {schema: GenerateMCQOutputSchema},
+  tools: [searchTool],
   prompt: `You are an expert educator creating multiple-choice questions from text.
 
   Create {{questionCount}} multiple-choice questions from the following text, with four options each.
   The difficulty of the questions should be {{difficulty}}.
+
+  If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create better questions.
 
   For each question, provide a 'question' text, an array of four 'options', and a 'correctAnswer' field containing the exact text of the correct option.
   DO NOT put any asterisks or markers in the 'options' array itself.

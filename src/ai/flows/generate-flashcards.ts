@@ -1,4 +1,3 @@
-
 // src/ai/flows/generate-flashcards.ts
 'use server';
 
@@ -12,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { searchTool } from '../tools/search';
 
 const GenerateFlashcardsInputSchema = z.object({
   text: z
@@ -38,10 +38,13 @@ const prompt = ai.definePrompt({
   name: 'generateFlashcardsPrompt',
   input: {schema: GenerateFlashcardsInputSchema},
   output: {schema: GenerateFlashcardsOutputSchema},
+  tools: [searchTool],
   prompt: `You are an expert in generating flashcards and summarizing key information from text.
 
   From the following text, either generate a few question-answer flashcards OR extract a few short, important, standout points.
   If you extract points, use the 'question' field for a short title or the point itself, and the 'answer' field for a brief elaboration.
+
+  If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create better flashcards.
 
   Text: {{{text}}}
 

@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { searchTool } from '../tools/search';
 
 const GenerateSummaryInputSchema = z.object({
   lectureNotes: z
@@ -34,11 +35,14 @@ const prompt = ai.definePrompt({
   name: 'generateSummaryPrompt',
   input: {schema: GenerateSummaryInputSchema},
   output: {schema: GenerateSummaryOutputSchema},
+  tools: [searchTool],
   prompt: `You are an expert summarizer, skilled at extracting the most important information from lecture notes.
 
-  Please provide a concise 4-6 point summary of the following lecture notes:
+  Please provide a concise 4-6 point summary of the following lecture notes.
 
-  {{lectureNotes}}
+  If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create a better summary.
+
+  Lecture Notes: {{lectureNotes}}
 
   Ensure the summary is accurate, comprehensive, and easy to understand. Also respond with a one sentence progress indicator for the user.
   `,

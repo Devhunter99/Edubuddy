@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -11,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { searchTool } from '../tools/search';
 
 const GenerateHighlightsInputSchema = z.object({
   text: z.string().describe('The text to generate highlights from.'),
@@ -31,9 +31,12 @@ const prompt = ai.definePrompt({
   name: 'generateHighlightsPrompt',
   input: {schema: GenerateHighlightsInputSchema},
   output: {schema: GenerateHighlightsOutputSchema},
+  tools: [searchTool],
   prompt: `You are an expert in summarizing key information from text.
 
   From the following text, extract up to 10 short, important, standout points. These should be concise and easy to read quickly. Each point should be a single sentence.
+
+  If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create better highlights.
 
   Text: {{{text}}}
 
