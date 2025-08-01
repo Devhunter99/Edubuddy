@@ -7,7 +7,7 @@ import { type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/genera
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, RefreshCw, FileText, BotMessageSquare, Sparkles, Library } from "lucide-react";
+import { Download, RefreshCw, FileText, BotMessageSquare, Sparkles, Library, CheckCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Flashcard from "./flashcard";
 import McqItem from "./mcq-item";
@@ -64,13 +64,10 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
     setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
   };
-
-  const allQuestionsAnswered = content.mcqs && Object.keys(quizAnswers).length === content.mcqs.mcqs.length;
-
-  useEffect(() => {
-    if (allQuestionsAnswered) {
-      setShowResults(true);
-      const newResult: QuizResult = {
+  
+  const handleShowResults = () => {
+    setShowResults(true);
+    const newResult: QuizResult = {
         id: `quiz-${Date.now()}`,
         subjectName: subjectName,
         timestamp: new Date().toISOString(),
@@ -81,8 +78,15 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
       const history: QuizResult[] = JSON.parse(localStorage.getItem('quizHistory') || '[]');
       history.unshift(newResult);
       localStorage.setItem('quizHistory', JSON.stringify(history));
+  }
+
+  const allQuestionsAnswered = content.mcqs && Object.keys(quizAnswers).length === content.mcqs.mcqs.length;
+
+  useEffect(() => {
+    if (allQuestionsAnswered) {
+      handleShowResults();
     }
-  }, [allQuestionsAnswered, content.mcqs, quizAnswers, subjectName]);
+  }, [allQuestionsAnswered]);
 
   const handleRetakeMcqs = () => {
     setQuizAnswers({});
@@ -257,16 +261,27 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
                   onRetake={handleRetakeMcqs}
               />
             ) : content.mcqs && content.mcqs.mcqs.length > 0 ? (
-              <div className="space-y-4" key={mcqKey}>
-                {content.mcqs.mcqs.map((mcq, index) => (
-                  <McqItem 
-                    key={index} 
-                    mcq={mcq} 
-                    index={index}
-                    onAnswer={handleAnswer} 
-                 />
-                ))}
-              </div>
+              <>
+                <div className="space-y-4" key={mcqKey}>
+                  {content.mcqs.mcqs.map((mcq, index) => (
+                    <McqItem 
+                      key={index} 
+                      mcq={mcq} 
+                      index={index}
+                      onAnswer={handleAnswer} 
+                  />
+                  ))}
+                </div>
+                <div className="mt-6 text-center">
+                    <Button 
+                        onClick={handleShowResults}
+                        disabled={Object.keys(quizAnswers).length === 0}
+                    >
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Show Results
+                    </Button>
+                </div>
+              </>
             ) : ( 
               <Card className="min-h-[50vh] flex items-center justify-center">
                 <p className="text-muted-foreground text-center">Generate MCQs to see them here.</p>
@@ -279,5 +294,3 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
     </>
   );
 }
-
-    
