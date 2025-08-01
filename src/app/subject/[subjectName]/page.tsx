@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { generateSummary, type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
@@ -70,12 +70,18 @@ export default function SubjectPage() {
   const subjectName = decodeURIComponent(params.subjectName as string);
 
   const { text, setText, generatedContent, setGeneratedContent } = useSubjectData(subjectName);
+  const [isClient, setIsClient] = useState(false);
+
 
   const [isLoading, setIsLoading] = useState({
     summary: false,
     flashcards: false,
     mcqs: false,
   });
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleGenerateAll = async () => {
     if (!text.trim()) {
@@ -172,11 +178,22 @@ export default function SubjectPage() {
             />
           </div>
           <div className="mt-8 lg:mt-0">
+          {isClient ? (
             <OutputSection
               content={generatedContent}
               isLoading={isLoading}
               onRegenerate={handleRegenerate}
             />
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="h-10 bg-muted w-1/3 rounded-md"></div>
+                <div className="h-10 bg-muted w-1/3 rounded-md"></div>
+                <div className="h-10 bg-muted w-1/3 rounded-md"></div>
+              </div>
+              <div className="h-[60vh] bg-muted rounded-md"></div>
+            </div>
+          )}
           </div>
         </div>
       </main>
