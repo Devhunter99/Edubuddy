@@ -11,7 +11,7 @@ import { generateMCQ, type GenerateMCQInput, type GenerateMCQOutput } from "@/ai
 import AppHeader from "@/components/edubuddy/app-header";
 import InputSection from "@/components/edubuddy/input-section";
 import OutputSection from "@/components/edubuddy/output-section";
-import NotesSidebar from "@/components/edubuddy/notes-sidebar";
+import NotesToolbar from "@/components/edubuddy/notes-toolbar";
 import { SidebarInset } from "@/components/ui/sidebar";
 
 export type GeneratedContent = {
@@ -289,18 +289,17 @@ export default function SubjectPage() {
     <SidebarInset>
     <div className="flex flex-col min-h-screen bg-background font-body">
       <AppHeader />
-      <div className="flex flex-1">
-        <NotesSidebar
-          notes={notes}
-          activeNoteId={activeNoteId}
-          onSelectNote={setActiveNoteId}
-          onAddNote={addNote}
-          onGenerateFromAllNotes={handleGenerateForAllNotes}
-          isClient={isClient}
-          subjectName={subjectName}
-        />
-        <main className="flex-grow p-4 md:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12">
+        <main className="flex-grow container mx-auto p-4 md:p-8">
+           <NotesToolbar
+              notes={notes}
+              activeNoteId={activeNoteId}
+              onSelectNote={setActiveNoteId}
+              onAddNote={addNote}
+              onGenerateFromAllNotes={handleGenerateForAllNotes}
+              isClient={isClient}
+              subjectName={subjectName}
+            />
+          <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12 mt-6">
             <div className="lg:max-w-xl xl:max-w-2xl">
               <InputSection
                 text={activeNote?.text ?? ""}
@@ -334,7 +333,6 @@ export default function SubjectPage() {
             </div>
           </div>
         </main>
-      </div>
     </div>
     </SidebarInset>
   );
