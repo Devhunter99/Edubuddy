@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BookOpen, Clock, Settings, User } from "lucide-react";
+import { Bell, BookOpen, Clock, Menu, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,12 +16,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { StudyTimer } from "./study-timer";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function AppHeader() {
+  const { toggleSidebar } = useSidebar();
   return (
     <header className="border-b bg-card">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="md:hidden"
+          >
+            <Menu className="h-6 w-6" />
+            <span className="sr-only">Toggle Sidebar</span>
+          </Button>
           <BookOpen className="h-7 w-7 text-primary" />
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-headline">
             EduBuddy

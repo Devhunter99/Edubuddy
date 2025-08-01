@@ -1,14 +1,22 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { PlusCircle, FileText, Library, Trash2, Sparkles } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarSeparator,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+import { PlusCircle, FileText, Sparkles, BookOpen } from "lucide-react";
 import { type Note } from "@/app/subject/[subjectName]/page";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
+import Link from "next/link";
 
 interface NotesSidebarProps {
   notes: Note[];
@@ -17,10 +25,18 @@ interface NotesSidebarProps {
   onAddNote: () => void;
   onGenerateFromAllNotes: () => void;
   isClient: boolean;
+  subjectName: string;
 }
 
-export default function NotesSidebar({ notes, activeNoteId, onSelectNote, onAddNote, onGenerateFromAllNotes, isClient }: NotesSidebarProps) {
-  
+export default function NotesSidebar({
+  notes,
+  activeNoteId,
+  onSelectNote,
+  onAddNote,
+  onGenerateFromAllNotes,
+  isClient,
+  subjectName,
+}: NotesSidebarProps) {
   const renderNoteList = () => {
     if (!isClient) {
       return (
@@ -31,63 +47,59 @@ export default function NotesSidebar({ notes, activeNoteId, onSelectNote, onAddN
         </div>
       );
     }
-    
+
     if (notes.length > 0) {
-      return notes.map(note => (
-        <button
-          key={note.id}
-          onClick={() => onSelectNote(note.id)}
-          className={cn(
-            "w-full text-left p-3 rounded-md transition-colors flex items-center gap-3",
-            activeNoteId === note.id ? "bg-primary/90 text-primary-foreground" : "hover:bg-muted"
-          )}
-        >
-          <FileText className="h-5 w-5 shrink-0" />
-          <span className="truncate flex-grow">{note.title}</span>
-        </button>
+      return notes.map((note) => (
+        <SidebarMenuItem key={note.id}>
+          <SidebarMenuButton
+            onClick={() => onSelectNote(note.id)}
+            isActive={activeNoteId === note.id}
+            className="w-full justify-start"
+          >
+            <FileText />
+            <span className="truncate flex-grow">{note.title}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       ));
     }
 
     return (
-       <p className="text-sm text-muted-foreground text-center py-4">
+      <p className="text-sm text-muted-foreground text-center py-4 px-2">
         No notes yet. Add one to get started!
       </p>
     );
   };
-  
+
   return (
-    <Card className="shadow-lg h-fit">
-      <CardHeader>
-        <CardTitle className="font-headline text-xl flex justify-between items-center">
-          <span>Notes</span>
-          <Button size="sm" onClick={onAddNote}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Note
-          </Button>
-        </CardTitle>
-        <CardDescription>
-          Your notes for this subject.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="h-[52vh] px-6">
-            {renderNoteList()}
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-2">
+           <BookOpen className="h-6 w-6 text-primary" />
+           <h3 className="font-semibold text-lg truncate">{subjectName}</h3>
+        </div>
+        <Button size="sm" onClick={onAddNote} className="w-full">
+          <PlusCircle className="mr-2" />
+          Add Note
+        </Button>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <ScrollArea className="h-full">
+          <SidebarMenu>{renderNoteList()}</SidebarMenu>
         </ScrollArea>
-      </CardContent>
-      <CardFooter className="flex-col p-4 gap-2">
-          <Separator className="mb-2" />
-          <Button 
-            className="w-full"
-            onClick={onGenerateFromAllNotes}
-            disabled={!isClient || notes.length === 0}
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            Generate from All Notes
-          </Button>
-          <p className="text-xs text-center text-muted-foreground mt-1">
-            Generate materials from all notes in this subject combined.
-          </p>
-      </CardFooter>
-    </Card>
+      </SidebarContent>
+
+      <SidebarFooter className="flex-col p-2 gap-2">
+        <SidebarSeparator />
+        <Button
+          className="w-full"
+          onClick={onGenerateFromAllNotes}
+          disabled={!isClient || notes.length === 0}
+        >
+          <Sparkles className="mr-2" />
+          Generate from All Notes
+        </Button>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

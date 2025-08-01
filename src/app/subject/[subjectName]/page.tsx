@@ -12,6 +12,7 @@ import AppHeader from "@/components/edubuddy/app-header";
 import InputSection from "@/components/edubuddy/input-section";
 import OutputSection from "@/components/edubuddy/output-section";
 import NotesSidebar from "@/components/edubuddy/notes-sidebar";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 export type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
@@ -285,19 +286,20 @@ export default function SubjectPage() {
   };
 
   return (
+    <SidebarInset>
     <div className="flex flex-col min-h-screen bg-background font-body">
       <AppHeader />
-      <main className="flex-grow container mx-auto p-4 md:p-8">
-        <h2 className="text-3xl font-bold mb-4 font-headline">{subjectName}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr] gap-8">
-          <NotesSidebar
-            notes={notes}
-            activeNoteId={activeNoteId}
-            onSelectNote={setActiveNoteId}
-            onAddNote={addNote}
-            onGenerateFromAllNotes={handleGenerateForAllNotes}
-            isClient={isClient}
-          />
+      <div className="flex flex-1">
+        <NotesSidebar
+          notes={notes}
+          activeNoteId={activeNoteId}
+          onSelectNote={setActiveNoteId}
+          onAddNote={addNote}
+          onGenerateFromAllNotes={handleGenerateForAllNotes}
+          isClient={isClient}
+          subjectName={subjectName}
+        />
+        <main className="flex-grow p-4 md:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12">
             <div className="lg:max-w-xl xl:max-w-2xl">
               <InputSection
@@ -331,8 +333,9 @@ export default function SubjectPage() {
             )}
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
+    </SidebarInset>
   );
 }
