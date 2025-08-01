@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import {
   BookOpen,
@@ -43,46 +44,31 @@ export default function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <BookOpen className="h-7 w-7 text-primary" />
-                <h1
-                    className="text-2xl font-bold tracking-tight text-foreground font-headline group-data-[collapsed=true]:hidden"
-                >
-                    EduBuddy
-                </h1>
-            </div>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="group-data-[collapsed=true]:hidden"
-                onClick={toggleSidebar}
-                >
-                <PanelLeft
-                    className="transition-transform duration-300 h-5 w-5"
-                    style={{
-                    transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
-                    }}
-                />
-                 <span className="sr-only">Collapse</span>
-            </Button>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="hidden group-data-[collapsed=true]:flex"
-                onClick={toggleSidebar}
-                >
-                <PanelLeft
-                    className="transition-transform duration-300 h-5 w-5"
-                    style={{
-                    transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
-                    }}
-                />
-                <span className="sr-only">Expand</span>
-            </Button>
+        <div className="flex items-center justify-center group-data-[collapsed=false]:justify-start group-data-[collapsed=false]:gap-2">
+          <BookOpen className="h-7 w-7 text-primary" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground font-headline group-data-[collapsed=true]:hidden">
+            EduBuddy
+          </h1>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
+        <div className="flex p-2 group-data-[collapsed=false]:justify-end group-data-[collapsed=true]:justify-center">
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                >
+                <PanelLeft
+                    className="transition-transform duration-300 h-5 w-5"
+                    style={{
+                    transform: state === "expanded" ? "rotate(180deg)" : "rotate(0deg)",
+                    }}
+                />
+                 <span className="sr-only">Toggle Sidebar</span>
+            </Button>
+        </div>
+        <SidebarSeparator />
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
