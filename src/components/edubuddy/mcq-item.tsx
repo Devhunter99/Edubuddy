@@ -41,16 +41,17 @@ export default function McqItem({ mcq, index }: McqItemProps) {
   };
   
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md bg-card border-border">
       <CardContent className="p-4">
         <p className="font-semibold mb-4">
-          <span className="mr-2">{index + 1}.</span>
+          <span className="mr-2 font-bold">{index + 1}.</span>
           {mcq.question}
         </p>
         <RadioGroup
           value={selectedAnswer ?? undefined}
           onValueChange={handleSelectAnswer}
           className="space-y-2"
+          disabled={isChecked}
         >
           {mcq.options.map((option, i) => {
             const cleanOption = option.replace(/\*$/, "");
@@ -63,12 +64,13 @@ export default function McqItem({ mcq, index }: McqItemProps) {
                 key={i}
                 htmlFor={`option-${index}-${i}`}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer",
+                  "flex items-center gap-3 p-3 rounded-lg border-2 transition-all",
+                  "border-transparent bg-muted/50",
+                  !isChecked && "cursor-pointer hover:bg-muted/80",
+                  isChecked && "cursor-default",
                   {
-                    "border-transparent bg-card hover:bg-muted/80": status === "default",
-                    "border-green-500 bg-green-500/10 text-green-800 font-semibold": isCorrect,
-                    "border-red-500 bg-red-500/10 text-red-800 font-semibold": isIncorrect,
-                    "border-muted": status !== 'default',
+                    "border-green-500 bg-green-500/10 text-foreground font-semibold": isCorrect,
+                    "border-red-500 bg-red-500/10 text-foreground font-semibold": isIncorrect,
                   }
                 )}
               >
@@ -76,7 +78,6 @@ export default function McqItem({ mcq, index }: McqItemProps) {
                   value={cleanOption}
                   id={`option-${index}-${i}`}
                   className="shrink-0"
-                  disabled={isChecked}
                 />
                 <span className="flex-grow">{cleanOption}</span>
                 {isCorrect && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
@@ -86,17 +87,14 @@ export default function McqItem({ mcq, index }: McqItemProps) {
           })}
         </RadioGroup>
       </CardContent>
-      <CardFooter className="p-4 justify-end">
-        {!isChecked ? (
-          <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
-            Check Answer
-          </Button>
-        ) : (
-          <Button onClick={() => handleSelectAnswer(selectedAnswer!)} variant="secondary" size="sm">
-            Try Again
-          </Button>
-        )}
-      </CardFooter>
+      {!isChecked && (
+        <CardFooter className="p-4 pt-0 justify-end">
+            <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
+              Check Answer
+            </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
+

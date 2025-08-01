@@ -9,10 +9,11 @@ import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, FileText, Timer, BrainCircuit, Layers, ArrowRight, Loader2 } from "lucide-react";
+import { Book, FileText, Timer, BrainCircuit, Layers, ArrowRight, Loader2, Shuffle } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
 import { StudyTimer } from "@/components/edubuddy/study-timer";
 import McqItem from "@/components/edubuddy/mcq-item";
+import RandomMcqCard from "@/components/edubuddy/random-mcq-card";
 import {
   Dialog,
   DialogContent,
@@ -81,7 +82,7 @@ export default function Home() {
                 text: allNotesText,
                 difficulty: 'normal',
                 questionCount: 5,
-            } as any); // questionCount is not in schema but it is a valid param
+            });
             setDailyQuiz(quiz);
             setIsQuizDialogOpen(true);
         } catch (error) {
@@ -178,6 +179,17 @@ export default function Home() {
                              </DialogContent>
                         </Dialog>
                     </DashboardCard>
+                    
+                    {/* Random Question */}
+                     <DashboardCard
+                        title="Random Question"
+                        icon={Shuffle}
+                        description="Quick practice."
+                        className="lg:col-span-2"
+                    >
+                      <RandomMcqCard allNotesText={allNotesText} />
+                    </DashboardCard>
+
 
                     {/* Flashcards */}
                      <DashboardCard
