@@ -11,7 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import pdf from 'pdf-parse';
+// Note: pdf-parse is imported dynamically inside the flow to avoid bundling issues.
 
 const ProcessPdfInputSchema = z.object({
   pdfDataUri: z
@@ -39,6 +39,7 @@ const processPdfFlow = ai.defineFlow(
     outputSchema: ProcessPdfOutputSchema,
   },
   async (input) => {
+    const pdf = (await import('pdf-parse')).default;
     const base64Data = input.pdfDataUri.split(',')[1];
     const pdfBuffer = Buffer.from(base64Data, 'base64');
     
