@@ -66,6 +66,20 @@ export default function AppSidebar() {
                 />
                  <span className="sr-only">Collapse</span>
             </Button>
+            <Button
+                variant="ghost"
+                size="icon"
+                className="hidden group-data-[collapsed=true]:flex"
+                onClick={toggleSidebar}
+                >
+                <PanelLeft
+                    className="transition-transform duration-300 h-5 w-5"
+                    style={{
+                    transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
+                    }}
+                />
+                <span className="sr-only">Expand</span>
+            </Button>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -86,19 +100,6 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-2 hidden group-data-[collapsed=true]:flex group-data-[collapsed=true]:justify-center"
-          onClick={toggleSidebar}
-        >
-          <PanelLeft
-            className="transition-transform duration-300 h-5 w-5"
-            style={{
-              transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
-            }}
-          />
-          <span className="sr-only">Expand</span>
-        </Button>
       </SidebarFooter>
     </Sidebar>
   );
