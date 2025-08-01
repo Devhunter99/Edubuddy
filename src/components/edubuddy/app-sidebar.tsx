@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
+import React from "react";
 
 const menuItems = [
   { href: "/", label: "Home", icon: Home },
@@ -37,6 +38,11 @@ const menuItems = [
 export default function AppSidebar() {
   const pathname = usePathname();
   const { toggleSidebar, isMobile } = useSidebar();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -78,7 +84,7 @@ export default function AppSidebar() {
   return (
     <Sidebar>
        <SidebarHeader>
-        {isMobile ? mobileHeader : desktopHeader}
+        {isClient && isMobile ? mobileHeader : desktopHeader}
       </SidebarHeader>
 
       <SidebarContent>
