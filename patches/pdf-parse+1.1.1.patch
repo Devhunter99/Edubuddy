@@ -1,0 +1,56 @@
+diff --git a/node_modules/pdf-parse/lib/pdf.js b/node_modules/pdf-parse/lib/pdf.js
+index 2356149..3a4a04d 100644
+--- a/node_modules/pdf-parse/lib/pdf.js
++++ b/node_modules/pdf-parse/lib/pdf.js
+@@ -10,7 +10,7 @@
+ 'use strict';
+ 
+ const { getDocument, PDFDataRangeTransport, shadow } = require('pdfjs-dist/legacy/build/pdf.js');
+-const { Util } = require('pdfjs-dist/legacy/build/pdf.js').shared;
++// const { Util } = require('pdfjs-dist/legacy/build/pdf.js').shared;
+ const { createValidAbsoluteUrl } = require('pdfjs-dist/legacy/build/pdf.js').web;
+ const { DOMParser } = require('@xmldom/xmldom');
+ const { pdffont } = require('./pdffont.js');
+@@ -21,7 +21,7 @@
+ 
+ shadow(global, 'DOMParser', DOMParser);
+ 
+-let PDFJS = {};
++// let PDFJS = {};
+ 
+ //see https://github.com/mozilla/pdf.js/issues/15728
+ function DOMCanvasFactory(options) {}
+@@ -148,7 +148,7 @@ class PDFJSClass {
+     	let textContent = await page.getTextContent();
+     	let lastY, text = '',
+ 			roman = { "romans": [], "text": [] };
+-		let line_text = [];
++		// let line_text = [];
+ 
+ 		// let TBF = {
+ 		// 	page: [],
+@@ -207,17 +207,17 @@ class PDFJSClass {
+ 				// TBF.page.push(TBF.line);
+ 			}
+ 			if(item.str?.length){
+-				line_text.push(item.str);
++				// line_text.push(item.str);
+ 			}
+ 		}
+ 
+-		if (line_text.length) {
+-			this.#ProcessLine(line_text, roman);
+-			this.#ParseResult(roman, text);
+-		}
++		// if (line_text.length) {
++		// 	this.#ProcessLine(line_text, roman);
++		// 	this.#ParseResult(roman, text);
++		// }
+ 		
+-		TBF.page.push(TBF.line);
+-		TBF.text = text;
++		// TBF.page.push(TBF.line);
++		// TBF.text = text;
+ 		
+     	return TBF;
+     }
