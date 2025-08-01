@@ -206,7 +206,7 @@ const Sidebar = React.forwardRef<
 
     return (
         <aside
-        ref={ref}
+        ref={ref as React.Ref<HTMLElement>}
         data-state={state}
         data-collapsed={state === 'collapsed'}
         data-side={side}

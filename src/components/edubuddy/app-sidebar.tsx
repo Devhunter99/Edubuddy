@@ -46,7 +46,7 @@ export default function AppSidebar() {
         <div className="flex items-center gap-2">
           <BookOpen className="h-7 w-7 text-primary" />
           <h1
-            className="text-2xl font-bold tracking-tight text-foreground font-headline group-data-[collapsed]:hidden"
+            className="text-2xl font-bold tracking-tight text-foreground font-headline group-data-[collapsed=true]:hidden"
           >
             EduBuddy
           </h1>
@@ -62,7 +62,7 @@ export default function AppSidebar() {
                   tooltip={item.label}
                 >
                   <item.icon className="h-5 w-5" />
-                  <span className="group-data-[collapsed]:hidden">{item.label}</span>
+                  <span className="group-data-[collapsed=true]:hidden">{item.label}</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -81,7 +81,7 @@ export default function AppSidebar() {
               transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
             }}
           />
-          <span className="group-data-[collapsed]:hidden">Collapse</span>
+          <span className="group-data-[collapsed=true]:hidden">Collapse</span>
         </Button>
       </SidebarFooter>
     </Sidebar>
