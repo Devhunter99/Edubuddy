@@ -79,7 +79,7 @@ export default function NotesSidebar({ notes, activeNoteId, onSelectNote, onAddN
           <Button 
             className="w-full"
             onClick={onGenerateFromAllNotes}
-            disabled={notes.length === 0}
+            disabled={!isClient || notes.length === 0}
           >
             <Sparkles className="mr-2 h-4 w-4" />
             Generate from All Notes
