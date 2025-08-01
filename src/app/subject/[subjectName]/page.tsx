@@ -259,6 +259,7 @@ export default function SubjectPage() {
             onSelectNote={setActiveNoteId}
             onAddNote={addNote}
             allNotesId={ALL_NOTES_ID}
+            isClient={isClient}
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12">
             <div className="lg:max-w-xl xl:max-w-2xl">
@@ -296,5 +297,3 @@ export default function SubjectPage() {
     </div>
   );
 }
-
-    
