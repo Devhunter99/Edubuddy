@@ -3,29 +3,50 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { generateMCQ, type GenerateMCQOutput, type GenerateMCQInput } from "@/ai/flows/generate-mcq";
+import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, FileText, Timer, BrainCircuit, Layers, ArrowRight } from "lucide-react";
+import { Book, FileText, Timer, BrainCircuit, Layers, ArrowRight, Loader2 } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
 import { StudyTimer } from "@/components/edubuddy/study-timer";
+import McqItem from "@/components/edubuddy/mcq-item";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { type Note } from "@/app/subject/[subjectName]/page";
 
 const useSubjects = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [allNotesText, setAllNotesText] = useState<string>("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
         const storedSubjects = localStorage.getItem("subjects");
-        if (storedSubjects) {
-          setSubjects(JSON.parse(storedSubjects));
-        }
+        const subjectList: string[] = storedSubjects ? JSON.parse(storedSubjects) : [];
+        setSubjects(subjectList);
+
+        const allText = subjectList.map(subjectName => {
+            const notesRaw = localStorage.getItem(subjectName);
+            if (notesRaw) {
+                try {
+                    const notes: Note[] = JSON.parse(notesRaw);
+                    return notes.map(note => `## ${note.title}\n\n${note.text}`).join('\n\n---\n\n');
+                } catch {
+                    return '';
+                }
+            }
+            return '';
+        }).join('\n\n');
+        setAllNotesText(allText);
+
       } catch (error) {
         console.error("Failed to parse subjects from localStorage", error);
         setSubjects([]);
@@ -33,11 +54,48 @@ const useSubjects = () => {
     }
   }, []);
 
-  return { subjects };
+  return { subjects, allNotesText };
 };
 
+
 export default function Home() {
-    const { subjects } = useSubjects();
+    const { subjects, allNotesText } = useSubjects();
+    const { toast } = useToast();
+    const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
+    const [isQuizLoading, setIsQuizLoading] = useState(false);
+    const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
+
+    const handleGenerateQuiz = async () => {
+        if (!allNotesText.trim()) {
+            toast({
+                title: "No notes found",
+                description: "Please add some notes to your subjects to generate a quiz.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsQuizLoading(true);
+        try {
+            const quiz = await generateMCQ({
+                text: allNotesText,
+                difficulty: 'normal',
+                questionCount: 5,
+            } as any); // questionCount is not in schema but it is a valid param
+            setDailyQuiz(quiz);
+            setIsQuizDialogOpen(true);
+        } catch (error) {
+            console.error("Failed to generate quiz:", error);
+            toast({
+                title: "Error generating quiz",
+                description: "Something went wrong. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsQuizLoading(false);
+        }
+    };
+
 
   return (
     <SidebarInset>
@@ -95,7 +153,30 @@ export default function Home() {
                         <p className="text-sm text-muted-foreground mt-2">
                             A quick quiz based on your recent activity.
                         </p>
-                        <Button className="w-full mt-4">Start Quiz</Button>
+                         <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="w-full mt-4" onClick={handleGenerateQuiz} disabled={isQuizLoading}>
+                                     {isQuizLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                     {isQuizLoading ? 'Generating...' : (dailyQuiz ? 'Retake Quiz' : 'Start Quiz')}
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent className="sm:max-w-2xl bg-card border-border">
+                                <DialogHeader>
+                                    <DialogTitle>Daily Quiz</DialogTitle>
+                                </DialogHeader>
+                                 <div className="py-4 max-h-[70vh] overflow-y-auto">
+                                     {dailyQuiz?.mcqs ? (
+                                         <div className="space-y-4">
+                                             {dailyQuiz.mcqs.map((mcq, index) => (
+                                                 <McqItem key={index} mcq={mcq} index={index}/>
+                                             ))}
+                                         </div>
+                                     ) : (
+                                         <p>No quiz generated yet.</p>
+                                     )}
+                                 </div>
+                             </DialogContent>
+                        </Dialog>
                     </DashboardCard>
 
                     {/* Flashcards */}
