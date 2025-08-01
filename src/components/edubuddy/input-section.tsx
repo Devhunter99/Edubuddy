@@ -14,13 +14,11 @@ interface InputSectionProps {
   onSubmit: () => void;
   isLoading: boolean;
   disabled?: boolean;
-  isAllNotesView?: boolean;
 }
 
-export default function InputSection({ text, setText, onSubmit, isLoading, disabled = false, isAllNotesView = false }: InputSectionProps) {
+export default function InputSection({ text, setText, onSubmit, isLoading, disabled = false }: InputSectionProps) {
   const getPlaceholder = () => {
     if (disabled) return "Add or select a note to start.";
-    if (isAllNotesView) return "This is a read-only view of all your notes combined.";
     return "Paste your notes here...";
   }
   
@@ -28,19 +26,16 @@ export default function InputSection({ text, setText, onSubmit, isLoading, disab
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">
-          {isAllNotesView ? "All Notes" : "Your Notes"}
+          Your Notes
         </CardTitle>
         <CardDescription>
-          {isAllNotesView 
-            ? "Generate study materials from all notes in this subject."
-            : "Paste your lecture notes below. PDF upload coming soon!"
-          }
+          Paste your lecture notes below. PDF upload coming soon!
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid w-full gap-2">
           <Label htmlFor="notes-input" className="sr-only">
-            {isAllNotesView ? "All Notes" : "Lecture Notes"}
+            Lecture Notes
           </Label>
           <Textarea
             id="notes-input"
@@ -49,8 +44,7 @@ export default function InputSection({ text, setText, onSubmit, isLoading, disab
             onChange={(e) => setText(e.target.value)}
             className="min-h-[40vh] text-base resize-y"
             aria-label="Lecture notes input"
-            disabled={disabled || isAllNotesView}
-            readOnly={isAllNotesView}
+            disabled={disabled}
           />
         </div>
       </CardContent>

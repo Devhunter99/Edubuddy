@@ -61,9 +61,18 @@ const useSubjectNotes = (subjectName: string) => {
   const [notes, setNotesState] = useState<Note[]>(getInitialNotes);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   
-  // State for content generated from all notes
-  const [allNotesGeneratedContent, setAllNotesGeneratedContent] = useState<GeneratedContent>({ summary: null, flashcards: null, mcqs: null });
+  const getInitialAllNotesContent = (): GeneratedContent => {
+     if (typeof window === 'undefined') return { summary: null, flashcards: null, mcqs: null };
+     try {
+       const item = localStorage.getItem(`${subjectName}_${ALL_NOTES_ID}_content`);
+       return item ? JSON.parse(item) : { summary: null, flashcards: null, mcqs: null };
+     } catch (error) {
+        console.error(`Error reading all notes content from localStorage`, error);
+        return { summary: null, flashcards: null, mcqs: null };
+     }
+  };
 
+  const [allNotesGeneratedContent, setAllNotesGeneratedContent] = useState<GeneratedContent>(getInitialAllNotesContent);
 
    useEffect(() => {
     if (notes.length > 0 && !activeNoteId) {
@@ -80,6 +89,13 @@ const useSubjectNotes = (subjectName: string) => {
       localStorage.setItem(subjectName, JSON.stringify(newNotes));
     }
   };
+  
+  const saveAllNotesContent = (content: GeneratedContent) => {
+    setAllNotesGeneratedContent(content);
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(`${subjectName}_${ALL_NOTES_ID}_content`, JSON.stringify(content));
+    }
+  }
 
   const addNote = () => {
     const newNote: Note = {
@@ -113,7 +129,7 @@ const useSubjectNotes = (subjectName: string) => {
     updateNote,
     allNotesText,
     allNotesGeneratedContent,
-    setAllNotesGeneratedContent,
+    setAllNotesGeneratedContent: saveAllNotesContent,
   };
 }
 
@@ -142,17 +158,27 @@ export default function SubjectPage() {
     mcqs: false,
   });
   const [mcqDifficulty, setMcqDifficulty] = useState<GenerateMCQInput['difficulty']>('normal');
+  const [activeView, setActiveView] = useState<'note' | 'all-notes'>('note');
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if(notes.length > 0 && !activeNoteId){
+      setActiveNoteId(notes[0].id)
+    }
+  }, [notes, activeNoteId]);
+  
+  useEffect(() => {
+    if (activeNoteId) {
+      setActiveView('note');
+    }
+  }, [activeNoteId]);
 
-  const isAllNotesView = activeNoteId === ALL_NOTES_ID;
+  const isAllNotesView = activeView === 'all-notes';
   const currentText = isAllNotesView ? allNotesText : activeNote?.text ?? "";
   const currentContent = isAllNotesView ? allNotesGeneratedContent : activeNote?.generatedContent;
 
-  const handleGenerateAll = async () => {
-    if (!currentText.trim()) {
+  const handleGenerate = async (text: string, forAllNotes: boolean) => {
+     if (!text.trim()) {
       toast({
         title: "Input required",
         description: "Please select a note with text or add some notes to the subject.",
@@ -162,8 +188,6 @@ export default function SubjectPage() {
     }
 
     setIsLoading({ summary: true, flashcards: true, mcqs: true });
-    
-    const text = currentText;
 
     const summaryPromise = generateSummary({ lectureNotes: text }).catch(err => {
       console.error("Summary generation failed:", err);
@@ -195,13 +219,25 @@ export default function SubjectPage() {
       mcqs: mcqsResult
     };
 
-    if (isAllNotesView) {
+    if (forAllNotes) {
       setAllNotesGeneratedContent(newContent);
+      setActiveView('all-notes');
+      setActiveNoteId(null);
     } else if (activeNoteId) {
        updateNote(activeNoteId, { generatedContent: newContent });
     }
 
     setIsLoading({ summary: false, flashcards: false, mcqs: false });
+  }
+
+  const handleGenerateForCurrentNote = () => {
+    if (activeNote) {
+      handleGenerate(activeNote.text, false);
+    }
+  }
+
+  const handleGenerateForAllNotes = () => {
+    handleGenerate(allNotesText, true);
   };
   
   const handleRegenerate = async (type: keyof GeneratedContent) => {
@@ -226,12 +262,12 @@ export default function SubjectPage() {
         result = await generateMCQ({ text: currentText, difficulty: mcqDifficulty });
       }
       
-      const newContent = { ...currentContent, [type]: result };
+      const newContent: GeneratedContent = { ...(currentContent as GeneratedContent), [type]: result };
 
       if (isAllNotesView) {
-        setAllNotesGeneratedContent(newContent as GeneratedContent);
+        setAllNotesGeneratedContent(newContent);
       } else if (activeNoteId) {
-        updateNote(activeNoteId, { generatedContent: newContent as GeneratedContent });
+        updateNote(activeNoteId, { generatedContent: newContent });
       }
 
     } catch (error) {
@@ -243,7 +279,7 @@ export default function SubjectPage() {
   };
 
   const handleSetText = (newText: string) => {
-    if (activeNoteId && !isAllNotesView) {
+    if (activeNoteId) {
       updateNote(activeNoteId, { text: newText });
     }
   };
@@ -259,18 +295,17 @@ export default function SubjectPage() {
             activeNoteId={activeNoteId}
             onSelectNote={setActiveNoteId}
             onAddNote={addNote}
-            allNotesId={ALL_NOTES_ID}
+            onGenerateFromAllNotes={handleGenerateForAllNotes}
             isClient={isClient}
           />
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12">
             <div className="lg:max-w-xl xl:max-w-2xl">
               <InputSection
-                text={currentText}
+                text={activeNote?.text ?? ""}
                 setText={handleSetText}
-                onSubmit={handleGenerateAll}
+                onSubmit={handleGenerateForCurrentNote}
                 isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs}
                 disabled={!activeNoteId}
-                isAllNotesView={isAllNotesView}
               />
             </div>
             <div className="mt-8 lg:mt-0">
@@ -281,7 +316,8 @@ export default function SubjectPage() {
                 onRegenerate={handleRegenerate}
                 mcqDifficulty={mcqDifficulty}
                 setMcqDifficulty={setMcqDifficulty}
-                key={activeNoteId} // Re-mount when note changes
+                key={isAllNotesView ? ALL_NOTES_ID : activeNoteId} // Re-mount when view changes
+                isAllNotesView={isAllNotesView}
               />
             ) : (
               <div className="space-y-4">

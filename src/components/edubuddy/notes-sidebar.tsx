@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { PlusCircle, FileText, Library, Trash2 } from "lucide-react";
+import { PlusCircle, FileText, Library, Trash2, Sparkles } from "lucide-react";
 import { type Note } from "@/app/subject/[subjectName]/page";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
@@ -15,12 +15,11 @@ interface NotesSidebarProps {
   activeNoteId: string | null;
   onSelectNote: (id: string | null) => void;
   onAddNote: () => void;
-  onDeleteNote?: (id: string) => void; // Optional for now
-  allNotesId: string;
+  onGenerateFromAllNotes: () => void;
   isClient: boolean;
 }
 
-export default function NotesSidebar({ notes, activeNoteId, onSelectNote, onAddNote, allNotesId, isClient }: NotesSidebarProps) {
+export default function NotesSidebar({ notes, activeNoteId, onSelectNote, onAddNote, onGenerateFromAllNotes, isClient }: NotesSidebarProps) {
   
   const renderNoteList = () => {
     if (!isClient) {
@@ -70,26 +69,25 @@ export default function NotesSidebar({ notes, activeNoteId, onSelectNote, onAddN
           Your notes for this subject.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <button
-            onClick={() => onSelectNote(allNotesId)}
-            className={cn(
-              "w-full text-left p-3 rounded-md transition-colors flex items-center gap-3 font-semibold",
-              activeNoteId === allNotesId ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-            )}
-          >
-            <Library className="h-5 w-5 shrink-0" />
-            <span className="truncate flex-grow">All Notes</span>
-          </button>
-
-          <Separator className="my-2" />
-
-          <ScrollArea className="h-[52vh] pr-4 -mr-4">
-             {renderNoteList()}
-          </ScrollArea>
-        </div>
+      <CardContent className="p-0">
+        <ScrollArea className="h-[52vh] px-6">
+            {renderNoteList()}
+        </ScrollArea>
       </CardContent>
+      <CardFooter className="flex-col p-4 gap-2">
+          <Separator className="mb-2" />
+          <Button 
+            className="w-full"
+            onClick={onGenerateFromAllNotes}
+            disabled={notes.length === 0}
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Generate from All Notes
+          </Button>
+          <p className="text-xs text-center text-muted-foreground mt-1">
+            Generate materials from all notes in this subject combined.
+          </p>
+      </CardFooter>
     </Card>
   );
 }

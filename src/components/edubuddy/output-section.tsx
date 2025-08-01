@@ -7,7 +7,7 @@ import { type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/genera
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, RefreshCw, FileText, BotMessageSquare, Sparkles } from "lucide-react";
+import { Download, RefreshCw, FileText, BotMessageSquare, Sparkles, Library } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Flashcard from "./flashcard";
 import McqItem from "./mcq-item";
@@ -31,6 +31,7 @@ interface OutputSectionProps {
   onRegenerate: (type: keyof GeneratedContent) => void;
   mcqDifficulty: GenerateMCQInput['difficulty'];
   setMcqDifficulty: (difficulty: GenerateMCQInput['difficulty']) => void;
+  isAllNotesView?: boolean;
 }
 
 const downloadText = (filename: string, text: string) => {
@@ -51,7 +52,7 @@ const formatMcqsForDownload = (mcqs: GenerateMCQOutput['mcqs']) => {
   return mcqs.map((m, i) => `${i + 1}. ${m.question}\n${m.options.map(o => `   - ${o}`).join('\n')}\nCorrect Answer: ${m.correctAnswer}`).join('\n\n');
 };
 
-export default function OutputSection({ content, isLoading, onRegenerate, mcqDifficulty, setMcqDifficulty }: OutputSectionProps) {
+export default function OutputSection({ content, isLoading, onRegenerate, mcqDifficulty, setMcqDifficulty, isAllNotesView = false }: OutputSectionProps) {
   
   const renderEmptyState = () => (
     <Card className="flex flex-col items-center justify-center min-h-[40vh] text-center p-8 border-dashed">
@@ -64,7 +65,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   );
 
   const isAnythingLoading = Object.values(isLoading).some(Boolean);
-  const isEverythingEmpty = Object.values(content).every(c => c === null);
+  const isEverythingEmpty = Object.values(content).every(c => c === null || (Array.isArray(c) && c.length === 0));
 
   if (!isAnythingLoading && isEverythingEmpty) {
     return renderEmptyState();
@@ -86,7 +87,21 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
     )
   }
 
+  const PageTitle = () => {
+    if (isAllNotesView) {
+      return (
+        <div className="flex items-center gap-2 text-lg font-semibold font-headline text-primary mb-4 border-b pb-2">
+            <Library className="h-5 w-5" />
+            <span>All Notes</span>
+        </div>
+      )
+    }
+    return null;
+  }
+
   return (
+    <>
+    <PageTitle />
     <Tabs defaultValue="summary" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="summary"><FileText className="mr-2 h-4 w-4" />Summary</TabsTrigger>
@@ -127,7 +142,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
           <CardContent className="p-6">
              <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold font-headline">Flashcards</h3>
-              {content.flashcards && (
+              {content.flashcards && content.flashcards.flashcards.length > 0 && (
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => onRegenerate('flashcards')} disabled={isLoading.flashcards}>
                     <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
@@ -142,7 +157,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
               <div className="flex justify-center items-center">
                 <Skeleton className="h-48 w-80" />
               </div>
-            ) : content.flashcards ? (
+            ) : content.flashcards && content.flashcards.flashcards.length > 0 ? (
               <Carousel className="w-full max-w-xs mx-auto" opts={{ loop: true }}>
                 <CarouselContent>
                   {content.flashcards.flashcards.map((card, index) => (
@@ -183,7 +198,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
                       </SelectContent>
                     </Select>
                   </div>
-                  {content.mcqs && (
+                  {content.mcqs && content.mcqs.mcqs.length > 0 && (
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => onRegenerate('mcqs')} disabled={isLoading.mcqs}>
                         <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
@@ -199,7 +214,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
               <div className="space-y-4">
                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
               </div>
-            ) : content.mcqs ? (
+            ) : content.mcqs && content.mcqs.mcqs.length > 0 ? (
               <div className="space-y-4">
                 {content.mcqs.mcqs.map((mcq, index) => (
                   <McqItem key={index} mcq={mcq} index={index} />
@@ -214,5 +229,6 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
         </Card>
       </TabsContent>
     </Tabs>
+    </>
   );
 }
