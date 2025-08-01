@@ -23,10 +23,12 @@ import {
   BookOpen,
   PieChart,
   Timer,
+  LogOut,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
 import React from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 const menuItems = [
   { href: "/", label: "Home", icon: Home },
@@ -41,6 +43,7 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { toggleSidebar, isMobile } = useSidebar();
   const [isClient, setIsClient] = React.useState(false);
+  const { user, logout, loading } = useAuth();
 
   React.useEffect(() => {
     setIsClient(true);
@@ -106,6 +109,18 @@ export default function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
+      <SidebarFooter>
+        {!loading && user && (
+            <SidebarMenu>
+                 <SidebarMenuItem>
+                     <SidebarMenuButton onClick={logout} tooltip="Logout">
+                         <LogOut className="h-5 w-5" />
+                         <span className="group-data-[collapsed=true]:hidden">Logout</span>
+                     </SidebarMenuButton>
+                 </SidebarMenuItem>
+            </SidebarMenu>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }
