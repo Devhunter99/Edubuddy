@@ -43,13 +43,29 @@ export default function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-7 w-7 text-primary" />
-          <h1
-            className="text-2xl font-bold tracking-tight text-foreground font-headline group-data-[collapsed=true]:hidden"
-          >
-            EduBuddy
-          </h1>
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                <BookOpen className="h-7 w-7 text-primary" />
+                <h1
+                    className="text-2xl font-bold tracking-tight text-foreground font-headline group-data-[collapsed=true]:hidden"
+                >
+                    EduBuddy
+                </h1>
+            </div>
+            <Button
+                variant="ghost"
+                size="icon"
+                className="group-data-[collapsed=true]:hidden"
+                onClick={toggleSidebar}
+                >
+                <PanelLeft
+                    className="transition-transform duration-300 h-5 w-5"
+                    style={{
+                    transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
+                    }}
+                />
+                 <span className="sr-only">Collapse</span>
+            </Button>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -72,7 +88,7 @@ export default function AppSidebar() {
       <SidebarFooter>
         <Button
           variant="ghost"
-          className="w-full justify-start gap-2"
+          className="w-full justify-start gap-2 hidden group-data-[collapsed=true]:flex group-data-[collapsed=true]:justify-center"
           onClick={toggleSidebar}
         >
           <PanelLeft
@@ -81,7 +97,7 @@ export default function AppSidebar() {
               transform: state === "expanded" ? "rotate(0deg)" : "rotate(180deg)",
             }}
           />
-          <span className="group-data-[collapsed=true]:hidden">Collapse</span>
+          <span className="sr-only">Expand</span>
         </Button>
       </SidebarFooter>
     </Sidebar>
