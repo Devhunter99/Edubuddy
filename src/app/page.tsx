@@ -92,23 +92,20 @@ export default function Home() {
                       <DialogTitle>Add New Subject</DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="subject-name" className="text-left">
+                      <div className="grid gap-2">
+                        <Label htmlFor="subject-name">
                           Name
                         </Label>
                         <Input
                           id="subject-name"
                           value={newSubject}
                           onChange={(e) => setNewSubject(e.target.value)}
-                          className="col-span-3"
                           placeholder="e.g. Biology"
                         />
                       </div>
                     </div>
                     <DialogFooter>
-                      <DialogClose asChild>
-                         <Button variant="outline">Cancel</Button>
-                      </DialogClose>
+                       <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                       <Button onClick={handleAddSubject}>Add Subject</Button>
                     </DialogFooter>
                   </DialogContent>
