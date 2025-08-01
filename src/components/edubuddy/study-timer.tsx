@@ -1,0 +1,93 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Play, Pause, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const PRESETS = [15, 25, 50]; // in minutes
+
+export function StudyTimer() {
+  const [duration, setDuration] = useState(25 * 60); // default 25 minutes in seconds
+  const [timeRemaining, setTimeRemaining] = useState(duration);
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isActive && timeRemaining > 0) {
+      interval = setInterval(() => {
+        setTimeRemaining((time) => time - 1);
+      }, 1000);
+    } else if (timeRemaining === 0) {
+      setIsActive(false);
+      // Optional: Add a notification or sound
+      new window.Notification("EduBuddy", { body: "Time's up! Great work." });
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive, timeRemaining]);
+
+  useEffect(() => {
+    setTimeRemaining(duration);
+    setIsActive(false);
+  }, [duration]);
+  
+  const toggleTimer = useCallback(() => {
+    if (timeRemaining > 0) {
+      setIsActive(!isActive);
+    }
+  }, [isActive, timeRemaining]);
+
+  const resetTimer = useCallback(() => {
+    setIsActive(false);
+    setTimeRemaining(duration);
+  }, [duration]);
+
+  const selectPreset = useCallback((minutes: number) => {
+    setDuration(minutes * 60);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <h4 className="font-semibold text-lg font-headline">Study Timer</h4>
+      <p className="text-5xl font-bold font-mono text-primary tabular-nums">
+        {formatTime(timeRemaining)}
+      </p>
+      <div className="flex w-full justify-center gap-2">
+        {PRESETS.map((p) => (
+          <Button
+            key={p}
+            variant={duration / 60 === p ? "default" : "outline"}
+            size="sm"
+            onClick={() => selectPreset(p)}
+            className="flex-1"
+          >
+            {p} min
+          </Button>
+        ))}
+      </div>
+      <div className="flex items-center justify-center gap-4 mt-2">
+        <Button
+          onClick={toggleTimer}
+          size="lg"
+          className={cn("w-24", isActive ? "bg-amber-500 hover:bg-amber-600" : "bg-primary hover:bg-primary/90")}
+        >
+          {isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+          {isActive ? "Pause" : "Start"}
+        </Button>
+        <Button onClick={resetTimer} variant="secondary" size="icon" aria-label="Reset Timer">
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
