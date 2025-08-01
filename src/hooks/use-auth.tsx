@@ -26,10 +26,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      if (!user) {
+        // if user is not logged in and not on an auth page, redirect to login
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
+            router.push('/login');
+        }
+      }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const googleLogin = () => {
     const provider = new GoogleAuthProvider();

@@ -24,6 +24,8 @@ import HighlightsBanner from "@/components/edubuddy/highlights-banner";
 import ShortcutButton from "@/components/edubuddy/shortcut-button";
 import QuizResultsSummary from "@/components/edubuddy/quiz-results-summary";
 import type { QuizResult } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 
 const useSubjects = () => {
@@ -63,6 +65,8 @@ const useSubjects = () => {
 
 
 export default function Home() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
     const { subjects, allNotesText } = useSubjects();
     const { toast } = useToast();
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
@@ -72,6 +76,13 @@ export default function Home() {
     // State for quiz answers and results
     const [quizAnswers, setQuizAnswers] = useState<Record<number, { selected: string; isCorrect: boolean }>>({});
     const [showResults, setShowResults] = useState(false);
+
+    useEffect(() => {
+      if (!loading && !user) {
+        router.push('/login');
+      }
+    }, [user, loading, router]);
+
 
     const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
       setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
@@ -141,6 +152,14 @@ export default function Home() {
         }
     };
 
+  if (loading || !user) {
+    return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p>Loading...</p>
+        </div>
+    )
+  }
 
   return (
     <SidebarInset>
