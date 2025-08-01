@@ -67,27 +67,25 @@ export default function Home() {
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
-    const [recentFlashcards, setRecentFlashcards] = useState<GenerateFlashcardsOutput['flashcards'] | null>(null);
-    const [areFlashcardsLoading, setAreFlashcardsLoading] = useState(false);
+    const [recentFlashcard, setRecentFlashcard] = useState<GenerateFlashcardsOutput['flashcards'][0] | null>(null);
+    const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
 
     useEffect(() => {
-        const fetchFlashcards = async () => {
+        const fetchFlashcard = async () => {
             if (!allNotesText.trim()) return;
 
-            setAreFlashcardsLoading(true);
+            setIsFlashcardLoading(true);
             try {
                 const result = await generateFlashcards({ text: allNotesText });
-                // We only want to show 2 on the dashboard
-                setRecentFlashcards(result.flashcards.slice(0, 2));
+                setRecentFlashcard(result.flashcards[0] || null);
             } catch (error) {
                 console.error("Failed to generate flashcards:", error);
-                // Don't show a toast, fail silently
             } finally {
-                setAreFlashcardsLoading(false);
+                setIsFlashcardLoading(false);
             }
         };
 
-        fetchFlashcards();
+        fetchFlashcard();
     }, [allNotesText]);
 
 
@@ -132,31 +130,19 @@ export default function Home() {
                 <h1 className="text-3xl font-bold text-foreground mb-6">Dashboard</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {/* Flashcards */}
-                     <DashboardCard
-                        title="Recent Flashcards"
-                        icon={Layers}
-                        description="Review your latest cards."
-                        className="lg:col-span-2"
-                    >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                            {areFlashcardsLoading ? (
-                                <>
-                                    <Skeleton className="h-24" />
-                                    <Skeleton className="h-24" />
-                                </>
-                            ) : recentFlashcards && recentFlashcards.length > 0 ? (
-                                recentFlashcards.map((card, index) => (
-                                    <Card key={index} className="bg-card-foreground/5 p-3">
-                                       <p className="text-sm font-semibold">{card.question}</p>
-                                       <p className="text-sm text-muted-foreground mt-1">{card.answer}</p>
-                                    </Card>
-                                ))
-                            ) : (
-                                <p className="text-sm text-muted-foreground col-span-2">Add some notes to see your flashcards here.</p>
-                            )}
-                        </div>
-                         <Button variant="outline" className="w-full mt-4" disabled>View All Flashcards</Button>
-                    </DashboardCard>
+                     <Card className="lg:col-span-2 shadow-md hover:shadow-primary/20 transition-shadow p-6 flex flex-col justify-center">
+                        {isFlashcardLoading ? (
+                            <Skeleton className="h-24" />
+                        ) : recentFlashcard ? (
+                            <div>
+                                <p className="text-lg font-semibold">{recentFlashcard.question}</p>
+                                <p className="text-muted-foreground mt-2">{recentFlashcard.answer}</p>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground text-center">Add some notes to see a flashcard here.</p>
+                        )}
+                         <Button variant="outline" size="sm" className="w-full mt-4" disabled>View All Flashcards</Button>
+                    </Card>
 
                     {/* Subjects */}
                     <DashboardCard
