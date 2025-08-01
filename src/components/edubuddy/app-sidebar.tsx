@@ -47,6 +47,7 @@ export default function AppSidebar() {
   return (
     <Sidebar>
        <SidebarHeader>
+        <SheetTitle className="sr-only">Main Menu</SheetTitle>
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-2">
               <BookOpen className="h-7 w-7 text-primary" />
@@ -63,7 +64,6 @@ export default function AppSidebar() {
               <span className="sr-only">Toggle Sidebar</span>
           </Button>
         </div>
-        <SheetTitle className="sr-only">Main Menu</SheetTitle>
       </SidebarHeader>
 
       <SidebarContent>
@@ -86,5 +86,3 @@ export default function AppSidebar() {
     </Sidebar>
   );
 }
-
-    
