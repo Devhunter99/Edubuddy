@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useParams } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { generateSummary, type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
 import { generateFlashcards, type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
@@ -63,9 +64,10 @@ const useSubjectData = (subjectName: string) => {
 }
 
 
-export default function SubjectPage({ params }: { params: { subjectName: string } }) {
+export default function SubjectPage() {
   const { toast } = useToast();
-  const subjectName = decodeURIComponent(params.subjectName);
+  const params = useParams();
+  const subjectName = decodeURIComponent(params.subjectName as string);
 
   const { text, setText, generatedContent, setGeneratedContent } = useSubjectData(subjectName);
 
