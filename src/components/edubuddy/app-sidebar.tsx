@@ -24,7 +24,7 @@ import {
   PieChart,
 } from "lucide-react";
 import { Button } from "../ui/button";
-import { SheetTitle } from "../ui/sheet";
+import { SheetHeader, SheetTitle } from "../ui/sheet";
 
 const menuItems = [
   { href: "/", label: "Home", icon: Home },
@@ -36,7 +36,7 @@ const menuItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isMobile } = useSidebar();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -44,26 +44,41 @@ export default function AppSidebar() {
     return pathname.startsWith(href);
   };
 
+  const desktopHeader = (
+    <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-2">
+            <BookOpen className="h-7 w-7 text-primary" />
+            <h1 className="text-2xl font-bold tracking-tight text-foreground group-data-[collapsed=true]:hidden">
+                EduBuddy
+            </h1>
+        </div>
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            >
+            <PanelLeft className="h-5 w-5" />
+            <span className="sr-only">Toggle Sidebar</span>
+        </Button>
+      </div>
+  );
+
+  const mobileHeader = (
+     <SheetHeader>
+        <SheetTitle className="sr-only">Main Menu</SheetTitle>
+        <div className="flex items-center gap-2 p-4">
+            <BookOpen className="h-7 w-7 text-primary" />
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                EduBuddy
+            </h1>
+        </div>
+      </SheetHeader>
+  );
+
   return (
     <Sidebar>
        <SidebarHeader>
-        <SheetTitle className="sr-only">Main Menu</SheetTitle>
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-2">
-              <BookOpen className="h-7 w-7 text-primary" />
-              <h1 className="text-2xl font-bold tracking-tight text-foreground group-data-[collapsed=true]:hidden">
-                  EduBuddy
-              </h1>
-          </div>
-          <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              >
-              <PanelLeft className="h-5 w-5" />
-              <span className="sr-only">Toggle Sidebar</span>
-          </Button>
-        </div>
+        {isMobile ? mobileHeader : desktopHeader}
       </SidebarHeader>
 
       <SidebarContent>
