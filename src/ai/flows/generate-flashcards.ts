@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-flashcards.ts
 'use server';
 
@@ -17,6 +18,7 @@ const GenerateFlashcardsInputSchema = z.object({
   text: z
     .string()
     .describe('The text to generate flashcards from.'),
+  studyLevel: z.string().optional().default('undergraduate').describe('The user\'s study level (e.g., high school, undergraduate, postgraduate).'),
 });
 export type GenerateFlashcardsInput = z.infer<typeof GenerateFlashcardsInputSchema>;
 
@@ -39,9 +41,11 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateFlashcardsInputSchema},
   output: {schema: GenerateFlashcardsOutputSchema},
   tools: [searchTool],
-  prompt: `You are an expert in generating flashcards and summarizing key information from text.
+  prompt: `You are an expert in generating flashcards and summarizing key information from text for a {{studyLevel}} student.
 
   From the following text, either generate a few question-answer flashcards OR extract a few short, important, standout points.
+  The content and complexity should be appropriate for the {{studyLevel}} level.
+
   If you extract points, use the 'question' field for a short title or the point itself, and the 'answer' field for a brief elaboration.
 
   If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create better flashcards.

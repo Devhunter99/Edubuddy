@@ -16,6 +16,7 @@ import NotesToolbar from "@/components/edubuddy/notes-toolbar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import type { GeneratedContent, Note } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
 
 const ALL_NOTES_ID = "all-notes";
 
@@ -129,6 +130,7 @@ const useSubjectNotes = (subjectName: string) => {
 export default function SubjectPage() {
   const { toast } = useToast();
   const params = useParams();
+  const { user } = useAuth();
   const subjectName = decodeURIComponent(params.subjectName as string);
 
   const { 
@@ -152,6 +154,7 @@ export default function SubjectPage() {
   });
   const [mcqDifficulty, setMcqDifficulty] = useState<GenerateMCQInput['difficulty']>('normal');
   const [activeView, setActiveView] = useState<'note' | 'all-notes'>('note');
+  const [studyLevel, setStudyLevel] = useState('undergraduate');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -167,6 +170,15 @@ export default function SubjectPage() {
       setActiveView('note');
     }
   }, [activeNoteId]);
+  
+  useEffect(() => {
+    if (isClient && user) {
+        const level = localStorage.getItem(`user_study_level_${user.uid}`);
+        if(level) {
+            setStudyLevel(level);
+        }
+    }
+  }, [isClient, user]);
 
   const isAllNotesView = activeView === 'all-notes';
   const currentText = isAllNotesView ? allNotesText : activeNote?.text ?? "";
@@ -186,17 +198,17 @@ export default function SubjectPage() {
 
     try {
       const [summaryResult, flashcardsResult, mcqsResult] = await Promise.all([
-        generateSummary({ lectureNotes: text }).catch(err => {
+        generateSummary({ lectureNotes: text, studyLevel }).catch(err => {
           console.error("Summary generation failed:", err);
           toast({ title: "Error", description: "Failed to generate summary.", variant: "destructive" });
           return null;
         }),
-        generateFlashcards({ text }).catch(err => {
+        generateFlashcards({ text, studyLevel }).catch(err => {
           console.error("Flashcard generation failed:", err);
           toast({ title: "Error", description: "Failed to generate flashcards.", variant: "destructive" });
           return null;
         }),
-        generateMCQ({ text, difficulty: mcqDifficulty, questionCount: 5 }).catch(err => {
+        generateMCQ({ text, difficulty: mcqDifficulty, questionCount: 5, studyLevel }).catch(err => {
           console.error("MCQ generation failed:", err);
           toast({ title: "Error", description: "Failed to generate MCQs.", variant: "destructive" });
           return null;
@@ -249,11 +261,11 @@ export default function SubjectPage() {
     try {
       let result: GenerateSummaryOutput | GenerateFlashcardsOutput | GenerateMCQOutput | null = null;
       if (type === 'summary') {
-        result = await generateSummary({ lectureNotes: currentText });
+        result = await generateSummary({ lectureNotes: currentText, studyLevel });
       } else if (type === 'flashcards') {
-        result = await generateFlashcards({ text: currentText });
+        result = await generateFlashcards({ text: currentText, studyLevel });
       } else if (type === 'mcqs') {
-        result = await generateMCQ({ text: currentText, difficulty: mcqDifficulty, questionCount: 5 });
+        result = await generateMCQ({ text: currentText, difficulty: mcqDifficulty, questionCount: 5, studyLevel });
       }
       
       const newContent: GeneratedContent = { ...(currentContent as GeneratedContent), [type]: result };
@@ -370,5 +382,3 @@ export default function SubjectPage() {
     </SidebarInset>
   );
 }
-
-    

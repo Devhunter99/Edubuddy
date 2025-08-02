@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -16,6 +17,7 @@ const GenerateMCQInputSchema = z.object({
   text: z.string().describe('The text to generate MCQs from.'),
   difficulty: z.enum(['easy', 'normal', 'hard']).describe('The difficulty of the MCQs to generate.'),
   questionCount: z.number().optional().default(10).describe('The number of MCQs to generate.'),
+  studyLevel: z.string().optional().default('undergraduate').describe('The user\'s study level (e.g., high school, undergraduate, postgraduate).'),
 });
 export type GenerateMCQInput = z.infer<typeof GenerateMCQInputSchema>;
 
@@ -40,10 +42,11 @@ const generateMCQPrompt = ai.definePrompt({
   input: {schema: GenerateMCQInputSchema},
   output: {schema: GenerateMCQOutputSchema},
   tools: [searchTool],
-  prompt: `You are an expert educator creating multiple-choice questions from text.
+  prompt: `You are an expert educator creating multiple-choice questions from text for a {{studyLevel}} student.
 
   Create {{questionCount}} multiple-choice questions from the following text, with four options each.
   The difficulty of the questions should be {{difficulty}}.
+  The questions should be suitable for a student at the {{studyLevel}} level.
 
   If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create better questions.
 

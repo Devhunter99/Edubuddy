@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -16,6 +17,7 @@ const GenerateSummaryInputSchema = z.object({
   lectureNotes: z
     .string()
     .describe('The lecture notes to summarize.'),
+  studyLevel: z.string().optional().default('undergraduate').describe('The user\'s study level (e.g., high school, undergraduate, postgraduate).'),
 });
 export type GenerateSummaryInput = z.infer<typeof GenerateSummaryInputSchema>;
 
@@ -36,15 +38,17 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateSummaryInputSchema},
   output: {schema: GenerateSummaryOutputSchema},
   tools: [searchTool],
-  prompt: `You are an expert summarizer, skilled at extracting the most important information from lecture notes.
+  prompt: `You are an expert summarizer, acting as a helpful tutor for a {{studyLevel}} student.
+  Your goal is to extract the most important information from lecture notes and present it clearly.
 
   Please provide a concise 4-6 point summary of the following lecture notes.
+  Tailor the language, depth, and complexity of the summary to be appropriate for a {{studyLevel}} level.
 
   If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create a better summary.
 
   Lecture Notes: {{lectureNotes}}
 
-  Ensure the summary is accurate, comprehensive, and easy to understand. Also respond with a one sentence progress indicator for the user.
+  Ensure the summary is accurate, comprehensive, and easy for a {{studyLevel}} student to understand. Also respond with a one sentence progress indicator for the user.
   `,
 });
 

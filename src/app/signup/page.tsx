@@ -113,8 +113,8 @@ export default function SignupPage() {
         photoURL: values.photoURL,
       });
 
-      // Here you would typically store additional info like studyLevel in a database (e.g., Firestore)
-      // For this example, we'll just show a success message.
+      // Store studyLevel in localStorage
+      localStorage.setItem(`user_study_level_${userCredential.user.uid}`, values.studyLevel);
 
       toast({ title: "Success", description: "Account created successfully." });
       router.push("/");
@@ -136,7 +136,10 @@ export default function SignupPage() {
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        // For Google sign-in, we don't have the study level from the form.
+        // We could ask for it in a follow-up step, but for now, we'll set a default.
+        localStorage.setItem(`user_study_level_${result.user.uid}`, 'undergraduate');
         toast({ title: "Success", description: "Signed up successfully with Google." });
         router.push('/');
     } catch (error: any) {
