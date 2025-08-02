@@ -19,13 +19,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { type Note } from "@/app/subject/[subjectName]/page";
+import { type Note } from "@/lib/types";
 import HighlightsBanner from "@/components/edubuddy/highlights-banner";
 import ShortcutButton from "@/components/edubuddy/shortcut-button";
 import QuizResultsSummary from "@/components/edubuddy/quiz-results-summary";
 import type { QuizResult } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 
 const useSubjects = () => {
@@ -206,16 +207,23 @@ export default function Home() {
                                             onFinish={() => setIsQuizDialogOpen(false)}
                                         />
                                     ) : dailyQuiz?.mcqs ? (
-                                        <div className="space-y-4">
-                                            {dailyQuiz.mcqs.map((mcq, index) => (
-                                                <McqItem 
-                                                    key={`${dailyQuiz.mcqs[0].question}-${index}`} 
-                                                    mcq={mcq} 
-                                                    index={index}
-                                                    onAnswer={handleAnswer}
-                                                />
-                                            ))}
-                                        </div>
+                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} >
+                                            <CarouselContent>
+                                                {dailyQuiz.mcqs.map((mcq, index) => (
+                                                     <CarouselItem key={`${dailyQuiz.mcqs[0].question}-${index}`}>
+                                                        <div className="p-1">
+                                                            <McqItem 
+                                                                mcq={mcq} 
+                                                                index={index}
+                                                                onAnswer={handleAnswer}
+                                                            />
+                                                        </div>
+                                                    </CarouselItem>
+                                                ))}
+                                            </CarouselContent>
+                                            <CarouselPrevious />
+                                            <CarouselNext />
+                                        </Carousel>
                                     ) : (
                                         <p>No quiz generated yet.</p>
                                     )}
@@ -321,16 +329,23 @@ export default function Home() {
                                             onFinish={() => setIsQuizDialogOpen(false)}
                                         />
                                     ) : dailyQuiz?.mcqs ? (
-                                         <div className="space-y-4">
-                                             {dailyQuiz.mcqs.map((mcq, index) => (
-                                                 <McqItem 
-                                                    key={`${dailyQuiz.mcqs[0].question}-${index}`} 
-                                                    mcq={mcq} 
-                                                    index={index}
-                                                    onAnswer={handleAnswer}
-                                                />
-                                             ))}
-                                         </div>
+                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }}>
+                                            <CarouselContent>
+                                                {dailyQuiz.mcqs.map((mcq, index) => (
+                                                    <CarouselItem key={`${dailyQuiz.mcqs[0].question}-${index}`}>
+                                                        <div className="p-1">
+                                                            <McqItem 
+                                                                mcq={mcq} 
+                                                                index={index}
+                                                                onAnswer={handleAnswer}
+                                                            />
+                                                        </div>
+                                                    </CarouselItem>
+                                                ))}
+                                            </CarouselContent>
+                                            <CarouselPrevious />
+                                            <CarouselNext />
+                                        </Carousel>
                                      ) : (
                                          <p>No quiz generated yet.</p>
                                      )}
@@ -345,3 +360,5 @@ export default function Home() {
     </SidebarInset>
   );
 }
+
+    
