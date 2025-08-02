@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -35,13 +35,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+
+const preMadeAvatars = [
+  'https://placehold.co/128x128/6B8E23/F5F5DC.png?text=A',
+  'https://placehold.co/128x128/4682B4/F5F5DC.png?text=B',
+  'https://placehold.co/128x128/FF6347/F5F5DC.png?text=C',
+  'https://placehold.co/128x128/32CD32/F5F5DC.png?text=D',
+  'https://placehold.co/128x128/FFD700/F5F5DC.png?text=E',
+  'https://placehold.co/128x128/9370DB/F5F5DC.png?text=F',
+];
 
 const formSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
   studyLevel: z.enum(["school", "undergraduate", "postgraduate"]),
+  photoURL: z.string().optional(),
 });
 
 const auth = getAuth(app);
@@ -50,6 +62,8 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(preMadeAvatars[0]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,8 +72,36 @@ export default function SignupPage() {
       email: "",
       password: "",
       studyLevel: "undergraduate",
+      photoURL: preMadeAvatars[0],
     },
   });
+
+  const handleAvatarSelect = (url: string) => {
+    setSelectedAvatar(url);
+    form.setValue('photoURL', url);
+  }
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        toast({ title: 'Invalid File', description: 'Please upload an image file.', variant: 'destructive'});
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        handleAvatarSelect(dataUrl);
+        toast({ title: 'Image Preview', description: 'This is a local preview. The image will be saved on account creation.'});
+    };
+    reader.readAsDataURL(file);
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -67,6 +109,7 @@ export default function SignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       await updateProfile(userCredential.user, {
         displayName: values.username,
+        photoURL: values.photoURL,
       });
 
       // Here you would typically store additional info like studyLevel in a database (e.g., Firestore)
@@ -181,6 +224,47 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
+
+              {/* Avatar Picker */}
+              <div className="space-y-4">
+                <Label>Profile Picture</Label>
+                <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept="image/*"
+                />
+                 <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={selectedAvatar} alt="Selected profile picture" />
+                    <AvatarFallback>
+                        <ImageIcon />
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button type="button" onClick={handleUploadClick} disabled={isLoading} variant="outline">
+                    <Upload className="mr-2 h-4 w-4" /> Upload Image
+                  </Button>
+                </div>
+                 <div className="grid grid-cols-6 gap-2">
+                    {preMadeAvatars.map((url) => (
+                    <button
+                        type="button"
+                        key={url}
+                        onClick={() => handleAvatarSelect(url)}
+                        className={`rounded-full overflow-hidden border-2 transition-all ${selectedAvatar === url ? 'border-primary ring-2 ring-primary' : 'border-transparent hover:border-primary/50'}`}
+                        disabled={isLoading}
+                    >
+                        <Avatar className="h-12 w-12">
+                            <AvatarImage src={url} alt="Avatar option" />
+                            <AvatarFallback><ImageIcon /></AvatarFallback>
+                        </Avatar>
+                    </button>
+                    ))}
+                </div>
+              </div>
+
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Account
