@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,28 +23,50 @@ export default function AvatarPicker() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(user?.photoURL || '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarSelect = async (url: string) => {
-    setSelectedAvatar(url);
-    setIsLoading(true);
-    try {
-      await updateUserPhotoURL(url);
-      toast({ title: 'Success', description: 'Profile picture updated!' });
-    } catch (error: any) {
-      console.error('Failed to update profile picture', error);
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
+    // For pre-made avatars, we can update directly
+    if (url.startsWith('https://')) {
+        setSelectedAvatar(url);
+        setIsLoading(true);
+        try {
+          await updateUserPhotoURL(url);
+          toast({ title: 'Success', description: 'Profile picture updated!' });
+        } catch (error: any) {
+          console.error('Failed to update profile picture', error);
+          toast({ title: 'Error', description: error.message, variant: 'destructive' });
+          setSelectedAvatar(user?.photoURL || ''); // Revert on error
+        } finally {
+          setIsLoading(false);
+        }
     }
   };
 
   const handleUploadClick = () => {
-    // In a real app, this would open a file picker.
-    // For this prototype, we'll simulate an upload with a placeholder.
-    const tempUploadUrl = `https://placehold.co/128x128/888888/FFFFFF.png?text=${user?.displayName?.[0] || 'U'}`;
-    handleAvatarSelect(tempUploadUrl);
-    toast({ title: 'Info', description: 'File upload is not implemented in this prototype. A placeholder has been used.' });
+    fileInputRef.current?.click();
   };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        toast({ title: 'Invalid File', description: 'Please upload an image file.', variant: 'destructive'});
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        setSelectedAvatar(dataUrl);
+        // NOTE: In a real app, you would upload the file to a storage service (like Firebase Storage),
+        // get the public URL, and then call `handleAvatarSelect(newUrl)`.
+        // Since we don't have a storage backend, we'll just show the local preview.
+        toast({ title: 'Image Preview', description: 'This is a preview. The image is not saved to your profile.'});
+    };
+    reader.readAsDataURL(file);
+  }
   
   if (!user) {
     return (
@@ -68,6 +90,13 @@ export default function AvatarPicker() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*"
+        />
         <div className="flex items-center gap-6">
           <Avatar className="h-20 w-20">
             <AvatarImage src={selectedAvatar} alt="Current profile picture" />
