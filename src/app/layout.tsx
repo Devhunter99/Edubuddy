@@ -6,6 +6,7 @@ import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/edubuddy/app-sidebar";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ThemeProvider } from "@/components/edubuddy/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,17 +24,24 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body className={`${inter.className} bg-background text-foreground antialiased`} suppressHydrationWarning>
-        <AuthProvider>
-          <SidebarProvider>
-            <div className="flex">
-              <AppSidebar />
-              <main className="flex-1">
-                {children}
-              </main>
-            </div>
-          </SidebarProvider>
-        </AuthProvider>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <SidebarProvider>
+              <div className="flex">
+                <AppSidebar />
+                <main className="flex-1">
+                  {children}
+                </main>
+              </div>
+            </SidebarProvider>
+          </AuthProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
