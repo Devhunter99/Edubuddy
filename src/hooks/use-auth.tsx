@@ -45,8 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserPhotoURL = async (photoURL: string) => {
     if (auth.currentUser) {
       await updateProfile(auth.currentUser, { photoURL });
-      // Force a refresh of the user object to reflect the change
-      setUser(auth.currentUser ? { ...auth.currentUser } : null);
+      // Create a new user object to trigger a state update in React
+      const updatedUser = Object.assign(Object.create(Object.getPrototypeOf(auth.currentUser)), auth.currentUser);
+      setUser(updatedUser);
     }
   };
 
