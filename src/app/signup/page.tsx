@@ -53,7 +53,7 @@ const formSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  studyLevel: z.enum(["school", "undergraduate", "postgraduate"]),
+  studyLevel: z.enum(["school", "high-school", "undergraduate", "postgraduate", "phd-candidate", "professional"]),
   photoURL: z.string().optional(),
 });
 
@@ -217,8 +217,11 @@ export default function SignupPage() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="school">School</SelectItem>
+                        <SelectItem value="high-school">High School</SelectItem>
                         <SelectItem value="undergraduate">Undergraduate</SelectItem>
                         <SelectItem value="postgraduate">Postgraduate</SelectItem>
+                        <SelectItem value="phd-candidate">PhD Candidate</SelectItem>
+                        <SelectItem value="professional">Professional</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
