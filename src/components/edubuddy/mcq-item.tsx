@@ -65,9 +65,8 @@ export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
             const optionId = `option-${index}-${i}`;
 
             return (
-              <Label
-                htmlFor={optionId}
-                key={i}
+              <div
+                key={optionId}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg border-2 transition-all",
                   "border-transparent bg-muted/50",
@@ -84,10 +83,12 @@ export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
                   id={optionId}
                   className="shrink-0"
                 />
-                <span className="flex-grow">{option}</span>
+                <Label htmlFor={optionId} className="flex-grow cursor-pointer w-full">
+                  {option}
+                </Label>
                 {isCorrect && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
                 {isIncorrect && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
-              </Label>
+              </div>
             );
           })}
         </RadioGroup>
