@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { generateMCQ, type GenerateMCQOutput, type GenerateMCQInput } from "@/ai/flows/generate-mcq";
 import { useToast } from "@/hooks/use-toast";
@@ -93,9 +93,9 @@ export default function Home() {
     };
 
     const allQuestionsAnswered = dailyQuiz?.mcqs && Object.keys(quizAnswers).length === dailyQuiz.mcqs.length;
-
-    useEffect(() => {
-      if (allQuestionsAnswered) {
+    
+    const saveAndShowResults = useCallback(() => {
+        if (!dailyQuiz) return;
         setShowResults(true);
 
         if (!user) return; // Don't save for guests
@@ -104,7 +104,7 @@ export default function Home() {
           id: `quiz-${Date.now()}`,
           subjectName: 'Daily Quiz',
           timestamp: new Date().toISOString(),
-          mcqs: dailyQuiz!.mcqs,
+          mcqs: dailyQuiz.mcqs,
           answers: quizAnswers,
           score: Object.values(quizAnswers).filter(a => a.isCorrect).length,
         };
@@ -113,8 +113,14 @@ export default function Home() {
         history.unshift(newResult);
         localStorage.setItem('quizHistory', JSON.stringify(history));
 
+    }, [dailyQuiz, quizAnswers, user]);
+
+
+    useEffect(() => {
+      if (allQuestionsAnswered) {
+        saveAndShowResults();
       }
-    }, [allQuestionsAnswered, dailyQuiz, quizAnswers, user]);
+    }, [allQuestionsAnswered, saveAndShowResults]);
 
 
     const handleGenerateQuiz = async (retake = false) => {
@@ -365,5 +371,3 @@ export default function Home() {
     </SidebarInset>
   );
 }
-
-    

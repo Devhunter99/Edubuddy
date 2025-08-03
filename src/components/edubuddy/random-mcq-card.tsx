@@ -55,8 +55,10 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
     }, [allNotesText, toast]);
 
     useEffect(() => {
-        fetchRandomMcq();
-    }, [fetchRandomMcq]);
+        if (allNotesText) {
+            fetchRandomMcq();
+        }
+    }, [allNotesText, fetchRandomMcq]);
 
     const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
         setIsAnswered(true);
@@ -80,8 +82,8 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
         return (
             <div className="text-center text-muted-foreground py-8">
                 <p>Add some notes to get a random question!</p>
-                <Button onClick={fetchRandomMcq} variant="secondary" size="sm" className="mt-4">
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                <Button onClick={fetchRandomMcq} variant="secondary" size="sm" className="mt-4" disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4" />}
                     Try to generate now
                 </Button>
             </div>
