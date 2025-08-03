@@ -1,25 +1,29 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RefreshCw } from "lucide-react";
+import { Play, Pause, RefreshCw, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useCoins } from "@/hooks/use-coins";
 
 const PRESETS = [20, 40, 60]; // in minutes
 
 export function StudyTimer() {
-  const [duration, setDuration] = useState(20 * 60); // default 20 minutes in seconds
-  const [timeRemaining, setTimeRemaining] = useState(duration);
+  const [initialDuration, setInitialDuration] = useState(20 * 60); // in seconds
+  const [timeRemaining, setTimeRemaining] = useState(initialDuration);
   const [isActive, setIsActive] = useState(false);
   const [customMinutes, setCustomMinutes] = useState("");
   const { toast } = useToast();
+  const { addCoins, hasCompletedTimerSession } = useCoins();
+  const sessionStartTime = useRef<number | null>(null);
+
 
   const CIRCLE_RADIUS = 80;
   const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
-  const progressOffset = ((duration - timeRemaining) / duration) * CIRCLE_CIRCUMFERENCE;
+  const progressOffset = ((initialDuration - timeRemaining) / initialDuration) * CIRCLE_CIRCUMFERENCE;
 
 
   useEffect(() => {
@@ -31,7 +35,23 @@ export function StudyTimer() {
       }, 1000);
     } else if (timeRemaining === 0 && isActive) {
       setIsActive(false);
-      // Optional: Add a notification or sound
+      
+      const coinsEarned = Math.floor(initialDuration / 60 / 10);
+      const sessionId = `timer-${sessionStartTime.current}`;
+
+      if (coinsEarned > 0 && !hasCompletedTimerSession(sessionId)) {
+        addCoins(coinsEarned, sessionId);
+        toast({
+          title: (
+            <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-amber-500" />
+                <span className="font-bold">Reward!</span>
+            </div>
+          ),
+          description: `You earned ${coinsEarned} coin${coinsEarned > 1 ? 's' : ''} for your focused study session!`,
+        });
+      }
+      
       if (typeof window !== 'undefined' && "Notification" in window && Notification.permission === "granted") {
         new window.Notification("EduBuddy", { body: "Time's up! Great work." });
       }
@@ -40,7 +60,7 @@ export function StudyTimer() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeRemaining]);
+  }, [isActive, timeRemaining, initialDuration, addCoins, toast, hasCompletedTimerSession]);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && "Notification" in window) {
@@ -49,29 +69,37 @@ export function StudyTimer() {
   },[])
 
   useEffect(() => {
-    setTimeRemaining(duration);
+    setTimeRemaining(initialDuration);
     setIsActive(false);
-  }, [duration]);
+  }, [initialDuration]);
   
   const toggleTimer = useCallback(() => {
     if (timeRemaining > 0) {
       setIsActive(!isActive);
+      if (!isActive) {
+        // Timer starts
+        sessionStartTime.current = Date.now();
+      } else {
+        // Timer pauses
+        sessionStartTime.current = null;
+      }
     }
   }, [isActive, timeRemaining]);
 
   const resetTimer = useCallback(() => {
     setIsActive(false);
-    setTimeRemaining(duration);
-  }, [duration]);
+    setTimeRemaining(initialDuration);
+    sessionStartTime.current = null;
+  }, [initialDuration]);
 
   const selectPreset = useCallback((minutes: number) => {
-    setDuration(minutes * 60);
+    setInitialDuration(minutes * 60);
   }, []);
 
   const handleSetCustomTime = () => {
     const minutes = parseInt(customMinutes, 10);
     if (!isNaN(minutes) && minutes > 0) {
-        setDuration(minutes * 60);
+        setInitialDuration(minutes * 60);
     } else {
         toast({
             title: "Invalid Time",
@@ -120,7 +148,7 @@ export function StudyTimer() {
             </div>
         </div>
 
-       {duration >= 3600 && (
+       {initialDuration >= 3600 && (
          <p className="text-sm text-muted-foreground text-center px-4">
             That's a long session! Remember to take a short break every hour.
         </p>
@@ -131,7 +159,7 @@ export function StudyTimer() {
             {PRESETS.map((p) => (
             <Button
                 key={p}
-                variant={duration / 60 === p && customMinutes === "" ? "default" : "outline"}
+                variant={initialDuration / 60 === p && customMinutes === "" ? "default" : "outline"}
                 size="sm"
                 onClick={() => {
                     selectPreset(p);
@@ -161,6 +189,7 @@ export function StudyTimer() {
           onClick={toggleTimer}
           size="lg"
           className={cn("w-24", isActive ? "bg-amber-500 hover:bg-amber-600" : "bg-primary hover:bg-primary/90")}
+          disabled={timeRemaining === 0}
         >
           {isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
           {isActive ? "Pause" : "Start"}

@@ -7,6 +7,8 @@ import { useAuth } from './use-auth';
 interface CoinContextType {
   coins: number;
   addCoinForQuestion: (questionText: string) => void;
+  addCoins: (amount: number, sessionId: string) => void;
+  hasCompletedTimerSession: (sessionId: string) => boolean;
   loading: boolean;
 }
 
@@ -27,10 +29,10 @@ const generateQuestionId = (questionText: string) => {
 export function CoinProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const [coins, setCoins] = useState(0);
-    const [correctlyAnswered, setCorrectlyAnswered] = useState<Set<string>>(new Set());
+    const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
 
-    const getStorageKey = useCallback((key: 'coins' | 'answered') => {
+    const getStorageKey = useCallback((key: 'coins' | 'completed') => {
         if (!user) return null;
         return `edubuddy_${key}_${user.uid}`;
     }, [user]);
@@ -41,50 +43,73 @@ export function CoinProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             try {
                 const coinsKey = getStorageKey('coins');
-                const answeredKey = getStorageKey('answered');
+                const completedKey = getStorageKey('completed');
 
                 const storedCoins = coinsKey ? localStorage.getItem(coinsKey) : '0';
-                const storedAnswered = answeredKey ? localStorage.getItem(answeredKey) : '[]';
+                const storedCompleted = completedKey ? localStorage.getItem(completedKey) : '[]';
 
                 setCoins(storedCoins ? parseInt(storedCoins, 10) : 0);
-                setCorrectlyAnswered(new Set(storedAnswered ? JSON.parse(storedAnswered) : []));
+                setCompletedItems(new Set(storedCompleted ? JSON.parse(storedCompleted) : []));
             } catch (error) {
                 console.error("Failed to load coin data from localStorage", error);
                 setCoins(0);
-                setCorrectlyAnswered(new Set());
+                setCompletedItems(new Set());
             } finally {
                 setLoading(false);
             }
         } else {
             setCoins(0);
-            setCorrectlyAnswered(new Set());
+            setCompletedItems(new Set());
             setLoading(false);
         }
     }, [user, getStorageKey]);
+    
+    const updateCompletedItems = (newCompletedSet: Set<string>) => {
+        setCompletedItems(newCompletedSet);
+        const completedKey = getStorageKey('completed');
+        if (completedKey) {
+            localStorage.setItem(completedKey, JSON.stringify(Array.from(newCompletedSet)));
+        }
+    }
+    
+    const updateCoins = (newCoinTotal: number) => {
+        setCoins(newCoinTotal);
+        const coinsKey = getStorageKey('coins');
+        if (coinsKey) {
+            localStorage.setItem(coinsKey, newCoinTotal.toString());
+        }
+    }
 
     const addCoinForQuestion = useCallback((questionText: string) => {
         if (!user) return; // Only logged-in users can earn coins
 
         const questionId = generateQuestionId(questionText);
         
-        if (!correctlyAnswered.has(questionId)) {
-            // Update coins
-            const newCoinTotal = coins + 1;
-            setCoins(newCoinTotal);
-            const coinsKey = getStorageKey('coins');
-            if (coinsKey) localStorage.setItem(coinsKey, newCoinTotal.toString());
-
-            // Update answered questions
-            const newAnsweredSet = new Set(correctlyAnswered).add(questionId);
-            setCorrectlyAnswered(newAnsweredSet);
-            const answeredKey = getStorageKey('answered');
-            if (answeredKey) localStorage.setItem(answeredKey, JSON.stringify(Array.from(newAnsweredSet)));
+        if (!completedItems.has(questionId)) {
+            updateCoins(coins + 1);
+            const newCompletedSet = new Set(completedItems).add(questionId);
+            updateCompletedItems(newCompletedSet);
         }
 
-    }, [user, coins, correctlyAnswered, getStorageKey]);
+    }, [user, coins, completedItems, getStorageKey]);
+    
+    const addCoins = useCallback((amount: number, sessionId: string) => {
+        if (!user || amount <= 0) return;
+        
+        if (!completedItems.has(sessionId)) {
+            updateCoins(coins + amount);
+            const newCompletedSet = new Set(completedItems).add(sessionId);
+            updateCompletedItems(newCompletedSet);
+        }
+
+    }, [user, coins, completedItems, getStorageKey]);
+    
+    const hasCompletedTimerSession = useCallback((sessionId: string) => {
+        return completedItems.has(sessionId);
+    }, [completedItems]);
 
 
-    const value = { coins, addCoinForQuestion, loading };
+    const value = { coins, addCoinForQuestion, addCoins, hasCompletedTimerSession, loading };
 
     return <CoinContext.Provider value={value}>{children}</CoinContext.Provider>;
 }
