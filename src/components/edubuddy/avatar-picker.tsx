@@ -32,14 +32,17 @@ export default function AvatarPicker() {
   }, [user]);
 
   const handleUpdateAvatar = async (url: string) => {
+    if (!user) return;
     setIsLoading(true);
     try {
+      // This now saves to localStorage via the auth hook
       await updateUserPhotoURL(url);
       toast({ title: 'Success', description: 'Profile picture updated!' });
     } catch (error: any) {
       console.error('Failed to update profile picture', error);
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      setSelectedAvatar(user?.photoURL || ''); // Revert on error
+      // Revert on error by reading from the user state again, which should hold the last valid URL
+      setSelectedAvatar(user?.photoURL || '');
     } finally {
       setIsLoading(false);
     }

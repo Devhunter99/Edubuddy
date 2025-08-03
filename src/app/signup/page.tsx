@@ -112,13 +112,16 @@ export default function SignupPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
+      // Update display name in Firebase Auth
       await updateProfile(userCredential.user, {
         displayName: values.username,
-        photoURL: values.photoURL,
       });
 
-      // Update the auth state immediately
-      await updateUserPhotoURL(values.photoURL!);
+      // Save photoURL to local storage, not Firebase Auth
+      if (values.photoURL) {
+        await updateUserPhotoURL(values.photoURL);
+        localStorage.setItem(`user_photo_${userCredential.user.uid}`, values.photoURL);
+      }
 
       // Store studyLevel in localStorage
       localStorage.setItem(`user_study_level_${userCredential.user.uid}`, values.studyLevel);
@@ -145,6 +148,13 @@ export default function SignupPage() {
     try {
         const result = await signInWithPopup(auth, provider);
         localStorage.setItem(`user_study_level_${result.user.uid}`, 'undergraduate');
+        
+        // Also save their google photo if they have one
+        if (result.user.photoURL) {
+            localStorage.setItem(`user_photo_${result.user.uid}`, result.user.photoURL);
+            await updateUserPhotoURL(result.user.photoURL);
+        }
+
         toast({ title: "Success", description: "Signed up successfully with Google." });
         router.push('/');
     } catch (error: any) {

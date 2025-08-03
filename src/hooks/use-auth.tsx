@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
@@ -18,6 +18,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const auth = getAuth(app);
 
+// Helper function to create a new user object with an updated photoURL
+const createUserWithPhoto = (user: User, photoURL: string | null): User => {
+  return {
+      ...user,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: photoURL,
+      providerId: user.providerId,
+      uid: user.uid,
+  } as User;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+      if (user) {
+        // User is signed in, see if there's a custom photo in local storage
+        const customPhotoURL = localStorage.getItem(`user_photo_${user.uid}`);
+        const userWithPhoto = createUserWithPhoto(user, customPhotoURL || user.photoURL);
+        setUser(userWithPhoto);
+      } else {
+        // User is signed out
+        setUser(null);
+      }
       setLoading(false);
     });
 
@@ -39,33 +59,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const logout = async () => {
     await signOut(auth);
+    // Clear local storage for the user on logout
+    if (user) {
+        localStorage.removeItem(`user_photo_${user.uid}`);
+        localStorage.removeItem(`user_study_level_${user.uid}`);
+    }
     router.push('/login');
   };
 
   const updateUserPhotoURL = async (photoURL: string) => {
     if (auth.currentUser) {
-      await updateProfile(auth.currentUser, { photoURL });
+      // Save the new photoURL to localStorage
+      localStorage.setItem(`user_photo_${auth.currentUser.uid}`, photoURL);
       
-      const userToUpdate = auth.currentUser;
-      if (userToUpdate) {
-        // Manually create a new user object to force re-render
-        const updatedUser: User = {
-          ...userToUpdate,
-          displayName: userToUpdate.displayName,
-          email: userToUpdate.email,
-          photoURL: photoURL, // The new photoURL
-          providerId: userToUpdate.providerId,
-          uid: userToUpdate.uid,
-          // You may need to copy other properties as well
-          // This is a simplified example
-        } as User;
-        
-        // This is a bit of a trick to force a state update
-        // when the internal state of the user object changes
-        // but the object reference does not.
-        setUser(null); 
-        setUser(updatedUser);
-      }
+      // Update the user state in the context to trigger a re-render
+      const updatedUser = createUserWithPhoto(auth.currentUser, photoURL);
+      setUser(updatedUser);
     }
   };
 
