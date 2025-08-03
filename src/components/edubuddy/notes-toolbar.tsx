@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Sparkles, ChevronDown, Library } from "lucide-react";
+import { PlusCircle, Sparkles, ChevronDown, Library, Trash2 } from "lucide-react";
 import type { Note } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import {
@@ -12,6 +12,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils";
 
 interface NotesToolbarProps {
@@ -19,6 +30,7 @@ interface NotesToolbarProps {
   activeNoteId: string | null;
   onSelectNote: (id: string | null) => void;
   onAddNote: () => void;
+  onDeleteNote: (id: string) => void;
   onGenerateFromAllNotes: () => void;
   isClient: boolean;
   subjectName: string;
@@ -31,6 +43,7 @@ export default function NotesToolbar({
   activeNoteId,
   onSelectNote,
   onAddNote,
+  onDeleteNote,
   onGenerateFromAllNotes,
   isClient,
   subjectName,
@@ -69,13 +82,34 @@ export default function NotesToolbar({
           <DropdownMenuSeparator />
           {notes.length > 0 ? (
             notes.map((note) => (
-              <DropdownMenuItem
-                key={note.id}
-                onSelect={() => onSelectNote(note.id)}
-                 className={cn(activeNoteId === note.id && 'bg-accent')}
-              >
-                {note.title}
-              </DropdownMenuItem>
+              <AlertDialog key={note.id}>
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()} // Prevent DropdownMenu from closing on click
+                  className={cn(
+                    "flex justify-between items-center",
+                    activeNoteId === note.id && 'bg-accent'
+                  )}
+                >
+                  <span onClick={() => onSelectNote(note.id)} className="flex-grow truncate pr-2 cursor-pointer">{note.title}</span>
+                   <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+                         <Trash2 className="h-4 w-4 text-destructive/70 hover:text-destructive" />
+                      </Button>
+                  </AlertDialogTrigger>
+                </DropdownMenuItem>
+                 <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the note titled "{note.title}".
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onDeleteNote(note.id)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+              </AlertDialog>
             ))
           ) : (
             <DropdownMenuItem disabled>No notes yet</DropdownMenuItem>

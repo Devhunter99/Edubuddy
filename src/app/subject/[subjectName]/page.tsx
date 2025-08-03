@@ -108,6 +108,15 @@ const useSubjectNotes = (subjectName: string) => {
     );
     saveNotes(updatedNotes);
   };
+  
+  const deleteNote = (noteId: string) => {
+    const updatedNotes = notes.filter(note => note.id !== noteId);
+    saveNotes(updatedNotes);
+
+    if (activeNoteId === noteId) {
+      setActiveNoteId(updatedNotes.length > 0 ? updatedNotes[0].id : null);
+    }
+  }
 
   const activeNote = notes.find(n => n.id === activeNoteId);
   
@@ -120,6 +129,7 @@ const useSubjectNotes = (subjectName: string) => {
     setActiveNoteId, 
     addNote, 
     updateNote,
+    deleteNote,
     allNotesText,
     allNotesGeneratedContent,
     setAllNotesGeneratedContent: saveAllNotesContent,
@@ -140,6 +150,7 @@ export default function SubjectPage() {
     setActiveNoteId, 
     addNote, 
     updateNote,
+    deleteNote,
     allNotesText,
     allNotesGeneratedContent,
     setAllNotesGeneratedContent
@@ -343,6 +354,14 @@ export default function SubjectPage() {
     }
   }
 
+  const handleDeleteNote = (noteId: string) => {
+      deleteNote(noteId);
+      toast({
+          title: "Note Deleted",
+          description: "The note has been successfully deleted.",
+      })
+  }
+
 
   if (!isClient) {
     return (
@@ -362,6 +381,7 @@ export default function SubjectPage() {
               activeNoteId={activeNoteId}
               onSelectNote={handleSelectNote}
               onAddNote={() => addNote()}
+              onDeleteNote={handleDeleteNote}
               onGenerateFromAllNotes={handleGenerateForAllNotes}
               isClient={isClient}
               subjectName={subjectName}
