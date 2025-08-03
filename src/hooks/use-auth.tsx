@@ -3,8 +3,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
-import { getStorage, ref, uploadString, getDownloadURL, uploadBytes } from "firebase/storage";
-import { app, storage } from '@/lib/firebase';
+import { app } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
@@ -13,7 +12,6 @@ interface AuthContextType {
   googleLogin: () => Promise<any>;
   logout: () => Promise<void>;
   updateUserPhotoURL: (photoURL: string) => Promise<void>;
-  uploadAndSetProfilePicture: (file: File | string, user: User) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,35 +45,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserPhotoURL = async (photoURL: string) => {
     if (auth.currentUser) {
       await updateProfile(auth.currentUser, { photoURL });
-      // To ensure React detects the change, we create a new object.
-      const updatedUser = { ...auth.currentUser, photoURL };
-      setUser(updatedUser as User);
+      
+      const userToUpdate = auth.currentUser;
+      if (userToUpdate) {
+        // Manually create a new user object to force re-render
+        const updatedUser: User = {
+          ...userToUpdate,
+          displayName: userToUpdate.displayName,
+          email: userToUpdate.email,
+          photoURL: photoURL, // The new photoURL
+          providerId: userToUpdate.providerId,
+          uid: userToUpdate.uid,
+          // You may need to copy other properties as well
+          // This is a simplified example
+        } as User;
+        
+        // This is a bit of a trick to force a state update
+        // when the internal state of the user object changes
+        // but the object reference does not.
+        setUser(null); 
+        setUser(updatedUser);
+      }
     }
   };
-
-  const uploadAndSetProfilePicture = async (file: File | string, userToUpdate: User) => {
-      if (!userToUpdate) return;
-      
-      const storageRef = ref(storage, `profile-pictures/${userToUpdate.uid}/profile.jpg`);
-      
-      let downloadURL;
-
-      if (typeof file === 'string') { // It's a data URL
-          await uploadString(storageRef, file, 'data_url');
-          downloadURL = await getDownloadURL(storageRef);
-      } else { // It's a File object
-          await uploadBytes(storageRef, file);
-          downloadURL = await getDownloadURL(storageRef);
-      }
-      
-      // After getting the URL, update the user's profile
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { photoURL: downloadURL });
-        // And then update our local state to reflect the change immediately
-        setUser({ ...auth.currentUser, photoURL: downloadURL } as User);
-      }
-  };
-
 
   const value = {
     user,
@@ -83,7 +75,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     googleLogin,
     logout,
     updateUserPhotoURL,
-    uploadAndSetProfilePicture,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

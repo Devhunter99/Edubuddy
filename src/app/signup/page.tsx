@@ -63,10 +63,9 @@ const auth = getAuth(app);
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { uploadAndSetProfilePicture } = useAuth();
+  const { updateUserPhotoURL } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(preMadeAvatars[0]);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,7 +82,6 @@ export default function SignupPage() {
 
   const handleAvatarSelect = (url: string) => {
     setSelectedAvatar(url);
-    setUploadedFile(null); // Clear uploaded file if pre-made is selected
     form.setValue('photoURL', url);
   }
 
@@ -100,7 +98,6 @@ export default function SignupPage() {
         return;
     }
 
-    setUploadedFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
         const dataUrl = e.target?.result as string;
@@ -115,18 +112,13 @@ export default function SignupPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
-      let photoURL = values.photoURL;
-      if (uploadedFile) {
-        // If a file was uploaded, upload it now and get the URL
-        await uploadAndSetProfilePicture(uploadedFile, userCredential.user);
-        // The photoURL is now updated on the user object by the hook, so no need to pass it to updateProfile again
-      }
-
       await updateProfile(userCredential.user, {
         displayName: values.username,
-        // Only set photoURL here if it's a pre-made one and no file was uploaded
-        ...(!uploadedFile && { photoURL }),
+        photoURL: values.photoURL,
       });
+
+      // Update the auth state immediately
+      await updateUserPhotoURL(values.photoURL!);
 
       // Store studyLevel in localStorage
       localStorage.setItem(`user_study_level_${userCredential.user.uid}`, values.studyLevel);

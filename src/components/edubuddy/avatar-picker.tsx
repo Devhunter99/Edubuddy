@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,27 +19,35 @@ const preMadeAvatars = [
 ];
 
 export default function AvatarPicker() {
-  const { user, updateUserPhotoURL, uploadAndSetProfilePicture } = useAuth();
+  const { user, updateUserPhotoURL } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(user?.photoURL || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAvatarSelect = async (url: string) => {
-    if (url.startsWith('https://')) {
-        setSelectedAvatar(url);
-        setIsLoading(true);
-        try {
-          await updateUserPhotoURL(url);
-          toast({ title: 'Success', description: 'Profile picture updated!' });
-        } catch (error: any) {
-          console.error('Failed to update profile picture', error);
-          toast({ title: 'Error', description: error.message, variant: 'destructive' });
-          setSelectedAvatar(user?.photoURL || ''); // Revert on error
-        } finally {
-          setIsLoading(false);
-        }
+  useEffect(() => {
+    if (user?.photoURL) {
+      setSelectedAvatar(user.photoURL);
     }
+  }, [user]);
+
+  const handleUpdateAvatar = async (url: string) => {
+    setIsLoading(true);
+    try {
+      await updateUserPhotoURL(url);
+      toast({ title: 'Success', description: 'Profile picture updated!' });
+    } catch (error: any) {
+      console.error('Failed to update profile picture', error);
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      setSelectedAvatar(user?.photoURL || ''); // Revert on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAvatarSelect = (url: string) => {
+    setSelectedAvatar(url);
+    handleUpdateAvatar(url);
   };
 
   const handleUploadClick = () => {
@@ -55,21 +63,13 @@ export default function AvatarPicker() {
         return;
     }
     
-    setIsLoading(true);
     const reader = new FileReader();
-    reader.onload = (e) => setSelectedAvatar(e.target?.result as string);
+    reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        setSelectedAvatar(dataUrl);
+        handleUpdateAvatar(dataUrl);
+    };
     reader.readAsDataURL(file);
-
-    try {
-        await uploadAndSetProfilePicture(file, user);
-        toast({ title: 'Success', description: 'Profile picture uploaded and updated!'});
-    } catch (error: any) {
-        console.error('Upload failed', error);
-        toast({ title: 'Upload Failed', description: error.message, variant: 'destructive'});
-        setSelectedAvatar(user.photoURL || ''); // Revert preview
-    } finally {
-        setIsLoading(false);
-    }
   }
   
   if (!user) {
@@ -111,7 +111,7 @@ export default function AvatarPicker() {
           </Avatar>
           <Button onClick={handleUploadClick} disabled={isLoading} variant="outline">
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-             {isLoading ? 'Uploading...' : 'Upload Image'}
+             {isLoading ? 'Saving...' : 'Upload Image'}
           </Button>
         </div>
 
