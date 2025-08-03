@@ -220,7 +220,7 @@ export default function Home() {
                                                             <McqItem 
                                                                 mcq={mcq} 
                                                                 index={index}
-                                                                onAnswer={handleAnswer}
+                                                                onAnswer={quizAnswers[index] ? undefined : handleAnswer}
                                                             />
                                                         </div>
                                                     </CarouselItem>
@@ -342,7 +342,7 @@ export default function Home() {
                                                             <McqItem 
                                                                 mcq={mcq} 
                                                                 index={index}
-                                                                onAnswer={handleAnswer}
+                                                                onAnswer={quizAnswers[index] ? undefined : handleAnswer}
                                                             />
                                                         </div>
                                                     </CarouselItem>
