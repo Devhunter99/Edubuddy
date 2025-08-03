@@ -14,9 +14,10 @@ interface McqItemProps {
   mcq: GenerateMCQOutput["mcqs"][0];
   index: number;
   onAnswer?: (index: number, selectedAnswer: string, isCorrect: boolean) => void;
+  actionButton?: React.ReactNode;
 }
 
-export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
+export default function McqItem({ mcq, index, onAnswer, actionButton }: McqItemProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isChecked, setIsChecked] = useState(false);
 
@@ -30,8 +31,10 @@ export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
   };
 
   const handleSelectAnswer = (value: string) => {
-    setSelectedAnswer(value);
-    setIsChecked(false);
+    // Allow re-selection only if the answer hasn't been checked yet
+    if (!isChecked) {
+      setSelectedAnswer(value);
+    }
   }
   
   const getOptionStatus = (option: string) => {
@@ -92,11 +95,14 @@ export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
           })}
         </RadioGroup>
       </CardContent>
-      {onAnswer && !isChecked && (
-        <CardFooter className="p-4 pt-0 justify-end">
-            <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
-              Check Answer
-            </Button>
+      {(onAnswer && !isChecked || actionButton) && (
+        <CardFooter className="p-4 pt-0 justify-end space-x-2">
+            {onAnswer && !isChecked && (
+                 <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
+                    Check Answer
+                </Button>
+            )}
+            {isChecked && actionButton}
         </CardFooter>
       )}
     </Card>

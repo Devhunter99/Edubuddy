@@ -28,6 +28,7 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
 
         setIsLoading(true);
         setIsAnswered(false);
+        setRandomMcq(null); // Clear previous mcq
         try {
             const result = await generateMCQ({
                 text: allNotesText,
@@ -64,7 +65,7 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
         }
     };
 
-    if (isLoading) {
+    if (isLoading && !randomMcq) {
         return (
             <div className="space-y-4 mt-4">
                 <Skeleton className="h-8 w-3/4" />
@@ -87,17 +88,25 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
         )
     }
 
+    const nextQuestionButton = (
+        <Button onClick={fetchRandomMcq} variant="secondary" size="sm" disabled={isLoading}>
+            {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            Next Question
+        </Button>
+    )
+
     return (
         <div className="mt-4">
-            <McqItem mcq={randomMcq} index={0} onAnswer={isAnswered ? undefined : handleAnswer} />
-            <Button onClick={fetchRandomMcq} className="w-full mt-4" variant="outline" disabled={isLoading}>
-                {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                )}
-                Next Question
-            </Button>
+            <McqItem 
+                mcq={randomMcq} 
+                index={0} 
+                onAnswer={isAnswered ? undefined : handleAnswer}
+                actionButton={nextQuestionButton}
+             />
         </div>
     )
 }
