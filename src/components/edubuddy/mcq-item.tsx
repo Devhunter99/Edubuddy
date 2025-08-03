@@ -62,11 +62,11 @@ export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
             const status = getOptionStatus(option);
             const isCorrect = status === 'correct';
             const isIncorrect = status === 'incorrect';
+            const optionId = `option-${index}-${i}`;
 
             return (
-              <Label
+              <div
                 key={i}
-                htmlFor={`option-${index}-${i}`}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg border-2 transition-all",
                   "border-transparent bg-muted/50",
@@ -80,13 +80,15 @@ export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
               >
                 <RadioGroupItem
                   value={option}
-                  id={`option-${index}-${i}`}
+                  id={optionId}
                   className="shrink-0"
                 />
-                <span className="flex-grow">{option}</span>
+                <Label htmlFor={optionId} className="flex-grow cursor-pointer">
+                  {option}
+                </Label>
                 {isCorrect && <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />}
                 {isIncorrect && <XCircle className="h-5 w-5 text-red-600 shrink-0" />}
-              </Label>
+              </div>
             );
           })}
         </RadioGroup>
@@ -101,5 +103,3 @@ export default function McqItem({ mcq, index, onAnswer }: McqItemProps) {
     </Card>
   );
 }
-
-    
