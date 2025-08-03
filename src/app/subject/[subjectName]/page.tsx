@@ -292,6 +292,12 @@ export default function SubjectPage() {
     }
   };
 
+  const handleSetTitle = (newTitle: string) => {
+    if (activeNoteId) {
+      updateNote(activeNoteId, { title: newTitle });
+    }
+  };
+
   const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -368,10 +374,12 @@ export default function SubjectPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12 mt-6">
             <div className="lg:max-w-xl xl:max-w-2xl">
               <InputSection
+                title={activeNote?.title ?? ""}
+                setTitle={handleSetTitle}
                 text={activeNote?.text ?? ""}
                 setText={handleSetText}
                 onSubmit={handleGenerateForCurrentNote}
-                isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs || isUploading}
+                isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs}
                 disabled={!activeNoteId}
                 onPdfUpload={handlePdfUpload}
                 fileInputRef={fileInputRef}
