@@ -47,9 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserPhotoURL = async (photoURL: string) => {
     if (auth.currentUser) {
       await updateProfile(auth.currentUser, { photoURL });
-      // Create a new user object to trigger a state update in React
-      const updatedUser = Object.assign(Object.create(Object.getPrototypeOf(auth.currentUser)), auth.currentUser);
-      setUser(updatedUser);
+      // To ensure React detects the change, we create a new object.
+      const updatedUser = { ...auth.currentUser, photoURL };
+      setUser(updatedUser as User);
     }
   };
 
@@ -67,8 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await uploadBytes(storageRef, file);
           downloadURL = await getDownloadURL(storageRef);
       }
-
-      await updateUserPhotoURL(downloadURL);
+      
+      // After getting the URL, update the user's profile
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: downloadURL });
+        // And then update our local state to reflect the change immediately
+        setUser({ ...auth.currentUser, photoURL: downloadURL } as User);
+      }
   };
 
 
