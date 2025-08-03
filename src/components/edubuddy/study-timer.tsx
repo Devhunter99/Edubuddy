@@ -17,6 +17,11 @@ export function StudyTimer() {
   const [customMinutes, setCustomMinutes] = useState("");
   const { toast } = useToast();
 
+  const CIRCLE_RADIUS = 80;
+  const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
+  const progressOffset = ((duration - timeRemaining) / duration) * CIRCLE_CIRCUMFERENCE;
+
+
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
@@ -85,9 +90,35 @@ export function StudyTimer() {
 
   return (
     <div className="flex flex-col items-center gap-4 py-4">
-      <div className="text-5xl font-bold font-mono text-primary tabular-nums tracking-wider">
-        {formatTime(timeRemaining)}
-      </div>
+        <div className="relative h-48 w-48">
+            <svg className="h-full w-full" viewBox="0 0 200 200">
+                {/* Background circle */}
+                <circle
+                    cx="100"
+                    cy="100"
+                    r={CIRCLE_RADIUS}
+                    fill="none"
+                    strokeWidth="15"
+                    className="stroke-muted"
+                />
+                {/* Progress circle */}
+                <circle
+                    cx="100"
+                    cy="100"
+                    r={CIRCLE_RADIUS}
+                    fill="none"
+                    strokeWidth="15"
+                    className="stroke-primary"
+                    strokeDasharray={CIRCLE_CIRCUMFERENCE}
+                    strokeDashoffset={progressOffset}
+                    strokeLinecap="round"
+                    transform="rotate(-90 100 100)"
+                />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold font-mono text-primary tabular-nums tracking-wider">
+                {formatTime(timeRemaining)}
+            </div>
+        </div>
 
        {duration >= 3600 && (
          <p className="text-sm text-muted-foreground text-center px-4">
