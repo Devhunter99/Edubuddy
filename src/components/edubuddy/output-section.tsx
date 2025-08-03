@@ -4,6 +4,7 @@
 import { type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
 import { type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
 import { type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
+import { type GenerateDetailedSummaryOutput } from "@/ai/flows/generate-detailed-summary";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +21,7 @@ import QuizResultsSummary from "./quiz-results-summary";
 
 type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
+  detailedSummary: GenerateDetailedSummaryOutput | null;
   flashcards: GenerateFlashcardsOutput | null;
   mcqs: GenerateMCQOutput | null;
 };
@@ -28,11 +30,11 @@ interface OutputSectionProps {
   content: GeneratedContent;
   isLoading: {
     summary: boolean;
+    detailedSummary: boolean;
     flashcards: boolean;
     mcqs: boolean;
   };
   onRegenerate: (type: keyof GeneratedContent) => void;
-  onGenerateDetailedSummary: () => void;
   mcqDifficulty: GenerateMCQInput['difficulty'];
   setMcqDifficulty: (difficulty: GenerateMCQInput['difficulty']) => void;
   isAllNotesView?: boolean;
@@ -57,10 +59,15 @@ const formatMcqsForDownload = (mcqs: GenerateMCQOutput['mcqs']) => {
   return mcqs.map((m, i) => `${i + 1}. ${m.question}\n${m.options.map(o => `   - ${o}`).join('\n')}\nCorrect Answer: ${m.correctAnswer}`).join('\n\n');
 };
 
-export default function OutputSection({ content, isLoading, onRegenerate, onGenerateDetailedSummary, mcqDifficulty, setMcqDifficulty, isAllNotesView = false, subjectName = "Notes" }: OutputSectionProps) {
+const formatDetailedSummaryForDownload = (points: string[]) => {
+    return points.map((point, index) => `${index + 1}. ${point}`).join('\n');
+}
+
+export default function OutputSection({ content, isLoading, onRegenerate, mcqDifficulty, setMcqDifficulty, isAllNotesView = false, subjectName = "Notes" }: OutputSectionProps) {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, { selected: string; isCorrect: boolean }>>({});
   const [showResults, setShowResults] = useState(false);
   const [mcqKey, setMcqKey] = useState(Date.now());
+  const [activeTab, setActiveTab] = useState("summary");
 
   const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
     setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
@@ -68,17 +75,19 @@ export default function OutputSection({ content, isLoading, onRegenerate, onGene
   
   const handleShowResults = () => {
     setShowResults(true);
-    const newResult: QuizResult = {
-        id: `quiz-${Date.now()}`,
-        subjectName: subjectName,
-        timestamp: new Date().toISOString(),
-        mcqs: content.mcqs!.mcqs,
-        answers: quizAnswers,
-        score: Object.values(quizAnswers).filter(a => a.isCorrect).length,
-      };
-      const history: QuizResult[] = JSON.parse(localStorage.getItem('quizHistory') || '[]');
-      history.unshift(newResult);
-      localStorage.setItem('quizHistory', JSON.stringify(history));
+    if (typeof window !== 'undefined' && subjectName) {
+      const newResult: QuizResult = {
+          id: `quiz-${Date.now()}`,
+          subjectName: subjectName,
+          timestamp: new Date().toISOString(),
+          mcqs: content.mcqs!.mcqs,
+          answers: quizAnswers,
+          score: Object.values(quizAnswers).filter(a => a.isCorrect).length,
+        };
+        const history: QuizResult[] = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+        history.unshift(newResult);
+        localStorage.setItem('quizHistory', JSON.stringify(history));
+    }
   }
 
   const allQuestionsAnswered = content.mcqs && Object.keys(quizAnswers).length === content.mcqs.mcqs.length;
@@ -108,7 +117,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, onGene
   );
 
   const isAnythingLoading = Object.values(isLoading).some(Boolean);
-  const isEverythingEmpty = Object.values(content).every(c => c === null || (c as any)?.length === 0 || (c as any)?.mcqs?.length === 0 || (c as any)?.flashcards?.length === 0 );
+  const isEverythingEmpty = Object.values(content).every(c => c === null || (c as any)?.length === 0 || Object.values(c).every(v => v === null || (Array.isArray(v) && v.length === 0)));
 
 
   if (!isAnythingLoading && isEverythingEmpty) {
@@ -116,13 +125,24 @@ export default function OutputSection({ content, isLoading, onRegenerate, onGene
   }
   
   const renderSummary = () => {
-    if (!content.summary) return null;
+    if (!content.summary?.summary) return null;
     const summaryText = content.summary.summary;
     const points = summaryText.split(/\n|\s(?=\d+\.\s)|-/).filter(s => s.trim().length > 0 && s.trim() !== '-');
     return (
       <ul className="list-disc pl-5 space-y-2 text-base">
         {points.map((point, index) => (
           <li key={index}>{point.replace(/^\d+\.\s*/, '').replace(/^- /, '')}</li>
+        ))}
+      </ul>
+    )
+  }
+
+  const renderDetailedSummary = () => {
+    if (!content.detailedSummary?.summary) return null;
+    return (
+      <ul className="list-decimal pl-5 space-y-2 text-base">
+        {content.detailedSummary.summary.map((point, index) => (
+          <li key={index}>{point}</li>
         ))}
       </ul>
     )
@@ -140,10 +160,15 @@ export default function OutputSection({ content, isLoading, onRegenerate, onGene
     return null;
   }
 
+  const handleGenerateDetailedSummary = () => {
+    onRegenerate('detailedSummary');
+    setActiveTab('summary');
+  }
+
   return (
     <>
     <PageTitle />
-    <Tabs defaultValue="summary" className="w-full">
+    <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="summary"><FileText className="mr-2 h-4 w-4" />Summary</TabsTrigger>
         <TabsTrigger value="flashcards"><BotMessageSquare className="mr-2 h-4 w-4" />Flashcards</TabsTrigger>
@@ -154,27 +179,29 @@ export default function OutputSection({ content, isLoading, onRegenerate, onGene
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold font-headline">Summary</h3>
-              {content.summary && (
+              {(content.summary || content.detailedSummary) && (
                 <div className="flex gap-2">
-                   <Button variant="outline" size="sm" onClick={onGenerateDetailedSummary} disabled={isLoading.summary}>
+                   <Button variant="outline" size="sm" onClick={handleGenerateDetailedSummary} disabled={isLoading.detailedSummary}>
                     <ListPlus className="mr-2 h-4 w-4" /> Detailed Points
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => onRegenerate('summary')} disabled={isLoading.summary}>
                     <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadText('summary.txt', content.summary!.summary)}>
+                  <Button variant="outline" size="sm" onClick={() => downloadText('summary.txt', content.summary?.summary ?? '')} disabled={!content.summary}>
                     <Download className="mr-2 h-4 w-4" /> Download
                   </Button>
                 </div>
               )}
             </div>
-            {isLoading.summary ? (
+            {isLoading.summary || isLoading.detailedSummary ? (
               <div className="space-y-3">
                 <Skeleton className="h-5 w-4/5" />
                 <Skeleton className="h-5 w-full" />
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-5 w-4/5" />
               </div>
+            ) : content.detailedSummary ? (
+              renderDetailedSummary()
             ) : content.summary ? (
               renderSummary()
             ) : ( <p className="text-muted-foreground text-center pt-16">Generate a summary to see it here.</p> )}

@@ -21,30 +21,31 @@ import { useAuth } from "@/hooks/use-auth";
 
 const ALL_NOTES_ID = "all-notes";
 
+const defaultGeneratedContent: GeneratedContent = { 
+  summary: null, 
+  detailedSummary: null, 
+  flashcards: null, 
+  mcqs: null 
+};
+
 // Custom hook for managing state with localStorage
 const useSubjectNotes = (subjectName: string) => {
   const getInitialNotes = (): Note[] => {
     if (typeof window === 'undefined') return [];
     try {
       const item = localStorage.getItem(subjectName);
-      // Simple migration for old format
-      if (item && !item.startsWith('[')) {
-        const oldText = localStorage.getItem(`${subjectName}_text`) || '';
-        const oldContentRaw = localStorage.getItem(`${subjectName}_content`);
-        const oldContent = oldContentRaw ? JSON.parse(oldContentRaw) : { summary: null, flashcards: null, mcqs: null };
-        const migratedNote: Note = {
-          id: `note-${Date.now()}`,
-          title: 'My First Note',
-          text: oldText,
-          generatedContent: oldContent,
-        };
-        localStorage.setItem(subjectName, JSON.stringify([migratedNote]));
-        // Clean up old keys
-        localStorage.removeItem(`${subjectName}_text`);
-        localStorage.removeItem(`${subjectName}_content`);
-        return [migratedNote];
+      if (item) {
+        const parsedNotes = JSON.parse(item);
+        // Migration for notes that don't have detailedSummary
+        return parsedNotes.map((note: Note) => ({
+          ...note,
+          generatedContent: {
+            ...defaultGeneratedContent,
+            ...note.generatedContent,
+          }
+        }));
       }
-      return item ? JSON.parse(item) : [];
+      return [];
     } catch (error) {
       console.error(`Error reading notes from localStorage`, error);
       return [];
@@ -55,13 +56,17 @@ const useSubjectNotes = (subjectName: string) => {
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   
   const getInitialAllNotesContent = (): GeneratedContent => {
-     if (typeof window === 'undefined') return { summary: null, flashcards: null, mcqs: null };
+     if (typeof window === 'undefined') return defaultGeneratedContent;
      try {
        const item = localStorage.getItem(`${subjectName}_${ALL_NOTES_ID}_content`);
-       return item ? JSON.parse(item) : { summary: null, flashcards: null, mcqs: null };
+       const parsedContent = item ? JSON.parse(item) : defaultGeneratedContent;
+       return {
+         ...defaultGeneratedContent,
+         ...parsedContent
+       };
      } catch (error) {
         console.error(`Error reading all notes content from localStorage`, error);
-        return { summary: null, flashcards: null, mcqs: null };
+        return defaultGeneratedContent;
      }
   };
 
@@ -95,7 +100,7 @@ const useSubjectNotes = (subjectName: string) => {
       id: `note-${Date.now()}`,
       title: title || `New Note ${notes.length + 1}`,
       text: text || '',
-      generatedContent: { summary: null, flashcards: null, mcqs: null },
+      generatedContent: defaultGeneratedContent,
     };
     const updatedNotes = [...notes, newNote];
     saveNotes(updatedNotes);
@@ -161,6 +166,7 @@ export default function SubjectPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState({
     summary: false,
+    detailedSummary: false,
     flashcards: false,
     mcqs: false,
   });
@@ -206,7 +212,7 @@ export default function SubjectPage() {
       return;
     }
 
-    setIsLoading({ summary: true, flashcards: true, mcqs: true });
+    setIsLoading({ summary: true, detailedSummary: false, flashcards: true, mcqs: true });
 
     try {
       const [summaryResult, flashcardsResult, mcqsResult] = await Promise.all([
@@ -226,11 +232,12 @@ export default function SubjectPage() {
           return null;
         })
       ]);
-
-      const newContent = {
+      
+      const newContent: GeneratedContent = {
         summary: summaryResult,
         flashcards: flashcardsResult,
-        mcqs: mcqsResult
+        mcqs: mcqsResult,
+        detailedSummary: null, // Reset detailed summary on full generation
       };
 
       if (forAllNotes) {
@@ -244,7 +251,7 @@ export default function SubjectPage() {
          }
       }
     } finally {
-        setIsLoading({ summary: false, flashcards: false, mcqs: false });
+        setIsLoading({ summary: false, detailedSummary: false, flashcards: false, mcqs: false });
     }
   }
 
@@ -273,13 +280,15 @@ export default function SubjectPage() {
     setIsLoading(prev => ({ ...prev, [type]: true }));
     
     try {
-      let result: GenerateSummaryOutput | GenerateFlashcardsOutput | GenerateMCQOutput | null = null;
+      let result: any = null;
       if (type === 'summary') {
         result = await generateSummary({ lectureNotes: currentText, studyLevel });
       } else if (type === 'flashcards') {
         result = await generateFlashcards({ text: currentText, studyLevel });
       } else if (type === 'mcqs') {
         result = await generateMCQ({ text: currentText, difficulty: mcqDifficulty, questionCount: 5, studyLevel });
+      } else if (type === 'detailedSummary') {
+        result = await generateDetailedSummary({ lectureNotes: currentText, studyLevel });
       }
       
       const newContent: GeneratedContent = { ...(currentContent as GeneratedContent), [type]: result };
@@ -297,32 +306,6 @@ export default function SubjectPage() {
       setIsLoading(prev => ({ ...prev, [type]: false }));
     }
   };
-
-  const handleGenerateDetailedSummary = async () => {
-    if (!currentText.trim()) {
-      toast({
-        title: "Input required",
-        description: "There is no text to regenerate content from.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsLoading(prev => ({ ...prev, summary: true }));
-    try {
-      const result = await generateDetailedSummary({ lectureNotes: currentText, studyLevel });
-      const newContent: GeneratedContent = { ...(currentContent as GeneratedContent), summary: result };
-      if (isAllNotesView) {
-        setAllNotesGeneratedContent(newContent);
-      } else if (activeNoteId) {
-        updateNote(activeNoteId, { generatedContent: newContent });
-      }
-    } catch (error) {
-      console.error('Detailed summary generation failed:', error);
-      toast({ title: "Error", description: `Failed to generate detailed summary.`, variant: "destructive" });
-    } finally {
-       setIsLoading(prev => ({ ...prev, summary: false }));
-    }
-  }
 
   const handleSetText = (newText: string) => {
     if (activeNoteId) {
@@ -426,7 +409,7 @@ export default function SubjectPage() {
                 text={activeNote?.text ?? ""}
                 setText={handleSetText}
                 onSubmit={handleGenerateForCurrentNote}
-                isLoading={isLoading.summary || isLoading.flashcards || isLoading.mcqs}
+                isLoading={Object.values(isLoading).some(Boolean)}
                 disabled={!activeNoteId}
                 onPdfUpload={handlePdfUpload}
                 fileInputRef={fileInputRef}
@@ -435,10 +418,9 @@ export default function SubjectPage() {
             </div>
             <div className="mt-8 lg:mt-0">
               <OutputSection
-                content={currentContent ?? { summary: null, flashcards: null, mcqs: null }}
+                content={currentContent ?? defaultGeneratedContent}
                 isLoading={isLoading}
                 onRegenerate={handleRegenerate}
-                onGenerateDetailedSummary={handleGenerateDetailedSummary}
                 mcqDifficulty={mcqDifficulty}
                 setMcqDifficulty={setMcqDifficulty}
                 key={isAllNotesView ? ALL_NOTES_ID : activeNoteId} // Re-mount when view changes
