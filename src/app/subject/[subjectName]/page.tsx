@@ -395,7 +395,7 @@ export default function SubjectPage() {
                 setMcqDifficulty={setMcqDifficulty}
                 key={isAllNotesView ? ALL_NOTES_ID : activeNoteId} // Re-mount when view changes
                 isAllNotesView={isAllNotesView}
-                subjectName={isAllNotesView ? 'All Notes' : activeNote?.title}
+                subjectName={isAllNotesView ? `${subjectName} - All Notes` : activeNote?.title}
               />
             </div>
           </div>
