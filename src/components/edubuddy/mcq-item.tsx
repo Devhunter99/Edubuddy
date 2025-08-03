@@ -31,7 +31,6 @@ export default function McqItem({ mcq, index, onAnswer, actionButton }: McqItemP
   };
 
   const handleSelectAnswer = (value: string) => {
-    // Allow re-selection only if the answer hasn't been checked yet
     if (!isChecked) {
       setSelectedAnswer(value);
     }
@@ -95,7 +94,7 @@ export default function McqItem({ mcq, index, onAnswer, actionButton }: McqItemP
           })}
         </RadioGroup>
       </CardContent>
-      {(onAnswer && !isChecked || actionButton) && (
+      {(onAnswer || actionButton) && (
         <CardFooter className="p-4 pt-0 justify-end space-x-2">
             {onAnswer && !isChecked && (
                  <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
@@ -108,3 +107,5 @@ export default function McqItem({ mcq, index, onAnswer, actionButton }: McqItemP
     </Card>
   );
 }
+
+    

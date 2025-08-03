@@ -110,3 +110,5 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
         </div>
     )
 }
+
+    
