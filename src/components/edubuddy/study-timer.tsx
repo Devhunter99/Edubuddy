@@ -108,7 +108,7 @@ export function StudyTimer() {
                     r={CIRCLE_RADIUS}
                     fill="none"
                     strokeWidth="15"
-                    className="stroke-primary"
+                    className="stroke-primary transition-all duration-1000 ease-linear animate-pulse-glow"
                     strokeDasharray={CIRCLE_CIRCUMFERENCE}
                     strokeDashoffset={progressOffset}
                     strokeLinecap="round"
