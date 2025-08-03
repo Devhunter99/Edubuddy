@@ -27,6 +27,7 @@ import type { QuizResult } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { useCoins } from "@/hooks/use-coins";
 
 
 const useSubjects = () => {
@@ -75,6 +76,7 @@ export default function Home() {
     const router = useRouter();
     const { subjects, allNotesText } = useSubjects();
     const { toast } = useToast();
+    const { addCoinForQuestion } = useCoins();
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
@@ -85,6 +87,9 @@ export default function Home() {
 
     const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
       setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
+      if (isCorrect && dailyQuiz?.mcqs[index]) {
+        addCoinForQuestion(dailyQuiz.mcqs[index].question);
+      }
     };
 
     const allQuestionsAnswered = dailyQuiz?.mcqs && Object.keys(quizAnswers).length === dailyQuiz.mcqs.length;
@@ -360,5 +365,3 @@ export default function Home() {
     </SidebarInset>
   );
 }
-
-    

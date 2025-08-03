@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/edubuddy/app-sidebar";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/edubuddy/theme-provider";
+import { CoinProvider } from "@/hooks/use-coins";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,14 +32,16 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <SidebarProvider>
-              <div className="flex">
-                <AppSidebar />
-                <main className="flex-1">
-                  {children}
-                </main>
-              </div>
-            </SidebarProvider>
+            <CoinProvider>
+              <SidebarProvider>
+                <div className="flex">
+                  <AppSidebar />
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                </div>
+              </SidebarProvider>
+            </CoinProvider>
           </AuthProvider>
           <Toaster />
         </ThemeProvider>

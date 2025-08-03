@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import McqItem from "./mcq-item";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
+import { useCoins } from "@/hooks/use-coins";
 
 interface RandomMcqCardProps {
     allNotesText: string;
@@ -15,6 +16,7 @@ interface RandomMcqCardProps {
 
 export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
     const { toast } = useToast();
+    const { addCoinForQuestion } = useCoins();
     const [randomMcq, setRandomMcq] = useState<GenerateMCQOutput['mcqs'][0] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isAnswered, setIsAnswered] = useState(false);
@@ -55,8 +57,11 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
         fetchRandomMcq();
     }, [fetchRandomMcq]);
 
-    const handleAnswer = () => {
+    const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
         setIsAnswered(true);
+        if (isCorrect && randomMcq) {
+            addCoinForQuestion(randomMcq.question);
+        }
     };
 
     if (isLoading) {
@@ -85,7 +90,7 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
     return (
         <div className="mt-4">
             <McqItem mcq={randomMcq} index={0} onAnswer={isAnswered ? undefined : handleAnswer} />
-            <Button onClick={fetchRandomMcq} className="w-full mt-4" variant="outline">
+            <Button onClick={fetchRandomMcq} className="w-full mt-4" variant="outline" disabled={isLoading}>
                 {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
