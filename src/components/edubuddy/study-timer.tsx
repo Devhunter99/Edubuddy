@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useCoins } from "@/hooks/use-coins";
+import { ToastAction } from "../ui/toast";
 
 const PRESETS = [20, 40, 60]; // in minutes
 
@@ -49,6 +50,8 @@ export function StudyTimer() {
             </div>
           ),
           description: `You earned ${coinsEarned} coin${coinsEarned > 1 ? 's' : ''} for your focused study session!`,
+          duration: Infinity, // Make it persistent
+          action: <ToastAction altText="Continue">Continue</ToastAction>,
         });
       }
       
