@@ -3,7 +3,8 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { getStorage, ref, uploadString, getDownloadURL, uploadBytes } from "firebase/storage";
+import { app, storage } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
@@ -12,6 +13,7 @@ interface AuthContextType {
   googleLogin: () => Promise<any>;
   logout: () => Promise<void>;
   updateUserPhotoURL: (photoURL: string) => Promise<void>;
+  uploadAndSetProfilePicture: (file: File | string, user: User) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,6 +53,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const uploadAndSetProfilePicture = async (file: File | string, userToUpdate: User) => {
+      if (!userToUpdate) return;
+      
+      const storageRef = ref(storage, `profile-pictures/${userToUpdate.uid}/profile.jpg`);
+      
+      let downloadURL;
+
+      if (typeof file === 'string') { // It's a data URL
+          await uploadString(storageRef, file, 'data_url');
+          downloadURL = await getDownloadURL(storageRef);
+      } else { // It's a File object
+          await uploadBytes(storageRef, file);
+          downloadURL = await getDownloadURL(storageRef);
+      }
+
+      await updateUserPhotoURL(downloadURL);
+  };
+
 
   const value = {
     user,
@@ -58,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     googleLogin,
     logout,
     updateUserPhotoURL,
+    uploadAndSetProfilePicture,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

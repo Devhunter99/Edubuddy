@@ -19,14 +19,13 @@ const preMadeAvatars = [
 ];
 
 export default function AvatarPicker() {
-  const { user, updateUserPhotoURL } = useAuth();
+  const { user, updateUserPhotoURL, uploadAndSetProfilePicture } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(user?.photoURL || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarSelect = async (url: string) => {
-    // For pre-made avatars, we can update directly
     if (url.startsWith('https://')) {
         setSelectedAvatar(url);
         setIsLoading(true);
@@ -47,25 +46,30 @@ export default function AvatarPicker() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     if (!file.type.startsWith('image/')) {
         toast({ title: 'Invalid File', description: 'Please upload an image file.', variant: 'destructive'});
         return;
     }
-
+    
+    setIsLoading(true);
     const reader = new FileReader();
-    reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        setSelectedAvatar(dataUrl);
-        // NOTE: In a real app, you would upload the file to a storage service (like Firebase Storage),
-        // get the public URL, and then call `handleAvatarSelect(newUrl)`.
-        // Since we don't have a storage backend, we'll just show the local preview.
-        toast({ title: 'Image Preview', description: 'This is a preview. The image is not saved to your profile.'});
-    };
+    reader.onload = (e) => setSelectedAvatar(e.target?.result as string);
     reader.readAsDataURL(file);
+
+    try {
+        await uploadAndSetProfilePicture(file, user);
+        toast({ title: 'Success', description: 'Profile picture uploaded and updated!'});
+    } catch (error: any) {
+        console.error('Upload failed', error);
+        toast({ title: 'Upload Failed', description: error.message, variant: 'destructive'});
+        setSelectedAvatar(user.photoURL || ''); // Revert preview
+    } finally {
+        setIsLoading(false);
+    }
   }
   
   if (!user) {
@@ -96,6 +100,7 @@ export default function AvatarPicker() {
             onChange={handleFileChange}
             className="hidden"
             accept="image/*"
+            disabled={isLoading}
         />
         <div className="flex items-center gap-6">
           <Avatar className="h-20 w-20">
@@ -105,7 +110,8 @@ export default function AvatarPicker() {
             </AvatarFallback>
           </Avatar>
           <Button onClick={handleUploadClick} disabled={isLoading} variant="outline">
-            <Upload className="mr-2 h-4 w-4" /> Upload Image
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+             {isLoading ? 'Uploading...' : 'Upload Image'}
           </Button>
         </div>
 

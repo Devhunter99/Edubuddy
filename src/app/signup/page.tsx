@@ -10,6 +10,7 @@ import * as z from "zod";
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { app } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -62,8 +63,11 @@ const auth = getAuth(app);
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { uploadAndSetProfilePicture } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(preMadeAvatars[0]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -79,6 +83,7 @@ export default function SignupPage() {
 
   const handleAvatarSelect = (url: string) => {
     setSelectedAvatar(url);
+    setUploadedFile(null); // Clear uploaded file if pre-made is selected
     form.setValue('photoURL', url);
   }
 
@@ -95,11 +100,12 @@ export default function SignupPage() {
         return;
     }
 
+    setUploadedFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
         const dataUrl = e.target?.result as string;
-        handleAvatarSelect(dataUrl);
-        toast({ title: 'Image Preview', description: 'This is a local preview. The image will be saved on account creation.'});
+        setSelectedAvatar(dataUrl);
+        form.setValue('photoURL', dataUrl);
     };
     reader.readAsDataURL(file);
   }
@@ -108,9 +114,18 @@ export default function SignupPage() {
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      
+      let photoURL = values.photoURL;
+      if (uploadedFile) {
+        // If a file was uploaded, upload it now and get the URL
+        await uploadAndSetProfilePicture(uploadedFile, userCredential.user);
+        // The photoURL is now updated on the user object by the hook, so no need to pass it to updateProfile again
+      }
+
       await updateProfile(userCredential.user, {
         displayName: values.username,
-        photoURL: values.photoURL,
+        // Only set photoURL here if it's a pre-made one and no file was uploaded
+        ...(!uploadedFile && { photoURL }),
       });
 
       // Store studyLevel in localStorage
@@ -137,8 +152,6 @@ export default function SignupPage() {
     const provider = new GoogleAuthProvider();
     try {
         const result = await signInWithPopup(auth, provider);
-        // For Google sign-in, we don't have the study level from the form.
-        // We could ask for it in a follow-up step, but for now, we'll set a default.
         localStorage.setItem(`user_study_level_${result.user.uid}`, 'undergraduate');
         toast({ title: "Success", description: "Signed up successfully with Google." });
         router.push('/');
