@@ -7,7 +7,7 @@ import { type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/genera
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, RefreshCw, FileText, BotMessageSquare, Sparkles, Library, CheckCircle } from "lucide-react";
+import { Download, RefreshCw, FileText, BotMessageSquare, Sparkles, Library, CheckCircle, ListPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Flashcard from "./flashcard";
 import McqItem from "./mcq-item";
@@ -32,6 +32,7 @@ interface OutputSectionProps {
     mcqs: boolean;
   };
   onRegenerate: (type: keyof GeneratedContent) => void;
+  onGenerateDetailedSummary: () => void;
   mcqDifficulty: GenerateMCQInput['difficulty'];
   setMcqDifficulty: (difficulty: GenerateMCQInput['difficulty']) => void;
   isAllNotesView?: boolean;
@@ -56,7 +57,7 @@ const formatMcqsForDownload = (mcqs: GenerateMCQOutput['mcqs']) => {
   return mcqs.map((m, i) => `${i + 1}. ${m.question}\n${m.options.map(o => `   - ${o}`).join('\n')}\nCorrect Answer: ${m.correctAnswer}`).join('\n\n');
 };
 
-export default function OutputSection({ content, isLoading, onRegenerate, mcqDifficulty, setMcqDifficulty, isAllNotesView = false, subjectName = "Notes" }: OutputSectionProps) {
+export default function OutputSection({ content, isLoading, onRegenerate, onGenerateDetailedSummary, mcqDifficulty, setMcqDifficulty, isAllNotesView = false, subjectName = "Notes" }: OutputSectionProps) {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, { selected: string; isCorrect: boolean }>>({});
   const [showResults, setShowResults] = useState(false);
   const [mcqKey, setMcqKey] = useState(Date.now());
@@ -117,7 +118,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   const renderSummary = () => {
     if (!content.summary) return null;
     const summaryText = content.summary.summary;
-    const points = summaryText.split(/\n|\s(?=\d+\.\s)/).filter(s => s.trim().length > 0);
+    const points = summaryText.split(/\n|\s(?=\d+\.\s)|-/).filter(s => s.trim().length > 0 && s.trim() !== '-');
     return (
       <ul className="list-disc pl-5 space-y-2 text-base">
         {points.map((point, index) => (
@@ -155,6 +156,9 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
               <h3 className="text-lg font-semibold font-headline">Summary</h3>
               {content.summary && (
                 <div className="flex gap-2">
+                   <Button variant="outline" size="sm" onClick={onGenerateDetailedSummary} disabled={isLoading.summary}>
+                    <ListPlus className="mr-2 h-4 w-4" /> Detailed Points
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => onRegenerate('summary')} disabled={isLoading.summary}>
                     <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
                   </Button>

@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { generateSummary, type GenerateSummaryOutput } from "@/ai/flows/generate-summary";
+import { generateDetailedSummary } from "@/ai/flows/generate-detailed-summary";
 import { generateFlashcards, type GenerateFlashcardsOutput } from "@/ai/flows/generate-flashcards";
 import { generateMCQ, type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
 import { processPdf } from "@/ai/flows/process-pdf";
@@ -297,6 +298,32 @@ export default function SubjectPage() {
     }
   };
 
+  const handleGenerateDetailedSummary = async () => {
+    if (!currentText.trim()) {
+      toast({
+        title: "Input required",
+        description: "There is no text to regenerate content from.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsLoading(prev => ({ ...prev, summary: true }));
+    try {
+      const result = await generateDetailedSummary({ lectureNotes: currentText, studyLevel });
+      const newContent: GeneratedContent = { ...(currentContent as GeneratedContent), summary: result };
+      if (isAllNotesView) {
+        setAllNotesGeneratedContent(newContent);
+      } else if (activeNoteId) {
+        updateNote(activeNoteId, { generatedContent: newContent });
+      }
+    } catch (error) {
+      console.error('Detailed summary generation failed:', error);
+      toast({ title: "Error", description: `Failed to generate detailed summary.`, variant: "destructive" });
+    } finally {
+       setIsLoading(prev => ({ ...prev, summary: false }));
+    }
+  }
+
   const handleSetText = (newText: string) => {
     if (activeNoteId) {
       updateNote(activeNoteId, { text: newText });
@@ -411,6 +438,7 @@ export default function SubjectPage() {
                 content={currentContent ?? { summary: null, flashcards: null, mcqs: null }}
                 isLoading={isLoading}
                 onRegenerate={handleRegenerate}
+                onGenerateDetailedSummary={handleGenerateDetailedSummary}
                 mcqDifficulty={mcqDifficulty}
                 setMcqDifficulty={setMcqDifficulty}
                 key={isAllNotesView ? ALL_NOTES_ID : activeNoteId} // Re-mount when view changes
