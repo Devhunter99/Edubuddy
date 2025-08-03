@@ -97,6 +97,14 @@ export default function ResultsPage() {
                                      <div className="space-y-4">
                                         {result.mcqs.map((mcq, index) => {
                                             const userAnswer = result.answers[index];
+                                            if (!userAnswer) {
+                                                return (
+                                                    <div key={index} className="p-4 bg-muted/50 rounded-lg">
+                                                        <p className="font-semibold">{index + 1}. {mcq.question}</p>
+                                                        <p className="mt-2 text-sm text-muted-foreground">Not answered</p>
+                                                    </div>
+                                                )
+                                            }
                                             const isCorrect = userAnswer.isCorrect;
                                             return (
                                                 <div key={index} className="p-4 bg-muted/50 rounded-lg">
