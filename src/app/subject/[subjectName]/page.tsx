@@ -243,6 +243,8 @@ export default function SubjectPage() {
   }
 
   const handleGenerateForAllNotes = () => {
+    setActiveView('all-notes');
+    setActiveNoteId(null);
     handleGenerate(allNotesText, true);
   };
   
@@ -328,6 +330,13 @@ export default function SubjectPage() {
     }
   };
 
+  const handleSelectNote = (id: string | null) => {
+    setActiveNoteId(id);
+    if(id) {
+        setActiveView('note');
+    }
+  }
+
 
   if (!isClient) {
     return (
@@ -345,11 +354,16 @@ export default function SubjectPage() {
            <NotesToolbar
               notes={notes}
               activeNoteId={activeNoteId}
-              onSelectNote={setActiveNoteId}
+              onSelectNote={handleSelectNote}
               onAddNote={() => addNote()}
               onGenerateFromAllNotes={handleGenerateForAllNotes}
               isClient={isClient}
               subjectName={subjectName}
+              activeView={activeView}
+              onSelectAllNotes={() => {
+                setActiveView('all-notes');
+                setActiveNoteId(null);
+              }}
             />
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:gap-12 mt-6">
             <div className="lg:max-w-xl xl:max-w-2xl">

@@ -18,11 +18,9 @@ export type Note = {
 
 export type QuizResult = {
   id: string;
-  subjectName: string;
+  subjectName: string | undefined;
   timestamp: string;
   mcqs: GenerateMCQOutput['mcqs'];
   answers: Record<number, { selected: string; isCorrect: boolean }>;
   score: number;
 }
-
-    

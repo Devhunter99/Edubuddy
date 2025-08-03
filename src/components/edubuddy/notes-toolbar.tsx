@@ -1,8 +1,9 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Sparkles, ChevronDown } from "lucide-react";
-import { type Note } from "@/app/subject/[subjectName]/page";
+import { PlusCircle, Sparkles, ChevronDown, Library } from "lucide-react";
+import type { Note } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import {
   DropdownMenu,
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface NotesToolbarProps {
   notes: Note[];
@@ -20,6 +22,8 @@ interface NotesToolbarProps {
   onGenerateFromAllNotes: () => void;
   isClient: boolean;
   subjectName: string;
+  activeView: 'note' | 'all-notes';
+  onSelectAllNotes: () => void;
 }
 
 export default function NotesToolbar({
@@ -30,9 +34,17 @@ export default function NotesToolbar({
   onGenerateFromAllNotes,
   isClient,
   subjectName,
+  activeView,
+  onSelectAllNotes,
 }: NotesToolbarProps) {
   
   const activeNote = notes.find(n => n.id === activeNoteId);
+
+  const getButtonText = () => {
+    if (activeView === 'all-notes') return 'All Notes';
+    if (activeNote) return activeNote.title;
+    return 'Select a Note';
+  };
 
   const renderNoteSelector = () => {
     if (!isClient) {
@@ -44,17 +56,23 @@ export default function NotesToolbar({
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="min-w-[200px] justify-between">
             <span className="truncate pr-2">
-              {activeNote ? activeNote.title : "Select a Note"}
+              {getButtonText()}
             </span>
             <ChevronDown className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
+          <DropdownMenuItem onSelect={onSelectAllNotes} className={cn(activeView === 'all-notes' && 'bg-accent')}>
+              <Library className="mr-2 h-4 w-4" />
+              All Notes
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {notes.length > 0 ? (
             notes.map((note) => (
               <DropdownMenuItem
                 key={note.id}
                 onSelect={() => onSelectNote(note.id)}
+                 className={cn(activeNoteId === note.id && 'bg-accent')}
               >
                 {note.title}
               </DropdownMenuItem>
@@ -74,7 +92,7 @@ export default function NotesToolbar({
           {subjectName}
         </h2>
         <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Note:</span>
+            <span className="text-sm font-medium text-muted-foreground">View:</span>
             {renderNoteSelector()}
         </div>
       </div>
@@ -87,10 +105,10 @@ export default function NotesToolbar({
           size="sm"
           variant="outline"
           onClick={onGenerateFromAllNotes}
-          disabled={!isClient || notes.length === 0}
+          disabled={!isClient || notes.length === 0 || activeView !== 'all-notes'}
         >
           <Sparkles className="mr-2 h-4 w-4" />
-          Generate from All Notes
+          Generate Materials
         </Button>
       </div>
     </div>
