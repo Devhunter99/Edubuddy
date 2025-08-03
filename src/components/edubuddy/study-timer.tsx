@@ -5,6 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "../ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const PRESETS = [15, 25, 50]; // in minutes
 
@@ -12,6 +14,8 @@ export function StudyTimer() {
   const [duration, setDuration] = useState(25 * 60); // default 25 minutes in seconds
   const [timeRemaining, setTimeRemaining] = useState(duration);
   const [isActive, setIsActive] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -20,7 +24,7 @@ export function StudyTimer() {
       interval = setInterval(() => {
         setTimeRemaining((time) => time - 1);
       }, 1000);
-    } else if (timeRemaining === 0) {
+    } else if (timeRemaining === 0 && isActive) {
       setIsActive(false);
       // Optional: Add a notification or sound
       if (typeof window !== 'undefined' && "Notification" in window && Notification.permission === "granted") {
@@ -59,6 +63,20 @@ export function StudyTimer() {
     setDuration(minutes * 60);
   }, []);
 
+  const handleSetCustomTime = () => {
+    const minutes = parseInt(customMinutes, 10);
+    if (!isNaN(minutes) && minutes > 0) {
+        setDuration(minutes * 60);
+    } else {
+        toast({
+            title: "Invalid Time",
+            description: "Please enter a valid number of minutes.",
+            variant: "destructive"
+        })
+    }
+    setCustomMinutes("");
+  }
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -70,19 +88,43 @@ export function StudyTimer() {
       <div className="text-5xl font-bold font-mono text-primary tabular-nums tracking-wider">
         {formatTime(timeRemaining)}
       </div>
-      <div className="flex w-full justify-center gap-2">
-        {PRESETS.map((p) => (
-          <Button
-            key={p}
-            variant={duration / 60 === p ? "default" : "outline"}
-            size="sm"
-            onClick={() => selectPreset(p)}
-            className="flex-1"
-          >
-            {p} min
-          </Button>
-        ))}
+
+       {duration >= 3600 && (
+         <p className="text-sm text-muted-foreground text-center px-4">
+            That's a long session! Remember to take a short break every hour.
+        </p>
+      )}
+
+      <div className="w-full space-y-3 px-2">
+        <div className="flex w-full justify-center gap-2">
+            {PRESETS.map((p) => (
+            <Button
+                key={p}
+                variant={duration / 60 === p && customMinutes === "" ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                    selectPreset(p);
+                    setCustomMinutes("");
+                }}
+                className="flex-1"
+            >
+                {p} min
+            </Button>
+            ))}
+        </div>
+        <div className="flex w-full justify-center gap-2">
+            <Input 
+                type="number"
+                placeholder="Custom minutes..."
+                value={customMinutes}
+                onChange={(e) => setCustomMinutes(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSetCustomTime()}
+                className="bg-background"
+            />
+            <Button onClick={handleSetCustomTime} variant="secondary">Set</Button>
+        </div>
       </div>
+      
       <div className="flex items-center justify-center gap-4 mt-2">
         <Button
           onClick={toggleTimer}
