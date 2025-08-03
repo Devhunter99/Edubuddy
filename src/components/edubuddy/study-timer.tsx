@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { useToast } from "@/hooks/use-toast";
 
-const PRESETS = [15, 25, 50]; // in minutes
+const PRESETS = [20, 40, 60]; // in minutes
 
 export function StudyTimer() {
-  const [duration, setDuration] = useState(25 * 60); // default 25 minutes in seconds
+  const [duration, setDuration] = useState(20 * 60); // default 20 minutes in seconds
   const [timeRemaining, setTimeRemaining] = useState(duration);
   const [isActive, setIsActive] = useState(false);
   const [customMinutes, setCustomMinutes] = useState("");
