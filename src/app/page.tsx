@@ -27,7 +27,7 @@ import type { QuizResult } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { useCoins } from "@/hooks/use-coins";
+import { useRewards } from "@/hooks/use-rewards";
 
 
 const useSubjects = () => {
@@ -76,7 +76,7 @@ export default function Home() {
     const router = useRouter();
     const { subjects, allNotesText } = useSubjects();
     const { toast } = useToast();
-    const { addCoinForQuestion } = useCoins();
+    const { addCoinForQuestion } = useRewards();
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);

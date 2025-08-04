@@ -23,7 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StudyTimer } from "./study-timer";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
-import { useCoins } from "@/hooks/use-coins";
+import { useRewards } from "@/hooks/use-rewards";
 import { Skeleton } from "../ui/skeleton";
 
 export default function AppHeader() {
@@ -31,7 +31,7 @@ export default function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
-  const { coins, loading: coinsLoading } = useCoins();
+  const { coins, loading: rewardsLoading } = useRewards();
   const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function AppHeader() {
     return (
       <div className="flex items-center gap-2 bg-amber-400/20 text-amber-600 dark:text-amber-400 font-bold px-3 py-1.5 rounded-full text-sm">
         <Coins className="h-5 w-5" />
-        {coinsLoading ? <Skeleton className="h-4 w-6" /> : <span>{coins}</span>}
+        {rewardsLoading ? <Skeleton className="h-4 w-6" /> : <span>{coins}</span>}
       </div>
     )
   }

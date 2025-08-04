@@ -4,15 +4,16 @@
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 import { useAuth } from './use-auth';
 
-interface CoinContextType {
+interface RewardContextType {
   coins: number;
+  collectedStickers: Set<string>;
   addCoinForQuestion: (questionText: string) => void;
-  addCoins: (amount: number, sessionId: string) => void;
-  hasCompletedTimerSession: (sessionId: string) => boolean;
+  addRewards: (coinsToAdd: number, stickerId: string | undefined, sessionId: string) => void;
+  hasCompletedSession: (sessionId: string) => boolean;
   loading: boolean;
 }
 
-const CoinContext = createContext<CoinContextType | undefined>(undefined);
+const RewardContext = createContext<RewardContextType | undefined>(undefined);
 
 // Simple hash function to create a semi-unique ID for a question
 const generateQuestionId = (questionText: string) => {
@@ -26,13 +27,14 @@ const generateQuestionId = (questionText: string) => {
 };
 
 
-export function CoinProvider({ children }: { children: ReactNode }) {
+export function RewardProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth();
     const [coins, setCoins] = useState(0);
+    const [collectedStickers, setCollectedStickers] = useState<Set<string>>(new Set());
     const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
 
-    const getStorageKey = useCallback((key: 'coins' | 'completed') => {
+    const getStorageKey = useCallback((key: 'coins' | 'stickers' | 'completed') => {
         if (!user) return null;
         return `edubuddy_${key}_${user.uid}`;
     }, [user]);
@@ -43,22 +45,27 @@ export function CoinProvider({ children }: { children: ReactNode }) {
             setLoading(true);
             try {
                 const coinsKey = getStorageKey('coins');
+                const stickersKey = getStorageKey('stickers');
                 const completedKey = getStorageKey('completed');
 
                 const storedCoins = coinsKey ? localStorage.getItem(coinsKey) : '0';
+                const storedStickers = stickersKey ? localStorage.getItem(stickersKey) : '[]';
                 const storedCompleted = completedKey ? localStorage.getItem(completedKey) : '[]';
 
                 setCoins(storedCoins ? parseInt(storedCoins, 10) : 0);
+                setCollectedStickers(new Set(storedStickers ? JSON.parse(storedStickers) : []));
                 setCompletedItems(new Set(storedCompleted ? JSON.parse(storedCompleted) : []));
             } catch (error) {
-                console.error("Failed to load coin data from localStorage", error);
+                console.error("Failed to load reward data from localStorage", error);
                 setCoins(0);
+                setCollectedStickers(new Set());
                 setCompletedItems(new Set());
             } finally {
                 setLoading(false);
             }
         } else {
             setCoins(0);
+            setCollectedStickers(new Set());
             setCompletedItems(new Set());
             setLoading(false);
         }
@@ -80,6 +87,14 @@ export function CoinProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const updateStickers = (newStickerSet: Set<string>) => {
+        setCollectedStickers(newStickerSet);
+        const stickersKey = getStorageKey('stickers');
+        if (stickersKey) {
+            localStorage.setItem(stickersKey, JSON.stringify(Array.from(newStickerSet)));
+        }
+    }
+
     const addCoinForQuestion = useCallback((questionText: string) => {
         if (!user) return; // Only logged-in users can earn coins
 
@@ -93,31 +108,40 @@ export function CoinProvider({ children }: { children: ReactNode }) {
 
     }, [user, coins, completedItems, getStorageKey]);
     
-    const addCoins = useCallback((amount: number, sessionId: string) => {
-        if (!user || amount <= 0) return;
+    const addRewards = useCallback((coinsToAdd: number, stickerId: string | undefined, sessionId: string) => {
+        if (!user || (!coinsToAdd && !stickerId)) return;
         
         if (!completedItems.has(sessionId)) {
-            updateCoins(coins + amount);
+            // Add coins
+            if (coinsToAdd > 0) {
+                updateCoins(coins + coinsToAdd);
+            }
+            // Add sticker
+            if (stickerId) {
+                const newStickerSet = new Set(collectedStickers).add(stickerId);
+                updateStickers(newStickerSet);
+            }
+            // Mark session as completed
             const newCompletedSet = new Set(completedItems).add(sessionId);
             updateCompletedItems(newCompletedSet);
         }
 
-    }, [user, coins, completedItems, getStorageKey]);
+    }, [user, coins, collectedStickers, completedItems, getStorageKey]);
     
-    const hasCompletedTimerSession = useCallback((sessionId: string) => {
+    const hasCompletedSession = useCallback((sessionId: string) => {
         return completedItems.has(sessionId);
     }, [completedItems]);
 
 
-    const value = { coins, addCoinForQuestion, addCoins, hasCompletedTimerSession, loading };
+    const value = { coins, collectedStickers, addCoinForQuestion, addRewards, hasCompletedSession, loading };
 
-    return <CoinContext.Provider value={value}>{children}</CoinContext.Provider>;
+    return <RewardContext.Provider value={value}>{children}</RewardContext.Provider>;
 }
 
-export const useCoins = () => {
-    const context = useContext(CoinContext);
+export const useRewards = () => {
+    const context = useContext(RewardContext);
     if (context === undefined) {
-        throw new Error('useCoins must be used within a CoinProvider');
+        throw new Error('useRewards must be used within a RewardProvider');
     }
     return context;
 };

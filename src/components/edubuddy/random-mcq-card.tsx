@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import McqItem from "./mcq-item";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
-import { useCoins } from "@/hooks/use-coins";
+import { useRewards } from "@/hooks/use-rewards";
 
 interface RandomMcqCardProps {
     allNotesText: string;
@@ -16,7 +16,7 @@ interface RandomMcqCardProps {
 
 export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
     const { toast } = useToast();
-    const { addCoinForQuestion } = useCoins();
+    const { addCoinForQuestion } = useRewards();
     const [randomMcq, setRandomMcq] = useState<GenerateMCQOutput['mcqs'][0] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isAnswered, setIsAnswered] = useState(false);
@@ -112,5 +112,3 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
         </div>
     )
 }
-
-    

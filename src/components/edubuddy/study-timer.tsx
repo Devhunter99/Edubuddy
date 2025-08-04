@@ -2,13 +2,16 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RefreshCw, Award } from "lucide-react";
+import { Play, Pause, RefreshCw, Award, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useCoins } from "@/hooks/use-coins";
+import { useRewards } from "@/hooks/use-rewards";
 import { ToastAction } from "../ui/toast";
+import { allStickers, getStickerForDuration, type Sticker } from "@/lib/stickers";
+import { Separator } from "../ui/separator";
 
 const PRESETS = [20, 40, 60]; // in minutes
 
@@ -18,9 +21,10 @@ export function StudyTimer() {
   const [isActive, setIsActive] = useState(false);
   const [customMinutes, setCustomMinutes] = useState("");
   const { toast } = useToast();
-  const { addCoins, hasCompletedTimerSession } = useCoins();
+  const { addRewards, hasCompletedSession } = useRewards();
   const sessionStartTime = useRef<number | null>(null);
 
+  const potentialSticker = getStickerForDuration(initialDuration / 60);
 
   const CIRCLE_RADIUS = 80;
   const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
@@ -38,18 +42,32 @@ export function StudyTimer() {
       setIsActive(false);
       
       const coinsEarned = Math.floor(initialDuration / 60 / 10);
+      const stickerEarned = getStickerForDuration(initialDuration / 60);
       const sessionId = `timer-${sessionStartTime.current}`;
 
-      if (coinsEarned > 0 && !hasCompletedTimerSession(sessionId)) {
-        addCoins(coinsEarned, sessionId);
+      if ((coinsEarned > 0 || stickerEarned) && !hasCompletedSession(sessionId)) {
+        addRewards(coinsEarned, stickerEarned?.id, sessionId);
         toast({
           title: (
             <div className="flex items-center gap-2">
                 <Award className="h-5 w-5 text-amber-500" />
-                <span className="font-bold">Reward!</span>
+                <span className="font-bold">Session Complete!</span>
             </div>
           ),
-          description: `You earned ${coinsEarned} coin${coinsEarned > 1 ? 's' : ''} for your focused study session!`,
+          description: (
+             <div className="flex flex-col gap-2 mt-2">
+                {stickerEarned && (
+                  <div className="flex items-center gap-3 p-2 bg-primary/10 rounded-lg">
+                    <Image src={stickerEarned.src} alt={stickerEarned.name} width={48} height={48} data-ai-hint={stickerEarned.aiHint} />
+                    <div>
+                      <p className="font-semibold">Sticker Unlocked!</p>
+                      <p className="text-xs">{stickerEarned.name}</p>
+                    </div>
+                  </div>
+                )}
+                {coinsEarned > 0 && <p>You earned {coinsEarned} coin{coinsEarned > 1 ? 's' : ''} for your focus!</p>}
+            </div>
+          ),
           duration: Infinity, // Make it persistent
           action: <ToastAction altText="Continue">Continue</ToastAction>,
         });
@@ -63,7 +81,7 @@ export function StudyTimer() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeRemaining, initialDuration, addCoins, toast, hasCompletedTimerSession]);
+  }, [isActive, timeRemaining, initialDuration, addRewards, toast, hasCompletedSession]);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && "Notification" in window) {
@@ -78,8 +96,9 @@ export function StudyTimer() {
   
   const toggleTimer = useCallback(() => {
     if (timeRemaining > 0) {
-      setIsActive(!isActive);
-      if (!isActive) {
+      const newIsActive = !isActive;
+      setIsActive(newIsActive);
+      if (newIsActive) {
         // Timer starts
         sessionStartTime.current = Date.now();
       } else {
@@ -97,6 +116,7 @@ export function StudyTimer() {
 
   const selectPreset = useCallback((minutes: number) => {
     setInitialDuration(minutes * 60);
+    setCustomMinutes("");
   }, []);
 
   const handleSetCustomTime = () => {
@@ -156,7 +176,7 @@ export function StudyTimer() {
             That's a long session! Remember to take a short break every hour.
         </p>
       )}
-
+      
       <div className="w-full space-y-3 px-2">
         <div className="flex w-full justify-center gap-2">
             {PRESETS.map((p) => (
@@ -164,10 +184,7 @@ export function StudyTimer() {
                 key={p}
                 variant={initialDuration / 60 === p && customMinutes === "" ? "default" : "outline"}
                 size="sm"
-                onClick={() => {
-                    selectPreset(p);
-                    setCustomMinutes("");
-                }}
+                onClick={() => selectPreset(p)}
                 className="flex-1"
             >
                 {p} min
@@ -187,7 +204,31 @@ export function StudyTimer() {
         </div>
       </div>
       
-      <div className="flex items-center justify-center gap-4 mt-2">
+       <Separator className="my-2" />
+
+        <div className="flex flex-col items-center gap-2 w-full px-2">
+          <h3 className="font-semibold text-center">Your Reward</h3>
+          <div className="flex items-center justify-center gap-4 text-sm p-3 rounded-lg bg-muted w-full">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <Award className="h-5 w-5"/>
+              <span>{Math.floor(initialDuration / 60 / 10)}</span>
+            </div>
+            <Separator orientation="vertical" className="h-6"/>
+            {potentialSticker ? (
+                <div className="flex items-center gap-2">
+                  <Image src={potentialSticker.src} alt={potentialSticker.name} width={24} height={24} data-ai-hint={potentialSticker.aiHint} />
+                  <span>{potentialSticker.name}</span>
+                </div>
+            ) : (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Star className="h-5 w-5"/>
+                    <span>No sticker for this duration</span>
+                </div>
+            )}
+          </div>
+        </div>
+
+      <div className="flex items-center justify-center gap-4 mt-4">
         <Button
           onClick={toggleTimer}
           size="lg"

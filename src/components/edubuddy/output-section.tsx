@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import type { QuizResult } from "@/lib/types";
 import QuizResultsSummary from "./quiz-results-summary";
-import { useCoins } from "@/hooks/use-coins";
+import { useRewards } from "@/hooks/use-rewards";
 
 type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
@@ -69,7 +69,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   const [showResults, setShowResults] = useState(false);
   const [mcqKey, setMcqKey] = useState(Date.now());
   const [activeTab, setActiveTab] = useState("summary");
-  const { addCoinForQuestion } = useCoins();
+  const { addCoinForQuestion } = useRewards();
 
   const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
     setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
