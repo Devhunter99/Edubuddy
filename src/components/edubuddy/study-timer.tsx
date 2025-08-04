@@ -10,8 +10,9 @@ import { Input } from "../ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useRewards } from "@/hooks/use-rewards";
 import { ToastAction } from "../ui/toast";
-import { allStickers, getStickerForDuration, type Sticker } from "@/lib/stickers";
+import { getStickerForDuration, type Sticker } from "@/lib/stickers";
 import { Separator } from "../ui/separator";
+import StickerChoiceDialog from "./sticker-choice-dialog";
 
 const PRESETS = [20, 40, 60]; // in minutes
 
@@ -23,8 +24,9 @@ export function StudyTimer() {
   const { toast } = useToast();
   const { addRewards, hasCompletedSession } = useRewards();
   const sessionStartTime = useRef<number | null>(null);
+  const [isChooserOpen, setIsChooserOpen] = useState(false);
+  const [selectedSticker, setSelectedSticker] = useState<Sticker | null>(null);
 
-  const potentialSticker = getStickerForDuration(initialDuration / 60);
 
   const CIRCLE_RADIUS = 80;
   const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
@@ -42,7 +44,7 @@ export function StudyTimer() {
       setIsActive(false);
       
       const coinsEarned = Math.floor(initialDuration / 60 / 10);
-      const stickerEarned = getStickerForDuration(initialDuration / 60);
+      const stickerEarned = selectedSticker ?? getStickerForDuration(initialDuration / 60);
       const sessionId = `timer-${sessionStartTime.current}`;
 
       if ((coinsEarned > 0 || stickerEarned) && !hasCompletedSession(sessionId)) {
@@ -81,7 +83,7 @@ export function StudyTimer() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeRemaining, initialDuration, addRewards, toast, hasCompletedSession]);
+  }, [isActive, timeRemaining, initialDuration, addRewards, toast, hasCompletedSession, selectedSticker]);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && "Notification" in window) {
@@ -92,6 +94,7 @@ export function StudyTimer() {
   useEffect(() => {
     setTimeRemaining(initialDuration);
     setIsActive(false);
+    setSelectedSticker(null); // Reset sticker choice when duration changes
   }, [initialDuration]);
   
   const toggleTimer = useCallback(() => {
@@ -131,6 +134,11 @@ export function StudyTimer() {
         })
     }
     setCustomMinutes("");
+  }
+  
+  const handleSelectSticker = (sticker: Sticker) => {
+    setSelectedSticker(sticker);
+    setIsChooserOpen(false);
   }
 
   const formatTime = (seconds: number) => {
@@ -207,25 +215,23 @@ export function StudyTimer() {
        <Separator className="my-2" />
 
         <div className="flex flex-col items-center gap-2 w-full px-2">
-          <h3 className="font-semibold text-center">Your Reward</h3>
-          <div className="flex items-center justify-center gap-4 text-sm p-3 rounded-lg bg-muted w-full">
-            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-              <Award className="h-5 w-5"/>
-              <span>{Math.floor(initialDuration / 60 / 10)}</span>
+            <h3 className="font-semibold text-center">Your Rewards</h3>
+            <div className="flex items-center justify-center gap-4 text-sm p-3 rounded-lg bg-muted w-full">
+                {/* Coin Reward */}
+                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <Award className="h-5 w-5"/>
+                    <span>Earn {Math.floor(initialDuration / 60 / 10)}</span>
+                </div>
+                <Separator orientation="vertical" className="h-6"/>
+                {/* Sticker Reward */}
+                 <StickerChoiceDialog 
+                    duration={initialDuration / 60}
+                    onSelectSticker={handleSelectSticker}
+                    selectedSticker={selectedSticker}
+                    open={isChooserOpen}
+                    onOpenChange={setIsChooserOpen}
+                 />
             </div>
-            <Separator orientation="vertical" className="h-6"/>
-            {potentialSticker ? (
-                <div className="flex items-center gap-2">
-                  <Image src={potentialSticker.src} alt={potentialSticker.name} width={24} height={24} data-ai-hint={potentialSticker.aiHint} />
-                  <span>{potentialSticker.name}</span>
-                </div>
-            ) : (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <Star className="h-5 w-5"/>
-                    <span>No sticker for this duration</span>
-                </div>
-            )}
-          </div>
         </div>
 
       <div className="flex items-center justify-center gap-4 mt-4">
