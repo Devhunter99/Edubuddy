@@ -26,6 +26,7 @@ import {
   LogOut,
   Star,
   Music,
+  Users,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
@@ -39,6 +40,7 @@ const menuItems = [
   { href: "/study-music", label: "Study Music", icon: Music },
   { href: "/results", label: "Results", icon: PieChart },
   { href: "/rewards", label: "Rewards", icon: Star },
+  { href: "/study-mates", label: "Study Mates", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/about", label: "About", icon: Info },
 ];

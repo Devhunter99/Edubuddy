@@ -11,6 +11,7 @@ import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvi
 import { app } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { updateUserProfile } from "@/services/user-service";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -117,6 +118,14 @@ export default function SignupPage() {
         displayName: values.username,
       });
 
+      // Also create a profile in Firestore
+      await updateUserProfile({
+        uid: userCredential.user.uid,
+        email: values.email,
+        displayName: values.username,
+        photoURL: values.photoURL
+      });
+
       // Save photoURL to local storage, not Firebase Auth
       if (values.photoURL) {
         await updateUserPhotoURL(values.photoURL);
@@ -147,6 +156,8 @@ export default function SignupPage() {
     const provider = new GoogleAuthProvider();
     try {
         const result = await signInWithPopup(auth, provider);
+        // The onAuthStateChanged listener in useAuth will handle profile syncing
+        
         localStorage.setItem(`user_study_level_${result.user.uid}`, 'undergraduate');
         
         // Also save their google photo if they have one

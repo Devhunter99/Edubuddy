@@ -5,6 +5,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { updateUserProfile, type UserProfile } from '@/services/user-service';
 
 interface AuthContextType {
   user: User | null;
@@ -30,6 +31,18 @@ const createUserWithPhoto = (user: User, photoURL: string | null): User => {
   } as User;
 }
 
+const syncUserProfile = async (user: User) => {
+    if (!user.email || !user.displayName) return;
+    const profile: UserProfile = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+    };
+    await updateUserProfile(profile);
+}
+
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is signed in, see if there's a custom photo in local storage
+        // User is signed in
+        syncUserProfile(user); // Sync profile with Firestore
         const customPhotoURL = localStorage.getItem(`user_photo_${user.uid}`);
         const userWithPhoto = createUserWithPhoto(user, customPhotoURL || user.photoURL);
         setUser(userWithPhoto);
@@ -75,6 +89,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Update the user state in the context to trigger a re-render
       const updatedUser = createUserWithPhoto(auth.currentUser, photoURL);
       setUser(updatedUser);
+
+      // Also update it in Firestore
+      await updateUserProfile({
+          uid: auth.currentUser.uid,
+          email: auth.currentUser.email!,
+          displayName: auth.currentUser.displayName!,
+          photoURL: photoURL,
+      });
     }
   };
 
