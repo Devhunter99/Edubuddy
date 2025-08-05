@@ -10,6 +10,8 @@ import {
   getDoc,
   writeBatch,
   documentId,
+  updateDoc,
+  arrayUnion
 } from 'firebase/firestore';
 
 export interface UserProfile {
@@ -17,11 +19,22 @@ export interface UserProfile {
     email: string;
     displayName: string;
     photoURL?: string | null;
+    collectedStickerIds?: string[];
 }
 
 export interface StudyMate extends UserProfile {
     status: 'pending' | 'accepted';
     requesterId: string;
+}
+
+// Get a single user's profile
+export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        return userSnap.data() as UserProfile;
+    }
+    return null;
 }
 
 // Find a user by their email address
@@ -37,14 +50,17 @@ export const findUserByEmail = async (email: string): Promise<UserProfile | null
 };
 
 // Function to create or update user profile in Firestore
-export const updateUserProfile = async (user: UserProfile) => {
+export const updateUserProfile = async (user: Partial<UserProfile> & { uid: string }) => {
     const userRef = doc(db, 'users', user.uid);
-    await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL || null,
-    }, { merge: true });
+    await setDoc(userRef, user, { merge: true });
+};
+
+// Add a sticker to a user's collection
+export const addStickerToProfile = async (uid: string, stickerId: string) => {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+        collectedStickerIds: arrayUnion(stickerId)
+    });
 };
 
 
@@ -133,4 +149,3 @@ export const removeFriend = async (currentUserId: string, friendId: string) => {
     batch.delete(friendshipRef);
     await batch.commit();
 };
-

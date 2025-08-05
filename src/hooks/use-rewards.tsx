@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 import { useAuth } from './use-auth';
+import { addStickerToProfile, getUserProfile } from '@/services/user-service';
 
 interface RewardContextType {
   coins: number;
@@ -39,36 +40,52 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         return `edubuddy_${key}_${user.uid}`;
     }, [user]);
 
-    // Load initial state from localStorage
+    // Load initial state from localStorage and Firestore
     useEffect(() => {
-        if (user) {
-            setLoading(true);
-            try {
-                const coinsKey = getStorageKey('coins');
-                const stickersKey = getStorageKey('stickers');
-                const completedKey = getStorageKey('completed');
+        const loadRewards = async () => {
+            if (user) {
+                setLoading(true);
+                try {
+                    // Fetch profile from Firestore to get the most up-to-date sticker list
+                    const userProfile = await getUserProfile(user.uid);
+                    const firestoreStickers = userProfile?.collectedStickerIds || [];
 
-                const storedCoins = coinsKey ? localStorage.getItem(coinsKey) : '0';
-                const storedStickers = stickersKey ? localStorage.getItem(stickersKey) : '[]';
-                const storedCompleted = completedKey ? localStorage.getItem(completedKey) : '[]';
+                    const coinsKey = getStorageKey('coins');
+                    const stickersKey = getStorageKey('stickers');
+                    const completedKey = getStorageKey('completed');
 
-                setCoins(storedCoins ? parseInt(storedCoins, 10) : 0);
-                setCollectedStickers(new Set(storedStickers ? JSON.parse(storedStickers) : []));
-                setCompletedItems(new Set(storedCompleted ? JSON.parse(storedCompleted) : []));
-            } catch (error) {
-                console.error("Failed to load reward data from localStorage", error);
+                    const storedCoins = coinsKey ? localStorage.getItem(coinsKey) : '0';
+                    const storedStickers = stickersKey ? localStorage.getItem(stickersKey) : '[]';
+                    const storedCompleted = completedKey ? localStorage.getItem(completedKey) : '[]';
+                    
+                    const localStickers = new Set(storedStickers ? JSON.parse(storedStickers) : []);
+                    const combinedStickers = new Set([...localStickers, ...firestoreStickers]);
+
+                    setCoins(storedCoins ? parseInt(storedCoins, 10) : 0);
+                    setCollectedStickers(combinedStickers);
+                    setCompletedItems(new Set(storedCompleted ? JSON.parse(storedCompleted) : []));
+
+                    // Sync combined stickers back to localStorage
+                     if (stickersKey) {
+                        localStorage.setItem(stickersKey, JSON.stringify(Array.from(combinedStickers)));
+                    }
+
+                } catch (error) {
+                    console.error("Failed to load reward data", error);
+                    setCoins(0);
+                    setCollectedStickers(new Set());
+                    setCompletedItems(new Set());
+                } finally {
+                    setLoading(false);
+                }
+            } else {
                 setCoins(0);
                 setCollectedStickers(new Set());
                 setCompletedItems(new Set());
-            } finally {
                 setLoading(false);
             }
-        } else {
-            setCoins(0);
-            setCollectedStickers(new Set());
-            setCompletedItems(new Set());
-            setLoading(false);
         }
+        loadRewards();
     }, [user, getStorageKey]);
     
     const updateCompletedItems = (newCompletedSet: Set<string>) => {
@@ -106,9 +123,9 @@ export function RewardProvider({ children }: { children: ReactNode }) {
             updateCompletedItems(newCompletedSet);
         }
 
-    }, [user, coins, completedItems, getStorageKey]);
+    }, [user, coins, completedItems]);
     
-    const addRewards = useCallback((coinsToAdd: number, stickerId: string | undefined, sessionId: string) => {
+    const addRewards = useCallback(async (coinsToAdd: number, stickerId: string | undefined, sessionId: string) => {
         if (!user || (!coinsToAdd && !stickerId)) return;
         
         if (!completedItems.has(sessionId)) {
@@ -120,13 +137,19 @@ export function RewardProvider({ children }: { children: ReactNode }) {
             if (stickerId) {
                 const newStickerSet = new Set(collectedStickers).add(stickerId);
                 updateStickers(newStickerSet);
+                // Also save to Firestore
+                try {
+                    await addStickerToProfile(user.uid, stickerId);
+                } catch (error) {
+                    console.error("Failed to save sticker to profile:", error);
+                }
             }
             // Mark session as completed
             const newCompletedSet = new Set(completedItems).add(sessionId);
             updateCompletedItems(newCompletedSet);
         }
 
-    }, [user, coins, collectedStickers, completedItems, getStorageKey]);
+    }, [user, coins, collectedStickers, completedItems]);
     
     const hasCompletedSession = useCallback((sessionId: string) => {
         return completedItems.has(sessionId);

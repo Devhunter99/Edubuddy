@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -186,7 +187,7 @@ export default function StudyMatesPage() {
                         <div className="space-y-4">
                             {currentMates.map(mate => (
                                 <div key={mate.uid} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                    <div className="flex items-center gap-3">
+                                    <Link href={`/profile/${mate.uid}`} className="flex items-center gap-3 flex-grow">
                                         <Avatar>
                                             <AvatarImage src={mate.photoURL ?? undefined} alt={mate.displayName} />
                                             <AvatarFallback>{mate.displayName?.[0]}</AvatarFallback>
@@ -195,7 +196,7 @@ export default function StudyMatesPage() {
                                             <p className="font-semibold">{mate.displayName}</p>
                                             <p className="text-sm text-muted-foreground">{mate.email}</p>
                                         </div>
-                                    </div>
+                                    </Link>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive/70 hover:text-destructive" /></Button>
@@ -228,4 +229,3 @@ export default function StudyMatesPage() {
     </SidebarInset>
   );
 }
-
