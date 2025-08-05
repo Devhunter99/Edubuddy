@@ -13,6 +13,8 @@ import { ToastAction } from "../ui/toast";
 import { getStickerForDuration, type Sticker } from "@/lib/stickers";
 import { Separator } from "../ui/separator";
 import StickerChoiceDialog from "./sticker-choice-dialog";
+import { useAuth } from "@/hooks/use-auth";
+import { incrementUserStats } from "@/services/stats-service";
 
 const PRESETS = [20, 40, 60]; // in minutes
 
@@ -22,6 +24,7 @@ export function StudyTimer() {
   const [isActive, setIsActive] = useState(false);
   const [customMinutes, setCustomMinutes] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
   const { addRewards, hasCompletedSession } = useRewards();
   const sessionStartTime = useRef<number | null>(null);
   const [isChooserOpen, setIsChooserOpen] = useState(false);
@@ -49,6 +52,20 @@ export function StudyTimer() {
 
       if ((coinsEarned > 0 || stickerEarned) && !hasCompletedSession(sessionId)) {
         addRewards(coinsEarned, stickerEarned?.id, sessionId);
+
+        // Update user stats for achievements
+        if (user) {
+          const sessionMinutes = initialDuration / 60;
+          const statIncrements: { [key: string]: number } = {
+            totalStudyTime: sessionMinutes,
+          };
+          if (sessionMinutes >= 60) statIncrements.sessions60min = 1;
+          else if (sessionMinutes >= 40) statIncrements.sessions40min = 1;
+          else if (sessionMinutes >= 20) statIncrements.sessions20min = 1;
+
+          incrementUserStats(user.uid, statIncrements);
+        }
+
         toast({
           title: (
             <div className="flex items-center gap-2">
@@ -83,7 +100,7 @@ export function StudyTimer() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeRemaining, initialDuration, addRewards, toast, hasCompletedSession, selectedSticker]);
+  }, [isActive, timeRemaining, initialDuration, addRewards, toast, hasCompletedSession, selectedSticker, user]);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && "Notification" in window) {

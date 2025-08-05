@@ -9,6 +9,8 @@ import McqItem from "./mcq-item";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { useRewards } from "@/hooks/use-rewards";
+import { useAuth } from "@/hooks/use-auth";
+import { incrementUserStats } from "@/services/stats-service";
 
 interface RandomMcqCardProps {
     allNotesText: string;
@@ -16,6 +18,7 @@ interface RandomMcqCardProps {
 
 export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
     const { toast } = useToast();
+    const { user } = useAuth();
     const { addCoinForQuestion } = useRewards();
     const [randomMcq, setRandomMcq] = useState<GenerateMCQOutput['mcqs'][0] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -64,6 +67,9 @@ export default function RandomMcqCard({ allNotesText }: RandomMcqCardProps) {
         setIsAnswered(true);
         if (isCorrect && randomMcq) {
             addCoinForQuestion(randomMcq.question);
+            if (user) {
+                incrementUserStats(user.uid, { totalQuizScore: 1 });
+            }
         }
     };
 

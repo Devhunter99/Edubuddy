@@ -6,6 +6,7 @@ import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup,
 import { app } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { updateUserProfile, getUserProfile, type UserProfile } from '@/services/user-service';
+import { updateUserLoginStreak } from '@/services/stats-service';
 
 interface AuthContextType {
   user: User | null;
@@ -44,6 +45,10 @@ const syncUserProfile = async (user: User) => {
         photoURL: existingProfile?.photoURL ?? user.photoURL, // Preserve existing photoURL if it exists
     };
     await updateUserProfile(profile);
+    
+    // Update login streak
+    await updateUserLoginStreak(user.uid);
+
     return profile;
 }
 
@@ -57,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         // User is signed in
-        const profile = await syncUserProfile(user); // Sync profile with Firestore
+        const profile = await syncUserProfile(user); // Sync profile and login streak
         const userWithPhoto = createUserWithPhoto(user, profile.photoURL || user.photoURL);
         setUser(userWithPhoto);
       } else {

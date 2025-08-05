@@ -19,6 +19,8 @@ import { useState, useEffect } from "react";
 import type { QuizResult } from "@/lib/types";
 import QuizResultsSummary from "./quiz-results-summary";
 import { useRewards } from "@/hooks/use-rewards";
+import { useAuth } from "@/hooks/use-auth";
+import { incrementUserStats } from "@/services/stats-service";
 
 type GeneratedContent = {
   summary: GenerateSummaryOutput | null;
@@ -70,6 +72,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   const [mcqKey, setMcqKey] = useState(Date.now());
   const [activeTab, setActiveTab] = useState("summary");
   const { addCoinForQuestion } = useRewards();
+  const { user } = useAuth();
 
   const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
     setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
@@ -80,18 +83,25 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   
   const handleShowResults = () => {
     setShowResults(true);
-    if (typeof window !== 'undefined' && subjectName) {
+    
+    // Save to history and update stats
+    if (typeof window !== 'undefined' && subjectName && content.mcqs) {
+      const score = Object.values(quizAnswers).filter(a => a.isCorrect).length;
       const newResult: QuizResult = {
           id: `quiz-${Date.now()}`,
           subjectName: subjectName,
           timestamp: new Date().toISOString(),
           mcqs: content.mcqs!.mcqs,
           answers: quizAnswers,
-          score: Object.values(quizAnswers).filter(a => a.isCorrect).length,
+          score,
         };
         const history: QuizResult[] = JSON.parse(localStorage.getItem('quizHistory') || '[]');
         history.unshift(newResult);
         localStorage.setItem('quizHistory', JSON.stringify(history));
+
+        if (user && score > 0) {
+            incrementUserStats(user.uid, { totalQuizScore: score });
+        }
     }
   }
 

@@ -20,6 +20,7 @@ export interface UserProfile {
     displayName: string;
     photoURL?: string | null;
     collectedStickerIds?: string[];
+    unlockedAchievementIds?: string[]; // Deprecated, but keep for migration if needed
 }
 
 export interface StudyMate extends UserProfile {

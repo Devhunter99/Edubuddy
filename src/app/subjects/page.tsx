@@ -25,10 +25,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
+import { incrementUserStats } from "@/services/stats-service";
 
 const useSubjects = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
@@ -55,6 +58,9 @@ const useSubjects = () => {
       setSubjects(updatedSubjects);
       if (typeof window !== "undefined") {
         localStorage.setItem("subjects", JSON.stringify(updatedSubjects));
+      }
+      if (user && updatedSubjects.length === 1) {
+        incrementUserStats(user.uid, { }); // This is a placeholder, real logic in profile page
       }
     }
   };
