@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Music } from "lucide-react";
 
 const tracks = [
-    { title: "Peaceful Mind", artist: "Ambient Dreams", src: "/music/sample-1.mp3", image: "https://placehold.co/400x400/A7C7E7/FFFFFF.png", aiHint: "peaceful ambient" },
-    { title: "Focus Flow", artist: "Chill Beats", src: "/music/sample-2.mp3", image: "https://placehold.co/400x400/C1E1C1/FFFFFF.png", aiHint: "lofi beats" },
-    { title: "Starlight Study", artist: "Cosmic Waves", src: "/music/sample-3.mp3", image: "https://placehold.co/400x400/BDB2FF/FFFFFF.png", aiHint: "cosmic space" },
+    { title: "Peaceful Mind", artist: "Ambient Dreams", src: "https://storage.googleapis.com/starthinker-ui-misc-public/music/sample-1.mp3", image: "https://placehold.co/400x400/A7C7E7/FFFFFF.png", aiHint: "peaceful ambient" },
+    { title: "Focus Flow", artist: "Chill Beats", src: "https://storage.googleapis.com/starthinker-ui-misc-public/music/sample-2.mp3", image: "https://placehold.co/400x400/C1E1C1/FFFFFF.png", aiHint: "lofi beats" },
+    { title: "Starlight Study", artist: "Cosmic Waves", src: "https://storage.googleapis.com/starthinker-ui-misc-public/music/sample-3.mp3", image: "https://placehold.co/400x400/BDB2FF/FFFFFF.png", aiHint: "cosmic space" },
 ];
 
 export default function StudyMusicPage() {
