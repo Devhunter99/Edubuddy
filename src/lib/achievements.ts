@@ -1,5 +1,5 @@
 
-import { type LucideIcon, BookOpen, BrainCircuit, Calendar, Clock, Award, Star, TrendingUp } from "lucide-react";
+import { type LucideIcon, BookOpen, BrainCircuit, Calendar, Clock, Award, Star, TrendingUp, Library } from "lucide-react";
 
 export interface Achievement {
     id: string;
