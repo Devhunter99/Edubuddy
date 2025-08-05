@@ -25,6 +25,7 @@ import {
   Timer,
   LogOut,
   Star,
+  Music,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
@@ -35,6 +36,7 @@ const menuItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/subjects", label: "Subjects", icon: Library },
   { href: "/study-timer", label: "Study Timer", icon: Timer },
+  { href: "/study-music", label: "Study Music", icon: Music },
   { href: "/results", label: "Results", icon: PieChart },
   { href: "/rewards", label: "Rewards", icon: Star },
   { href: "/settings", label: "Settings", icon: Settings },
