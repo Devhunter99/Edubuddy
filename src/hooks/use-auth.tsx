@@ -3,7 +3,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { getAuthInstance } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { updateUserProfile, getUserProfile, type UserProfile } from '@/services/user-service';
 import { updateUserLoginStreak } from '@/services/stats-service';
@@ -17,8 +17,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const auth = getAuth(app);
 
 // Helper function to create a new user object with an updated photoURL
 const createUserWithPhoto = (user: User, photoURL: string | null): User => {
@@ -59,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    const auth = getAuthInstance();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         // User is signed in
@@ -76,16 +75,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const googleLogin = () => {
+    const auth = getAuthInstance();
     const provider = new GoogleAuthProvider();
     return signInWithPopup(auth, provider);
   };
   
   const logout = async () => {
+    const auth = getAuthInstance();
     await signOut(auth);
     router.push('/login');
   };
 
   const updateUserPhotoURL = async (photoURL: string) => {
+    const auth = getAuthInstance();
     if (auth.currentUser) {
       // Update the user state in the context to trigger a re-render immediately
       const updatedUser = createUserWithPhoto(auth.currentUser, photoURL);

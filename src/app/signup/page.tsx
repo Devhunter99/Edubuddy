@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "@/lib/firebase";
+import { getAuthInstance } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { updateUserProfile } from "@/services/user-service";
@@ -59,8 +59,6 @@ const formSchema = z.object({
   photoURL: z.string().optional(),
 });
 
-const auth = getAuth(app);
-
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -110,6 +108,7 @@ export default function SignupPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
+    const auth = getAuthInstance();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       
@@ -153,6 +152,7 @@ export default function SignupPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    const auth = getAuthInstance();
     const provider = new GoogleAuthProvider();
     try {
         const result = await signInWithPopup(auth, provider);

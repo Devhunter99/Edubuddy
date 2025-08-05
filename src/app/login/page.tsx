@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { app } from "@/lib/firebase";
+import { getAuthInstance } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
@@ -35,8 +35,6 @@ const formSchema = z.object({
   password: z.string().min(1, { message: "Password is required." }),
 });
 
-const auth = getAuth(app);
-
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -52,6 +50,7 @@ export default function LoginPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
+    const auth = getAuthInstance();
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({ title: "Success", description: "Logged in successfully." });
@@ -70,6 +69,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    const auth = getAuthInstance();
     const provider = new GoogleAuthProvider();
     try {
         await signInWithPopup(auth, provider);

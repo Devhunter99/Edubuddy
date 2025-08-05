@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { doc, getDoc, setDoc, increment } from 'firebase/firestore';
 import { type UserStats } from '@/lib/achievements';
 import { isToday, isYesterday } from 'date-fns';
@@ -18,6 +18,7 @@ const defaultStats: UserStats = {
 
 // Get a user's stats, creating them if they don't exist
 export const getUserStats = async (uid: string): Promise<UserStats> => {
+    const db = getDb();
     const statsRef = doc(db, 'stats', uid);
     const statsSnap = await getDoc(statsRef);
     if (statsSnap.exists()) {
@@ -30,12 +31,14 @@ export const getUserStats = async (uid: string): Promise<UserStats> => {
 
 // Update a user's stats
 export const updateUserStats = async (uid: string, updates: Partial<UserStats>) => {
+    const db = getDb();
     const statsRef = doc(db, 'stats', uid);
     await setDoc(statsRef, updates, { merge: true });
 };
 
 // Increment a user's stats
 export const incrementUserStats = async (uid: string, increments: { [K in keyof UserStats]?: number }) => {
+    const db = getDb();
     const statsRef = doc(db, 'stats', uid);
     const updateData: { [key: string]: any } = {};
     for (const key in increments) {

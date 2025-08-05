@@ -1,5 +1,7 @@
 
-import { db } from '@/lib/firebase';
+'use server';
+
+import { getDb } from '@/lib/firebase';
 import {
   collection,
   query,
@@ -30,6 +32,7 @@ export interface StudyMate extends UserProfile {
 
 // Get a single user's profile
 export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
+    const db = getDb();
     const userRef = doc(db, 'users', uid);
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
@@ -40,6 +43,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 
 // Find a user by their email address
 export const findUserByEmail = async (email: string): Promise<UserProfile | null> => {
+  const db = getDb();
   const usersRef = collection(db, 'users');
   const q = query(usersRef, where('email', '==', email));
   const querySnapshot = await getDocs(q);
@@ -52,12 +56,14 @@ export const findUserByEmail = async (email: string): Promise<UserProfile | null
 
 // Function to create or update user profile in Firestore
 export const updateUserProfile = async (user: Partial<UserProfile> & { uid: string }) => {
+    const db = getDb();
     const userRef = doc(db, 'users', user.uid);
     await setDoc(userRef, user, { merge: true });
 };
 
 // Add a sticker to a user's collection
 export const addStickerToProfile = async (uid: string, stickerId: string) => {
+    const db = getDb();
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, {
         collectedStickerIds: arrayUnion(stickerId)
@@ -69,6 +75,7 @@ export const addStickerToProfile = async (uid: string, stickerId: string) => {
 export const sendFriendRequest = async (currentUserId: string, targetUserId: string) => {
   if (currentUserId === targetUserId) throw new Error("You cannot send a request to yourself.");
 
+  const db = getDb();
   const friendshipId = [currentUserId, targetUserId].sort().join('_');
   const friendshipRef = doc(db, 'friendships', friendshipId);
   const friendshipSnap = await getDoc(friendshipRef);
@@ -89,6 +96,7 @@ export const sendFriendRequest = async (currentUserId: string, targetUserId: str
 
 // Get all study mates (pending and accepted) for a user
 export const getStudyMates = async (currentUserId: string): Promise<StudyMate[]> => {
+    const db = getDb();
     const friendshipsRef = collection(db, 'friendships');
     const q = query(friendshipsRef, where('users', 'array-contains', currentUserId));
     const querySnapshot = await getDocs(q);
@@ -135,6 +143,7 @@ export const getStudyMates = async (currentUserId: string): Promise<StudyMate[]>
 
 // Accept a friend request
 export const acceptFriendRequest = async (requesterId: string, currentUserId: string) => {
+    const db = getDb();
     const friendshipId = [requesterId, currentUserId].sort().join('_');
     const friendshipRef = doc(db, 'friendships', friendshipId);
     
@@ -143,6 +152,7 @@ export const acceptFriendRequest = async (requesterId: string, currentUserId: st
 
 // Remove a friend or decline a request
 export const removeFriend = async (currentUserId: string, friendId: string) => {
+    const db = getDb();
     const friendshipId = [currentUserId, friendId].sort().join('_');
     const friendshipRef = doc(db, 'friendships', friendshipId);
 
