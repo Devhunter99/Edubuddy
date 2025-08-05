@@ -116,6 +116,7 @@ export default function SignupPage() {
       // Update display name in Firebase Auth
       await updateProfile(userCredential.user, {
         displayName: values.username,
+        photoURL: values.photoURL, // Also set it here
       });
 
       // Also create a profile in Firestore
@@ -126,10 +127,9 @@ export default function SignupPage() {
         photoURL: values.photoURL
       });
 
-      // Save photoURL to local storage, not Firebase Auth
+      // Update photoURL in the auth context
       if (values.photoURL) {
         await updateUserPhotoURL(values.photoURL);
-        localStorage.setItem(`user_photo_${userCredential.user.uid}`, values.photoURL);
       }
 
       // Store studyLevel in localStorage
@@ -160,9 +160,8 @@ export default function SignupPage() {
         
         localStorage.setItem(`user_study_level_${result.user.uid}`, 'undergraduate');
         
-        // Also save their google photo if they have one
+        // Update photoURL in the auth context if available from Google
         if (result.user.photoURL) {
-            localStorage.setItem(`user_photo_${result.user.uid}`, result.user.photoURL);
             await updateUserPhotoURL(result.user.photoURL);
         }
 

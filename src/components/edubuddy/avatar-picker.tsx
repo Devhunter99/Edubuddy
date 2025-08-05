@@ -35,7 +35,7 @@ export default function AvatarPicker() {
     if (!user) return;
     setIsLoading(true);
     try {
-      // This now saves to localStorage via the auth hook
+      // This now saves to Firestore via the auth hook
       await updateUserPhotoURL(url);
       toast({ title: 'Success', description: 'Profile picture updated!' });
     } catch (error: any) {

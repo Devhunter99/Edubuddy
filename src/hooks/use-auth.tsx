@@ -5,7 +5,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { getAuth, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { updateUserProfile, type UserProfile } from '@/services/user-service';
+import { updateUserProfile, getUserProfile, type UserProfile } from '@/services/user-service';
 
 interface AuthContextType {
   user: User | null;
@@ -33,13 +33,18 @@ const createUserWithPhoto = (user: User, photoURL: string | null): User => {
 
 const syncUserProfile = async (user: User) => {
     if (!user.email || !user.displayName) return;
+    
+    // Check if user already exists in Firestore
+    const existingProfile = await getUserProfile(user.uid);
+
     const profile: UserProfile = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
-        photoURL: user.photoURL,
+        photoURL: existingProfile?.photoURL ?? user.photoURL, // Preserve existing photoURL if it exists
     };
     await updateUserProfile(profile);
+    return profile;
 }
 
 
@@ -49,12 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         // User is signed in
-        syncUserProfile(user); // Sync profile with Firestore
-        const customPhotoURL = localStorage.getItem(`user_photo_${user.uid}`);
-        const userWithPhoto = createUserWithPhoto(user, customPhotoURL || user.photoURL);
+        const profile = await syncUserProfile(user); // Sync profile with Firestore
+        const userWithPhoto = createUserWithPhoto(user, profile.photoURL || user.photoURL);
         setUser(userWithPhoto);
       } else {
         // User is signed out
@@ -73,28 +77,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const logout = async () => {
     await signOut(auth);
-    // Clear local storage for the user on logout
-    if (user) {
-        localStorage.removeItem(`user_photo_${user.uid}`);
-        localStorage.removeItem(`user_study_level_${user.uid}`);
-    }
     router.push('/login');
   };
 
   const updateUserPhotoURL = async (photoURL: string) => {
     if (auth.currentUser) {
-      // Save the new photoURL to localStorage
-      localStorage.setItem(`user_photo_${auth.currentUser.uid}`, photoURL);
-      
-      // Update the user state in the context to trigger a re-render
+      // Update the user state in the context to trigger a re-render immediately
       const updatedUser = createUserWithPhoto(auth.currentUser, photoURL);
       setUser(updatedUser);
 
       // Also update it in Firestore
       await updateUserProfile({
           uid: auth.currentUser.uid,
-          email: auth.currentUser.email!,
-          displayName: auth.currentUser.displayName!,
           photoURL: photoURL,
       });
     }
