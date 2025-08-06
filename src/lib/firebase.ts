@@ -26,14 +26,14 @@ if (!getApps().length) {
 
     // UNCOMMENT THE FOLLOWING LINES TO USE THE LOCAL EMULATORS
     // NOTE: Make sure you have the emulators running!
-    // try {
-    //   connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-    //   connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
-    //   connectStorageEmulator(storage, "127.0.0.1", 9199);
-    //   console.log("Connected to Firebase Emulators");
-    // } catch (e) {
-    //   console.error("Error connecting to Firebase Emulators:", e);
-    // }
+    try {
+      connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+      connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
+      connectStorageEmulator(storage, "127.0.0.1", 9199);
+      console.log("Connected to Firebase Emulators");
+    } catch (e) {
+      console.error("Error connecting to Firebase Emulators:", e);
+    }
     
 } else {
     app = getApp();
