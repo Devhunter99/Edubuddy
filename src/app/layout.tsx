@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { PT_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -9,7 +9,11 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/edubuddy/theme-provider";
 import { RewardProvider } from "@/hooks/use-rewards";
 
-const inter = Inter({ subsets: ["latin"] });
+const ptSans = PT_Sans({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "EduBuddy",
@@ -24,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={`${inter.className} bg-background text-foreground antialiased`} suppressHydrationWarning>
+      <body className={`${ptSans.variable} font-sans bg-background text-foreground antialiased`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

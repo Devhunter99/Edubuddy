@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { generateMCQ, type GenerateMCQOutput, type GenerateMCQInput } from "@/ai/flows/generate-mcq";
 import { useToast } from "@/hooks/use-toast";
@@ -32,7 +32,6 @@ import { useRewards } from "@/hooks/use-rewards";
 
 const useSubjects = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
-  const [allNotesText, setAllNotesText] = useState<string>("");
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -45,27 +44,28 @@ const useSubjects = () => {
         const storedSubjects = localStorage.getItem("subjects");
         const subjectList: string[] = storedSubjects ? JSON.parse(storedSubjects) : [];
         setSubjects(subjectList);
-
-        const allText = subjectList.map(subjectName => {
-            const notesRaw = localStorage.getItem(subjectName);
-            if (notesRaw) {
-                try {
-                    const notes: Note[] = JSON.parse(notesRaw);
-                    return notes.map(note => `## ${note.title}\n\n${note.text}`).join('\n\n---\n\n');
-                } catch {
-                    return '';
-                }
-            }
-            return '';
-        }).join('\n\n');
-        setAllNotesText(allText);
-
       } catch (error) {
         console.error("Failed to parse subjects from localStorage", error);
         setSubjects([]);
       }
     }
   }, [isClient]);
+  
+  const allNotesText = useMemo(() => {
+    if (!isClient) return "";
+    return subjects.map(subjectName => {
+        const notesRaw = localStorage.getItem(subjectName);
+        if (notesRaw) {
+            try {
+                const notes: Note[] = JSON.parse(notesRaw);
+                return notes.map(note => `## ${note.title}\n\n${note.text}`).join('\n\n---\n\n');
+            } catch {
+                return '';
+            }
+        }
+        return '';
+    }).join('\n\n');
+  }, [subjects, isClient]);
 
   return { subjects, allNotesText };
 };
