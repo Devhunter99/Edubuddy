@@ -13,6 +13,13 @@ const firebaseConfig = {
     appId: "1:305840929357:web:7d89e14734a6da116bba04",
 };
 
+let app: FirebaseApp;
+if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApp();
+}
+
 const getAppInstance = () => {
     if (!getApps().length) {
         return initializeApp(firebaseConfig);

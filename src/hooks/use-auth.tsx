@@ -30,7 +30,7 @@ const createUserWithPhoto = (user: User, photoURL: string | null): User => {
   } as User;
 }
 
-const syncUserProfile = async (user: User) => {
+const syncUserProfile = async (user: User): Promise<UserProfile> => {
     // Check if user already exists in Firestore
     const existingProfile = await getUserProfile(user.uid);
 
