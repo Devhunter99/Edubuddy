@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFirestore } from "firebase/firestore";
@@ -12,12 +12,18 @@ const firebaseConfig = {
     appId: "1:305840929357:web:7d89e14734a6da116bba04",
 };
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
 
-const getDb = () => getFirestore(app);
-const getAuthInstance = () => getAuth(app);
-const getAppInstance = () => app;
-const getStorageInstance = () => getStorage(app);
+// Initialize Firebase
+const getAppInstance = () => {
+    if (!app) {
+        app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    }
+    return app;
+}
+
+const getDb = () => getFirestore(getAppInstance());
+const getAuthInstance = () => getAuth(getAppInstance());
+const getStorageInstance = () => getStorage(getAppInstance());
 
 export { getAppInstance, getAuthInstance, getStorageInstance, getDb };
