@@ -31,18 +31,21 @@ const createUserWithPhoto = (user: User, photoURL: string | null): User => {
 }
 
 const syncUserProfile = async (user: User) => {
-    if (!user.email || !user.displayName) return;
-    
     // Check if user already exists in Firestore
     const existingProfile = await getUserProfile(user.uid);
 
+    // Use existing profile data as a fallback, or user data, or empty strings
     const profile: UserProfile = {
         uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
+        email: user.email || existingProfile?.email || '',
+        displayName: user.displayName || existingProfile?.displayName || 'New User',
         photoURL: existingProfile?.photoURL ?? user.photoURL, // Preserve existing photoURL if it exists
     };
-    await updateUserProfile(profile);
+    
+    // Only update if there is something to update
+    if (profile.email && profile.displayName) {
+        await updateUserProfile(profile);
+    }
     
     // Update login streak
     await updateUserLoginStreak(user.uid);
