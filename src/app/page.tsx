@@ -53,19 +53,26 @@ const useSubjects = () => {
   
   const allNotesText = useMemo(() => {
     if (!isClient) return "";
-    return subjects.map(subjectName => {
-        const notesRaw = localStorage.getItem(subjectName);
-        if (notesRaw) {
-            try {
-                const notes: Note[] = JSON.parse(notesRaw);
-                return notes.map(note => `## ${note.title}\n\n${note.text}`).join('\n\n---\n\n');
-            } catch {
-                return '';
+    try {
+        const storedSubjects = localStorage.getItem("subjects");
+        const subjectList: string[] = storedSubjects ? JSON.parse(storedSubjects) : [];
+        return subjectList.map(subjectName => {
+            const notesRaw = localStorage.getItem(subjectName);
+            if (notesRaw) {
+                try {
+                    const notes: Note[] = JSON.parse(notesRaw);
+                    return notes.map(note => `## ${note.title}\n\n${note.text}`).join('\n\n---\n\n');
+                } catch {
+                    return '';
+                }
             }
-        }
-        return '';
-    }).join('\n\n');
-  }, [subjects, isClient]);
+            return '';
+        }).join('\n\n');
+    } catch (error) {
+        console.error("Failed to read subjects from localStorage", error);
+        return "";
+    }
+  }, [isClient]);
 
   return { subjects, allNotesText };
 };
@@ -370,4 +377,5 @@ export default function Home() {
       </div>
     </SidebarInset>
   );
-}
+
+    
