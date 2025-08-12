@@ -143,9 +143,17 @@ export default function ProfilePage() {
                                                 <TooltipTrigger asChild>
                                                     <div className={cn(
                                                         "p-3 flex flex-col items-center justify-center aspect-square shadow-sm rounded-lg bg-card border-2 transition-all",
-                                                        isUnlocked ? `border-${ach.tier}-500/50 bg-${ach.tier}-500/10` : "border-border/50 bg-muted/50 grayscale opacity-60"
+                                                        isUnlocked ? {
+                                                            'bronze': 'border-amber-700/50 bg-amber-700/10',
+                                                            'silver': 'border-gray-400/50 bg-gray-400/10',
+                                                            'gold': 'border-amber-500/50 bg-amber-500/10'
+                                                        }[ach.tier] : "border-border/50 bg-muted/50 grayscale opacity-60"
                                                     )}>
-                                                        <Icon className={cn("h-8 w-8", isUnlocked ? `text-${ach.tier}-500` : "text-muted-foreground")} />
+                                                        <Icon className={cn("h-8 w-8", isUnlocked ? {
+                                                            'bronze': 'text-amber-700',
+                                                            'silver': 'text-gray-500',
+                                                            'gold': 'text-amber-500'
+                                                        }[ach.tier] : "text-muted-foreground")} />
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent className="max-w-xs text-center">
