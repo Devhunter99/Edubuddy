@@ -12,10 +12,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getUserProfile, type UserProfile } from "@/services/user-service";
 import { getUserStats, type UserStats } from "@/services/stats-service";
 import { allStickers, type Sticker } from "@/lib/stickers";
-import { allAchievements, getUnlockedAchievements, type Achievement } from "@/lib/achievements";
-import { Award, Mail, Star, Trophy } from "lucide-react";
+import { allAchievements, getUnlockedAchievements } from "@/lib/achievements";
+import { Award, Mail, Star, Trophy, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 
 const getStickerById = (id: string): Sticker | undefined => {
@@ -129,13 +131,20 @@ export default function ProfilePage() {
                             
                             {/* Achievements Section */}
                             <div>
-                                <div className="flex items-center gap-3 mb-4">
-                                    <Trophy className="h-6 w-6 text-amber-500" />
-                                    <h3 className="text-xl font-bold">Achievements</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <Trophy className="h-6 w-6 text-amber-500" />
+                                        <h3 className="text-xl font-bold">Achievements</h3>
+                                    </div>
+                                    <Link href="/achievements">
+                                        <Button variant="ghost" size="sm">
+                                            Show All <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </Link>
                                 </div>
                                 <TooltipProvider>
                                 <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
-                                    {allAchievements.map((ach) => {
+                                    {allAchievements.slice(0, 12).map((ach) => {
                                         const isUnlocked = unlockedAchievementIds.has(ach.id);
                                         const Icon = ach.icon;
                                         return (

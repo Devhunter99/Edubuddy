@@ -27,6 +27,7 @@ import {
   Music,
   Users,
   User,
+  Trophy,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
@@ -41,6 +42,7 @@ const menuItems = [
   { href: "/results", label: "Results", icon: PieChart },
   { href: "/rewards", label: "Rewards", icon: Star },
   { href: "/study-mates", label: "Study Mates", icon: Users },
+  { href: "/achievements", label: "Achievements", icon: Trophy },
 ];
 
 const bottomMenuItems = [
@@ -62,6 +64,7 @@ export default function AppSidebar() {
     if (href === "/") return pathname === "/";
     if (href === "/subjects") return pathname.startsWith('/subject') || pathname === '/subjects';
     if (href.startsWith("/profile")) return pathname.startsWith('/profile');
+    if (href === "/achievements") return pathname === "/achievements";
     return pathname.startsWith(href);
   };
 
