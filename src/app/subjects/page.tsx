@@ -60,7 +60,8 @@ const useSubjects = () => {
         localStorage.setItem("subjects", JSON.stringify(updatedSubjects));
       }
       if (user && updatedSubjects.length === 1) {
-        incrementUserStats(user.uid, { }); // This is a placeholder, real logic in profile page
+        // This is the first subject they've created in this session
+        incrementUserStats(user.uid, { firstSubjectCreated: 1 });
       }
     }
   };

@@ -18,6 +18,8 @@ export interface UserStats {
     sessions20min: number;
     sessions40min: number;
     sessions60min: number;
+    firstSubjectCreated?: number;
+    subjectCount?: number;
 }
 
 export const allAchievements: Achievement[] = [
@@ -42,23 +44,23 @@ export const allAchievements: Achievement[] = [
     { id: 'session_60_min', name: 'Sixty Minute Scholar', description: 'Complete a 60+ minute study session.', icon: Award, tier: 'gold', check: (stats) => stats.sessions60min >= 1 },
     
     // Other Achievements
-    { id: 'first_note', name: 'Getting Started', description: 'Create your first subject.', icon: BookOpen, tier: 'bronze', check: (stats) => true }, // Placeholder, logic will be elsewhere
+    { id: 'first_note', name: 'Getting Started', description: 'Create your first subject.', icon: BookOpen, tier: 'bronze', check: (stats) => (stats.firstSubjectCreated ?? 0) > 0 },
     { id: 'first_sticker', name: 'Collector', description: 'Earn your first sticker.', icon: Star, tier: 'bronze', check: (stats) => true }, // Placeholder
-    { id: 'five_subjects', name: 'Subject Explorer', description: 'Create 5 different subjects.', icon: Library, tier: 'silver', check: (stats) => true }, // Placeholder
+    { id: 'five_subjects', name: 'Subject Explorer', description: 'Create 5 different subjects.', icon: Library, tier: 'silver', check: (stats) => (stats.subjectCount ?? 0) >= 5 },
 ];
 
 export const getUnlockedAchievements = (stats: UserStats, collectedStickerIds: string[] = [], subjectCount: number = 0): Achievement[] => {
-    const unlocked = allAchievements.filter(ach => ach.check(stats));
+    // Inject subjectCount into stats for the check function
+    const statsWithSubjectCount = { ...stats, subjectCount };
     
-    // Handle achievements not directly based on stats
-    if (subjectCount > 0) {
-        unlocked.push(allAchievements.find(a => a.id === 'first_note')!);
-    }
-    if (subjectCount >= 5) {
-        unlocked.push(allAchievements.find(a => a.id === 'five_subjects')!);
-    }
+    const unlocked = allAchievements.filter(ach => ach.check(statsWithSubjectCount));
+    
+    // Handle achievements that depend on data not in stats (like stickers)
     if (collectedStickerIds.length > 0) {
-        unlocked.push(allAchievements.find(a => a.id === 'first_sticker')!);
+        const firstStickerAch = allAchievements.find(a => a.id === 'first_sticker');
+        if (firstStickerAch && !unlocked.some(a => a.id === firstStickerAch.id)) {
+            unlocked.push(firstStickerAch);
+        }
     }
     
     // Return unique achievements

@@ -2,7 +2,7 @@
 'use server';
 
 import { getDb } from '@/lib/firebase';
-import { doc, getDoc, setDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, increment, WriteBatch, writeBatch } from 'firebase/firestore';
 import { type UserStats } from '@/lib/achievements';
 import { isToday, isYesterday } from 'date-fns';
 
@@ -14,6 +14,8 @@ const defaultStats: UserStats = {
     sessions20min: 0,
     sessions40min: 0,
     sessions60min: 0,
+    firstSubjectCreated: 0,
+    subjectCount: 0,
 };
 
 // Get a user's stats, creating them if they don't exist
@@ -22,7 +24,8 @@ export const getUserStats = async (uid: string): Promise<UserStats> => {
     const statsRef = doc(db, 'stats', uid);
     const statsSnap = await getDoc(statsRef);
     if (statsSnap.exists()) {
-        return statsSnap.data() as UserStats;
+        // Combine fetched data with defaults to ensure all fields are present
+        return { ...defaultStats, ...statsSnap.data() } as UserStats;
     } else {
         await setDoc(statsRef, defaultStats);
         return defaultStats;
@@ -40,11 +43,19 @@ export const updateUserStats = async (uid: string, updates: Partial<UserStats>) 
 export const incrementUserStats = async (uid: string, increments: { [K in keyof UserStats]?: number }) => {
     const db = getDb();
     const statsRef = doc(db, 'stats', uid);
+    
+    // Firestore's increment() requires a number. Filter out any non-numeric values.
     const updateData: { [key: string]: any } = {};
     for (const key in increments) {
-        updateData[key] = increment(increments[key as keyof typeof increments]!);
+        const value = increments[key as keyof typeof increments];
+        if (typeof value === 'number') {
+            updateData[key] = increment(value);
+        }
     }
-    await setDoc(statsRef, updateData, { merge: true });
+    
+    if (Object.keys(updateData).length > 0) {
+        await setDoc(statsRef, updateData, { merge: true });
+    }
 };
 
 
@@ -58,22 +69,23 @@ export const updateUserLoginStreak = async (uid: string): Promise<UserStats> => 
         // Already logged in today, do nothing
         return stats;
     }
+    
+    const db = getDb();
+    const statsRef = doc(db, 'stats', uid);
+    const batch = writeBatch(db);
+
+    batch.update(statsRef, { lastLogin: now.toISOString() });
 
     if (isYesterday(lastLoginDate)) {
         // Logged in yesterday, increment streak
-        const newStats: Partial<UserStats> = {
-            loginStreak: (stats.loginStreak || 0) + 1,
-            lastLogin: now.toISOString(),
-        };
-        await updateUserStats(uid, newStats);
-        return { ...stats, ...newStats };
+        batch.update(statsRef, { loginStreak: increment(1) });
     } else {
         // Didn't log in yesterday, reset streak to 1
-         const newStats: Partial<UserStats> = {
-            loginStreak: 1,
-            lastLogin: now.toISOString(),
-        };
-        await updateUserStats(uid, newStats);
-        return { ...stats, ...newStats };
+        batch.update(statsRef, { loginStreak: 1 });
     }
+    
+    await batch.commit();
+
+    // Refetch the updated stats to return them
+    return await getUserStats(uid);
 };
