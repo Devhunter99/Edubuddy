@@ -28,18 +28,28 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [stats, setStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
+    const [subjectCount, setSubjectCount] = useState(0);
 
     useEffect(() => {
         const fetchProfileData = async () => {
             if (!userId) return;
             setLoading(true);
             try {
+                // Fetch profile and stats
                 const [userProfile, userStats] = await Promise.all([
                     getUserProfile(userId),
                     getUserStats(userId)
                 ]);
                 setProfile(userProfile);
                 setStats(userStats);
+
+                // Fetch subject count from local storage
+                if (typeof window !== 'undefined') {
+                    const storedSubjects = localStorage.getItem("subjects");
+                    const subjectList: string[] = storedSubjects ? JSON.parse(storedSubjects) : [];
+                    setSubjectCount(subjectList.length);
+                }
+
             } catch (error) {
                 console.error("Failed to fetch user data:", error);
             } finally {
@@ -90,7 +100,7 @@ export default function ProfilePage() {
     }
 
     const collectedStickers = profile.collectedStickerIds?.map(getStickerById).filter(Boolean) as Sticker[] || [];
-    const unlockedAchievements = getUnlockedAchievements(stats, profile.collectedStickerIds);
+    const unlockedAchievements = getUnlockedAchievements(stats, profile.collectedStickerIds, subjectCount);
     const unlockedAchievementIds = new Set(unlockedAchievements.map(a => a.id));
 
 

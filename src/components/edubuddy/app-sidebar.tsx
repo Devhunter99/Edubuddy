@@ -12,7 +12,6 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import {
   Home,
@@ -27,6 +26,7 @@ import {
   Star,
   Music,
   Users,
+  User,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
@@ -41,9 +41,12 @@ const menuItems = [
   { href: "/results", label: "Results", icon: PieChart },
   { href: "/rewards", label: "Rewards", icon: Star },
   { href: "/study-mates", label: "Study Mates", icon: Users },
-  { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/about", label: "About", icon: Info },
 ];
+
+const bottomMenuItems = [
+    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/about", label: "About", icon: Info },
+]
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -58,6 +61,7 @@ export default function AppSidebar() {
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/subjects") return pathname.startsWith('/subject') || pathname === '/subjects';
+    if (href.startsWith("/profile")) return pathname.startsWith('/profile');
     return pathname.startsWith(href);
   };
 
@@ -98,9 +102,46 @@ export default function AppSidebar() {
         {isClient && isMobile ? mobileHeader : desktopHeader}
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="justify-between">
         <SidebarMenu>
           {menuItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <Link href={item.href} passHref>
+                <SidebarMenuButton
+                  isActive={isActive(item.href)}
+                  tooltip={item.label}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span className="group-data-[collapsed=true]:hidden">{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
+          {!loading && user && (
+               <SidebarMenuItem>
+                 <Link href={`/profile/${user.uid}`} passHref>
+                    <SidebarMenuButton
+                        isActive={isActive(`/profile/${user.uid}`)}
+                        tooltip="Profile"
+                    >
+                        <User className="h-5 w-5" />
+                        <span className="group-data-[collapsed=true]:hidden">Profile</span>
+                    </SidebarMenuButton>
+                 </Link>
+                </SidebarMenuItem>
+          )}
+        </SidebarMenu>
+
+        <SidebarMenu>
+          {!loading && user && (
+            <SidebarMenuItem>
+                <SidebarMenuButton onClick={logout} tooltip="Logout">
+                    <LogOut className="h-5 w-5" />
+                    <span className="group-data-[collapsed=true]:hidden">Logout</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {bottomMenuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href} passHref>
                 <SidebarMenuButton
@@ -116,16 +157,6 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        {!loading && user && (
-            <SidebarMenu>
-                 <SidebarMenuItem>
-                     <SidebarMenuButton onClick={logout} tooltip="Logout">
-                         <LogOut className="h-5 w-5" />
-                         <span className="group-data-[collapsed=true]:hidden">Logout</span>
-                     </SidebarMenuButton>
-                 </SidebarMenuItem>
-            </SidebarMenu>
-        )}
       </SidebarFooter>
     </Sidebar>
   );

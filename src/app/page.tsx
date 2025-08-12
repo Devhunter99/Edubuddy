@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
 import McqItem from "@/components/edubuddy/mcq-item";
 import RandomMcqCard from "@/components/edubuddy/random-mcq-card";
@@ -248,6 +248,7 @@ export default function Home() {
                                 </div>
                         </DialogContent>
                     </Dialog>
+                    {user && <ShortcutButton href={`/profile/${user.uid}`} icon={User} label="Profile" />}
                     <ShortcutButton href="/results" icon={PieChart} label="Results" />
                      <ShortcutButton href="/settings" icon={Settings} label="Settings" />
                 </div>
