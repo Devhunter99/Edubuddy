@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/edubuddy/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award } from "lucide-react";
 import DashboardCard from "@/components/edubuddy/dashboard-card";
 import McqItem from "@/components/edubuddy/mcq-item";
 import RandomMcqCard from "@/components/edubuddy/random-mcq-card";
@@ -248,7 +248,6 @@ export default function Home() {
                                 </div>
                         </DialogContent>
                     </Dialog>
-                    {user && <ShortcutButton href={`/profile/${user.uid}`} icon={User} label="Profile" />}
                     <ShortcutButton href="/results" icon={PieChart} label="Results" />
                      <ShortcutButton href="/settings" icon={Settings} label="Settings" />
                 </div>
@@ -269,6 +268,25 @@ export default function Home() {
                     >
                       <RandomMcqCard allNotesText={allNotesText} />
                     </DashboardCard>
+
+                     {/* Profile & Achievements */}
+                    {user && (
+                         <DashboardCard
+                            title="My Profile & Achievements"
+                            icon={Award}
+                            description="View your progress and stats."
+                            className="lg:col-span-2"
+                        >
+                             <p className="text-sm text-muted-foreground mt-2">
+                                Check out the stickers and achievements you've unlocked on your learning journey.
+                            </p>
+                           <Link href={`/profile/${user.uid}`} className="mt-4">
+                                <Button variant="outline" className="w-full">
+                                    Go to Profile <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </DashboardCard>
+                    )}
                     
                     {/* Subjects */}
                     <DashboardCard
@@ -380,3 +398,4 @@ export default function Home() {
   );
 
     
+
