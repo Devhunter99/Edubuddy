@@ -2,8 +2,8 @@
 'use server';
 
 /**
- * @fileOverview A flow to process a PDF file and extract its text content.
- * It first tries a standard library, and if that fails, uses AI OCR.
+ * @fileOverview A flow to process a PDF file and extract its text content
+ * using a powerful AI OCR model.
  *
  * - processPdf - A function that handles the PDF processing.
  * - ProcessPdfInput - The input type for the processPdf function.
@@ -12,7 +12,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import PDFParser from 'pdf2json';
 
 const ProcessPdfInputSchema = z.object({
   pdfDataUri: z
@@ -51,39 +50,8 @@ const processPdfFlow = ai.defineFlow(
     outputSchema: ProcessPdfOutputSchema,
   },
   async (input) => {
-    // First, try to extract text using the pdf2json library.
-    // This is fast and works well for text-based PDFs.
-    try {
-        const base64Data = input.pdfDataUri.split(',')[1];
-        const pdfBuffer = Buffer.from(base64Data, 'base64');
-        
-        const pdfParser = new PDFParser(this, 1);
-
-        const parsedText = await new Promise<string>((resolve, reject) => {
-            pdfParser.on('pdfParser_dataError', (errData: any) => {
-                console.error("pdf2json error:", errData.parserError);
-                // Don't reject, just resolve with empty string to fall back to OCR
-                resolve(''); 
-            });
-            pdfParser.on('pdfParser_dataReady', () => {
-                resolve((pdfParser as any).getRawTextContent());
-            });
-
-            pdfParser.parseBuffer(pdfBuffer);
-        });
-
-        // If pdf2json returns a reasonable amount of text, use it.
-        if (parsedText && parsedText.trim().length > 100) {
-             console.log("Successfully extracted text with pdf2json.");
-            return { text: parsedText };
-        }
-    } catch (error) {
-        console.error("Error with pdf2json, falling back to AI OCR:", error);
-    }
-    
-    // If pdf2json fails or returns very little text, fall back to AI OCR.
-    // This is better for scanned PDFs or PDFs with images of text.
-    console.log("Falling back to AI OCR for PDF processing...");
+    // Use AI OCR for all PDF processing to ensure maximum accuracy and completeness.
+    console.log("Processing PDF with AI OCR...");
     const { output } = await ocrPrompt(input);
 
     if (!output || !output.text) {
