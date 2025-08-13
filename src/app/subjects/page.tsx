@@ -40,10 +40,6 @@ const useSubjects = () => {
         const storedSubjects = localStorage.getItem("subjects");
         if (storedSubjects) {
           setSubjects(JSON.parse(storedSubjects));
-        } else {
-          const defaultSubjects = ["Hologram hand left", "Hologram hand right", "Liquid sculpture", "Crystal rock"];
-          setSubjects(defaultSubjects);
-          localStorage.setItem("subjects", JSON.stringify(defaultSubjects));
         }
       } catch (error) {
         console.error("Failed to parse subjects from localStorage", error);
