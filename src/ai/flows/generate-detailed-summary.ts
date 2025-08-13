@@ -17,7 +17,7 @@ import type { GenerateSummaryInput } from './generate-summary';
 export type GenerateDetailedSummaryInput = GenerateSummaryInput;
 
 const GenerateDetailedSummaryOutputSchema = z.object({
-  summary: z.array(z.string()).describe('A list of detailed points summarizing the text.'),
+  summary: z.array(z.string().describe('A single, complete sentence summarizing a key point. Do not use any markdown or numbering.')),
   progress: z.string().describe('A short, one-sentence summary of the generation process.'),
 });
 export type GenerateDetailedSummaryOutput = z.infer<typeof GenerateDetailedSummaryOutputSchema>;
@@ -36,16 +36,19 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateDetailedSummaryOutputSchema},
   tools: [searchTool],
   prompt: `You are an expert summarizer, acting as a helpful tutor for a {{studyLevel}} student.
-  Your goal is to extract the most important information from lecture notes and present it clearly in a detailed, point-form format.
+  Your goal is to synthesize the most important information from lecture notes and present it clearly in a detailed, point-form format.
 
-  Please provide a detailed summary of the following lecture notes. Each key concept or piece of information should be a separate string in a JSON array.
+  Please provide a detailed summary of the following lecture notes.
+  Each point must be a complete, well-formed sentence that explains a key concept.
+  Do NOT simply extract words or topics from the text.
+  Do NOT include any markdown formatting, asterisks, or numbering in the points. Each item in the array should be a clean string.
+
   Tailor the language, depth, and complexity of the summary to be appropriate for a {{studyLevel}} level.
 
   If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create a better summary.
 
   Lecture Notes: {{lectureNotes}}
 
-  Ensure the summary is accurate, comprehensive, and easy for a {{studyLevel}} student to understand.
   The output should be a JSON object with a 'summary' field containing an array of strings, and a 'progress' field with a one-sentence progress indicator.
   `,
 });
