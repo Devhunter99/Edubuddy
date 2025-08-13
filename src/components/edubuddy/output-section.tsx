@@ -15,6 +15,7 @@ import McqItem from "./mcq-item";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import type { QuizResult } from "@/lib/types";
 import QuizResultsSummary from "./quiz-results-summary";
@@ -71,8 +72,15 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   const [showResults, setShowResults] = useState(false);
   const [mcqKey, setMcqKey] = useState(Date.now());
   const [activeTab, setActiveTab] = useState("summary");
+  const [showDetailedSummary, setShowDetailedSummary] = useState(false);
   const { addCoinForQuestion } = useRewards();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (content.detailedSummary) {
+      setShowDetailedSummary(true);
+    }
+  }, [content.detailedSummary]);
 
   const handleAnswer = (index: number, selected: string, isCorrect: boolean) => {
     setQuizAnswers(prev => ({ ...prev, [index]: { selected, isCorrect } }));
@@ -120,6 +128,13 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
     setMcqKey(Date.now());
   };
 
+  const handleDetailedSummaryToggle = (checked: boolean) => {
+    setShowDetailedSummary(checked);
+    if (checked && !content.detailedSummary) {
+      onRegenerate('detailedSummary');
+    }
+  }
+
 
   const renderEmptyState = () => (
     <Card className="flex flex-col items-center justify-center min-h-[40vh] text-center p-8 border-dashed">
@@ -141,15 +156,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   
   const renderSummary = () => {
     if (!content.summary?.summary) return null;
-    const summaryText = content.summary.summary;
-    const points = summaryText.split(/\n|\s(?=\d+\.\s)|-/).filter(s => s.trim().length > 0 && s.trim() !== '-');
-    return (
-      <ul className="list-disc pl-5 space-y-2 text-base">
-        {points.map((point, index) => (
-          <li key={index}>{point.replace(/^\d+\.\s*/, '').replace(/^- /, '')}</li>
-        ))}
-      </ul>
-    )
+    return <p className="text-base leading-relaxed">{content.summary.summary}</p>;
   }
 
   const renderDetailedSummary = () => {
@@ -175,11 +182,6 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
     return null;
   }
 
-  const handleGenerateDetailedSummary = () => {
-    onRegenerate('detailedSummary');
-    setActiveTab('summary');
-  }
-
   return (
     <>
     <PageTitle />
@@ -194,17 +196,18 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold font-headline">Summary</h3>
-              {(content.summary || content.detailedSummary) && (
-                <div className="flex gap-2">
-                   <Button variant="outline" size="sm" onClick={handleGenerateDetailedSummary} disabled={isLoading.detailedSummary}>
-                    <ListPlus className="mr-2 h-4 w-4" /> Detailed Points
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => onRegenerate('summary')} disabled={isLoading.summary}>
-                    <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadText('summary.txt', content.summary?.summary ?? '')} disabled={!content.summary}>
-                    <Download className="mr-2 h-4 w-4" /> Download
-                  </Button>
+              {(content.summary) && (
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                        <Switch id="detailed-summary-switch" checked={showDetailedSummary} onCheckedChange={handleDetailedSummaryToggle} disabled={isLoading.detailedSummary} />
+                        <Label htmlFor="detailed-summary-switch">Detailed Points</Label>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => onRegenerate(showDetailedSummary ? 'detailedSummary' : 'summary')} disabled={isLoading.summary || isLoading.detailedSummary}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => downloadText('summary.txt', showDetailedSummary ? formatDetailedSummaryForDownload(content.detailedSummary?.summary ?? []) : content.summary?.summary ?? '')} disabled={!content.summary && !content.detailedSummary}>
+                        <Download className="mr-2 h-4 w-4" /> Download
+                    </Button>
                 </div>
               )}
             </div>
@@ -215,8 +218,8 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-5 w-4/5" />
               </div>
-            ) : content.detailedSummary ? (
-              renderDetailedSummary()
+            ) : showDetailedSummary ? (
+               content.detailedSummary ? renderDetailedSummary() : <p className="text-muted-foreground text-center pt-16">Generating detailed summary...</p>
             ) : content.summary ? (
               renderSummary()
             ) : ( <p className="text-muted-foreground text-center pt-16">Generate a summary to see it here.</p> )}

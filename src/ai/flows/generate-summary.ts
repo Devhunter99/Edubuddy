@@ -24,7 +24,7 @@ export type GenerateSummaryInput = z.infer<typeof GenerateSummaryInputSchema>;
 const GenerateSummaryOutputSchema = z.object({
   summary: z
     .string()
-    .describe('A concise 4-6 point summary of the lecture notes.'),
+    .describe('A concise summary paragraph of the lecture notes.'),
     progress: z.string().describe('A short, one-sentence summary of the generation process.')
 });
 export type GenerateSummaryOutput = z.infer<typeof GenerateSummaryOutputSchema>;
@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert summarizer, acting as a helpful tutor for a {{studyLevel}} student.
   Your goal is to extract the most important information from lecture notes and present it clearly.
 
-  Please provide a concise 4-6 point summary of the following lecture notes.
+  Please provide a concise summary of the following lecture notes as a single, well-written paragraph.
   Tailor the language, depth, and complexity of the summary to be appropriate for a {{studyLevel}} level.
 
   If the provided text seems incomplete or too sparse, use the search tool to find more information about the topic to create a better summary.
