@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import AppHeader from "@/components/edubuddy/app-header";
+import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { incrementUserStats } from "@/services/stats-service";

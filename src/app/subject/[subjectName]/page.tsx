@@ -10,10 +10,10 @@ import { generateFlashcards, type GenerateFlashcardsOutput } from "@/ai/flows/ge
 import { generateMCQ, type GenerateMCQInput, type GenerateMCQOutput } from "@/ai/flows/generate-mcq";
 import { processPdf } from "@/ai/flows/process-pdf";
 
-import AppHeader from "@/components/edubuddy/app-header";
-import InputSection from "@/components/edubuddy/input-section";
-import OutputSection from "@/components/edubuddy/output-section";
-import NotesToolbar from "@/components/edubuddy/notes-toolbar";
+import AppHeader from "@/components/rewisepanda/app-header";
+import InputSection from "@/components/rewisepanda/input-section";
+import OutputSection from "@/components/rewisepanda/output-section";
+import NotesToolbar from "@/components/rewisepanda/notes-toolbar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import type { GeneratedContent, Note } from "@/lib/types";

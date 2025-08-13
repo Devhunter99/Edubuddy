@@ -5,13 +5,13 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { generateMCQ, type GenerateMCQOutput, type GenerateMCQInput } from "@/ai/flows/generate-mcq";
 import { useToast } from "@/hooks/use-toast";
-import AppHeader from "@/components/edubuddy/app-header";
+import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award } from "lucide-react";
-import DashboardCard from "@/components/edubuddy/dashboard-card";
-import McqItem from "@/components/edubuddy/mcq-item";
-import RandomMcqCard from "@/components/edubuddy/random-mcq-card";
+import DashboardCard from "@/components/rewisepanda/dashboard-card";
+import McqItem from "@/components/rewisepanda/mcq-item";
+import RandomMcqCard from "@/components/rewisepanda/random-mcq-card";
 import {
   Dialog,
   DialogContent,
@@ -20,15 +20,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { type Note } from "@/lib/types";
-import HighlightsBanner from "@/components/edubuddy/highlights-banner";
-import ShortcutButton from "@/components/edubuddy/shortcut-button";
-import QuizResultsSummary from "@/components/edubuddy/quiz-results-summary";
+import HighlightsBanner from "@/components/rewisepanda/highlights-banner";
+import ShortcutButton from "@/components/rewisepanda/shortcut-button";
+import QuizResultsSummary from "@/components/rewisepanda/quiz-results-summary";
 import type { QuizResult } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useRewards } from "@/hooks/use-rewards";
-import DashboardProfileSummary from "@/components/edubuddy/dashboard-profile-summary";
+import DashboardProfileSummary from "@/components/rewisepanda/dashboard-profile-summary";
 
 
 const useSubjects = () => {

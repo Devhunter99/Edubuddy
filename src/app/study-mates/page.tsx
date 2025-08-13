@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import AppHeader from "@/components/edubuddy/app-header";
+import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

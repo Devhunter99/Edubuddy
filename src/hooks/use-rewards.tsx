@@ -37,7 +37,7 @@ export function RewardProvider({ children }: { children: ReactNode }) {
 
     const getStorageKey = useCallback((key: 'coins' | 'stickers' | 'completed') => {
         if (!user) return null;
-        return `edubuddy_${key}_${user.uid}`;
+        return `rewisepanda_${key}_${user.uid}`;
     }, [user]);
 
     // Load initial state from localStorage and Firestore

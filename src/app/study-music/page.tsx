@@ -1,6 +1,6 @@
 
-import AppHeader from "@/components/edubuddy/app-header";
-import MusicPlayer from "@/components/edubuddy/music-player";
+import AppHeader from "@/components/rewisepanda/app-header";
+import MusicPlayer from "@/components/rewisepanda/music-player";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Music } from "lucide-react";

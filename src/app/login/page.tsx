@@ -94,7 +94,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome Back!</CardTitle>
           <CardDescription>
-            Sign in to continue to your EduBuddy dashboard.
+            Sign in to continue to your Rewise Panda dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>

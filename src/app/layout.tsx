@@ -4,9 +4,9 @@ import { PT_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import AppSidebar from "@/components/edubuddy/app-sidebar";
+import AppSidebar from "@/components/rewisepanda/app-sidebar";
 import { AuthProvider } from "@/hooks/use-auth";
-import { ThemeProvider } from "@/components/edubuddy/theme-provider";
+import { ThemeProvider } from "@/components/rewisepanda/theme-provider";
 import { RewardProvider } from "@/hooks/use-rewards";
 
 const ptSans = PT_Sans({
@@ -16,7 +16,7 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "EduBuddy",
+  title: "Rewise Panda",
   description: "Your AI-powered study partner",
 };
 

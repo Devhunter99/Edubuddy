@@ -186,7 +186,7 @@ export default function SignupPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Create an Account</CardTitle>
           <CardDescription>
-            Join EduBuddy and start your AI-powered learning journey.
+            Join Rewise Panda and start your AI-powered learning journey.
           </CardDescription>
         </CardHeader>
         <CardContent>

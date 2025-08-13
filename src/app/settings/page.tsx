@@ -3,12 +3,12 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import AppHeader from "@/components/edubuddy/app-header";
+import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import AvatarPicker from "@/components/edubuddy/avatar-picker";
+import AvatarPicker from "@/components/rewisepanda/avatar-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SettingsPage() {
@@ -30,7 +30,7 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle>Appearance</CardTitle>
                 <CardDescription>
-                  Customize the look and feel of your EduBuddy experience.
+                  Customize the look and feel of your Rewise Panda experience.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">

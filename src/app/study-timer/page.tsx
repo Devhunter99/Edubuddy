@@ -1,6 +1,6 @@
 
-import AppHeader from "@/components/edubuddy/app-header";
-import { StudyTimer } from "@/components/edubuddy/study-timer";
+import AppHeader from "@/components/rewisepanda/app-header";
+import { StudyTimer } from "@/components/rewisepanda/study-timer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Timer } from "lucide-react";

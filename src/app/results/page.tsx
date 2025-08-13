@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AppHeader from "@/components/edubuddy/app-header";
+import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";

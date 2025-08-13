@@ -6,9 +6,9 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBMu097SDixo0zMjzJ9ST3IezRp3wUAuCc",
-    authDomain: "edubuddy-qkp8k.firebaseapp.com",
-    projectId: "edubuddy-qkp8k",
-    storageBucket: "edubuddy-qkp8k.appspot.com",
+    authDomain: "rewisepanda-a5554.firebaseapp.com",
+    projectId: "rewisepanda-a5554",
+    storageBucket: "rewisepanda-a5554.appspot.com",
     messagingSenderId: "305840929357",
     appId: "1:305840929357:web:7d89e14734a6da116bba04",
 };
