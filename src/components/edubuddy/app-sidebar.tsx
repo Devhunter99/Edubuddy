@@ -52,13 +52,19 @@ const bottomMenuItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { toggleSidebar, isMobile } = useSidebar();
+  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
   const [isClient, setIsClient] = React.useState(false);
   const { user, logout, loading } = useAuth();
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -109,7 +115,7 @@ export default function AppSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref>
+              <Link href={item.href} passHref onClick={handleLinkClick}>
                 <SidebarMenuButton
                   isActive={isActive(item.href)}
                   tooltip={item.label}
@@ -122,7 +128,7 @@ export default function AppSidebar() {
           ))}
           {!loading && user && (
                <SidebarMenuItem>
-                 <Link href={`/profile/${user.uid}`} passHref>
+                 <Link href={`/profile/${user.uid}`} passHref onClick={handleLinkClick}>
                     <SidebarMenuButton
                         isActive={isActive(`/profile/${user.uid}`)}
                         tooltip="Profile"
@@ -138,7 +144,7 @@ export default function AppSidebar() {
         <SidebarMenu>
           {!loading && user && (
             <SidebarMenuItem>
-                <SidebarMenuButton onClick={logout} tooltip="Logout">
+                <SidebarMenuButton onClick={() => { logout(); handleLinkClick(); }} tooltip="Logout">
                     <LogOut className="h-5 w-5" />
                     <span className="group-data-[collapsed=true]:hidden">Logout</span>
                 </SidebarMenuButton>
@@ -146,7 +152,7 @@ export default function AppSidebar() {
           )}
           {bottomMenuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref>
+              <Link href={item.href} passHref onClick={handleLinkClick}>
                 <SidebarMenuButton
                   isActive={isActive(item.href)}
                   tooltip={item.label}
