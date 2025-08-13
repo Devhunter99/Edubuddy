@@ -268,25 +268,6 @@ export default function Home() {
                     >
                       <RandomMcqCard allNotesText={allNotesText} />
                     </DashboardCard>
-
-                     {/* Profile & Achievements */}
-                    {user && (
-                         <DashboardCard
-                            title="My Profile & Achievements"
-                            icon={Award}
-                            description="View your progress and stats."
-                            className="lg:col-span-2"
-                        >
-                             <p className="text-sm text-muted-foreground mt-2">
-                                Check out the stickers and achievements you've unlocked on your learning journey.
-                            </p>
-                           <Link href={`/profile/${user.uid}`} className="mt-4">
-                                <Button variant="outline" className="w-full">
-                                    Go to Profile <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            </Link>
-                        </DashboardCard>
-                    )}
                     
                     {/* Subjects */}
                     <DashboardCard
@@ -398,4 +379,5 @@ export default function Home() {
   );
 
     
+
 

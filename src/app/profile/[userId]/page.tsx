@@ -13,7 +13,7 @@ import { getUserProfile, type UserProfile } from "@/services/user-service";
 import { getUserStats, type UserStats } from "@/services/stats-service";
 import { allStickers, type Sticker } from "@/lib/stickers";
 import { allAchievements, getUnlockedAchievements } from "@/lib/achievements";
-import { Award, Mail, Star, Trophy, ArrowRight } from "lucide-react";
+import { Award, Mail, Star, Trophy, ArrowRight, Calendar, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -68,18 +68,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col min-h-screen">
                     <AppHeader />
                     <main className="flex-grow container mx-auto p-4 md:p-8">
-                        <div className="max-w-4xl mx-auto">
-                             <Card className="shadow-lg p-6">
-                                <div className="flex flex-col items-center">
-                                    <Skeleton className="h-24 w-24 rounded-full" />
-                                    <Skeleton className="h-8 w-48 mt-4" />
-                                    <Skeleton className="h-5 w-64 mt-2" />
-                                </div>
-                                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Skeleton className="h-48 w-full" />
-                                    <Skeleton className="h-48 w-full" />
-                                </div>
-                             </Card>
+                        <div className="max-w-4xl mx-auto space-y-6">
+                            <Skeleton className="h-48 w-full rounded-lg" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Skeleton className="h-48 w-full" />
+                                <Skeleton className="h-48 w-full" />
+                            </div>
                         </div>
                     </main>
                 </div>
@@ -111,40 +105,55 @@ export default function ProfilePage() {
         <div className="flex flex-col min-h-screen">
             <AppHeader />
             <main className="flex-grow container mx-auto p-4 md:p-8">
-                <div className="max-w-4xl mx-auto">
-                    <Card className="shadow-lg overflow-hidden">
-                        <CardHeader className="text-center items-center bg-muted/30 p-8">
-                            <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                                <AvatarImage src={profile.photoURL ?? undefined} alt={profile.displayName} />
-                                <AvatarFallback>{profile.displayName?.[0]}</AvatarFallback>
-                            </Avatar>
-                            <CardTitle className="text-3xl mt-4">{profile.displayName}</CardTitle>
-                            <CardDescription className="flex items-center gap-2">
-                                <Mail className="h-4 w-4" /> {profile.email}
-                            </CardDescription>
-                             <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
-                                <span>Studied: <b>{Math.floor(stats.totalStudyTime / 60)}h {stats.totalStudyTime % 60}m</b></span>
-                                <span>Streak: <b>{stats.loginStreak} day{stats.loginStreak !== 1 && 's'}</b></span>
+                <div className="max-w-4xl mx-auto space-y-6">
+                     <Card className="shadow-lg overflow-hidden relative">
+                        <div className="h-32 bg-gradient-to-r from-primary to-purple-600" />
+                        <div className="p-6 pt-0">
+                            <div className="flex justify-center -mt-16">
+                                <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+                                    <AvatarImage src={profile.photoURL ?? undefined} alt={profile.displayName} />
+                                    <AvatarFallback>{profile.displayName?.[0]}</AvatarFallback>
+                                </Avatar>
                             </div>
-                        </CardHeader>
-                        <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            {/* Achievements Section */}
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
+                             <div className="text-center mt-4">
+                                <CardTitle className="text-3xl">{profile.displayName}</CardTitle>
+                                <CardDescription className="flex items-center justify-center gap-2 mt-1">
+                                    <Mail className="h-4 w-4" /> {profile.email}
+                                </CardDescription>
+                            </div>
+                            <div className="flex justify-center gap-6 mt-4 text-sm text-muted-foreground border-t pt-4">
+                                <div className="text-center">
+                                    <p className="font-bold text-lg text-foreground">{Math.floor(stats.totalStudyTime / 60)}<span className="text-sm font-normal">h</span> {stats.totalStudyTime % 60}<span className="text-sm font-normal">m</span></p>
+                                    <p className="flex items-center gap-1 text-xs"><Clock className="h-3 w-3"/> Studied</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="font-bold text-lg text-foreground">{stats.loginStreak}</p>
+                                    <p className="flex items-center gap-1 text-xs"><Calendar className="h-3 w-3"/> Day Streak</p>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Achievements Section */}
+                        <Card>
+                             <CardHeader>
+                                <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Trophy className="h-6 w-6 text-amber-500" />
                                         <h3 className="text-xl font-bold">Achievements</h3>
                                     </div>
                                     <Link href="/achievements">
                                         <Button variant="ghost" size="sm">
-                                            Show All <ArrowRight className="ml-2 h-4 w-4" />
+                                            Show All <ArrowRight className="ml-1 h-4 w-4" />
                                         </Button>
                                     </Link>
                                 </div>
+                            </CardHeader>
+                            <CardContent>
                                 <TooltipProvider>
-                                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
-                                    {allAchievements.slice(0, 12).map((ach) => {
+                                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                                    {allAchievements.slice(0, 10).map((ach) => {
                                         const isUnlocked = unlockedAchievementIds.has(ach.id);
                                         const Icon = ach.icon;
                                         return (
@@ -174,17 +183,21 @@ export default function ProfilePage() {
                                     })}
                                 </div>
                                 </TooltipProvider>
-                            </div>
+                            </CardContent>
+                        </Card>
 
-                            {/* Sticker Collection Section */}
-                             <div>
-                                <div className="flex items-center gap-3 mb-4">
+                        {/* Sticker Collection Section */}
+                         <Card>
+                             <CardHeader>
+                                <div className="flex items-center gap-3">
                                     <Star className="h-6 w-6 text-amber-400" />
                                     <h3 className="text-xl font-bold">Sticker Collection</h3>
                                 </div>
+                            </CardHeader>
+                            <CardContent>
                                 {collectedStickers.length > 0 ? (
-                                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
-                                        {collectedStickers.map((sticker) => (
+                                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                                        {collectedStickers.slice(0, 10).map((sticker) => (
                                             <TooltipProvider key={sticker.id}>
                                                 <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -208,17 +221,16 @@ export default function ProfilePage() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-10 border-2 border-dashed rounded-lg border-border">
+                                    <div className="text-center py-10 border-2 border-dashed rounded-lg border-border h-full flex flex-col justify-center">
                                         <Award className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
                                         <p className="text-muted-foreground font-semibold">
                                             {profile.displayName}'s sticker book is empty.
                                         </p>
                                     </div>
                                 )}
-                            </div>
-
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </main>
         </div>
