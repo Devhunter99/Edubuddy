@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useRewards } from "@/hooks/use-rewards";
+import DashboardProfileSummary from "@/components/edubuddy/dashboard-profile-summary";
 
 
 const useSubjects = () => {
@@ -192,6 +193,9 @@ export default function Home() {
         <AppHeader />
         <main className="flex-grow bg-background p-4 sm:p-6 md:p-8">
             <div className="max-w-7xl mx-auto">
+                
+                <DashboardProfileSummary />
+
                 <div className="flex justify-center items-center gap-4 sm:gap-8 mb-8">
                     <ShortcutButton href="/subjects" icon={Book} label="Subjects" />
                     <ShortcutButton href="/study-timer" icon={Timer} label="Study Timer" />
@@ -249,7 +253,7 @@ export default function Home() {
                         </DialogContent>
                     </Dialog>
                     <ShortcutButton href="/results" icon={PieChart} label="Results" />
-                     <ShortcutButton href="/settings" icon={Settings} label="Settings" />
+                     <ShortcutButton href="/achievements" icon={Award} label="Achievements" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -379,5 +383,6 @@ export default function Home() {
   );
 
     
+
 
 
