@@ -3,6 +3,7 @@
 
 /**
  * @fileOverview A flow to process a PDF file and extract its text content.
+ * It first tries a standard library, and if that fails, uses AI OCR.
  *
  * - processPdf - A function that handles the PDF processing.
  * - ProcessPdfInput - The input type for the processPdf function.
@@ -17,7 +18,7 @@ const ProcessPdfInputSchema = z.object({
   pdfDataUri: z
     .string()
     .describe(
-      "A PDF file encoded as a data URI. Expected format: 'data:application/pdf;base64,<encoded_data>'."
+      "A PDF file encoded as a data URI. Expected format: 'data:application/pdf;base64,<encoded_data>'"
     ),
 });
 export type ProcessPdfInput = z.infer<typeof ProcessPdfInputSchema>;
@@ -32,6 +33,17 @@ export async function processPdf(input: ProcessPdfInput): Promise<ProcessPdfOutp
     return processPdfFlow(input);
 }
 
+// A specific prompt for extracting text from a PDF image.
+const ocrPrompt = ai.definePrompt({
+    name: 'ocrPrompt',
+    input: { schema: ProcessPdfInputSchema },
+    output: { schema: ProcessPdfOutputSchema },
+    prompt: `Extract all text from the provided PDF document. The PDF might contain scanned pages, images of text, or mixed content. Transcribe the text exactly as it appears.
+
+    PDF Document: {{media url=pdfDataUri}}`,
+});
+
+
 const processPdfFlow = ai.defineFlow(
   {
     name: 'processPdfFlow',
@@ -39,25 +51,45 @@ const processPdfFlow = ai.defineFlow(
     outputSchema: ProcessPdfOutputSchema,
   },
   async (input) => {
-    const base64Data = input.pdfDataUri.split(',')[1];
-    const pdfBuffer = Buffer.from(base64Data, 'base64');
+    // First, try to extract text using the pdf2json library.
+    // This is fast and works well for text-based PDFs.
+    try {
+        const base64Data = input.pdfDataUri.split(',')[1];
+        const pdfBuffer = Buffer.from(base64Data, 'base64');
+        
+        const pdfParser = new PDFParser(this, 1);
+
+        const parsedText = await new Promise<string>((resolve, reject) => {
+            pdfParser.on('pdfParser_dataError', (errData: any) => {
+                console.error("pdf2json error:", errData.parserError);
+                // Don't reject, just resolve with empty string to fall back to OCR
+                resolve(''); 
+            });
+            pdfParser.on('pdfParser_dataReady', () => {
+                resolve((pdfParser as any).getRawTextContent());
+            });
+
+            pdfParser.parseBuffer(pdfBuffer);
+        });
+
+        // If pdf2json returns a reasonable amount of text, use it.
+        if (parsedText && parsedText.trim().length > 100) {
+             console.log("Successfully extracted text with pdf2json.");
+            return { text: parsedText };
+        }
+    } catch (error) {
+        console.error("Error with pdf2json, falling back to AI OCR:", error);
+    }
     
-    const pdfParser = new PDFParser(this, 1);
+    // If pdf2json fails or returns very little text, fall back to AI OCR.
+    // This is better for scanned PDFs or PDFs with images of text.
+    console.log("Falling back to AI OCR for PDF processing...");
+    const { output } = await ocrPrompt(input);
 
-    const text = await new Promise<string>((resolve, reject) => {
-        pdfParser.on('pdfParser_dataError', (errData: any) => {
-            console.error(errData.parserError);
-            reject(errData.parserError);
-        });
-        pdfParser.on('pdfParser_dataReady', () => {
-            resolve((pdfParser as any).getRawTextContent());
-        });
-
-        pdfParser.parseBuffer(pdfBuffer);
-    });
-
-    return {
-      text,
-    };
+    if (!output || !output.text) {
+        throw new Error("AI OCR failed to extract text from the PDF.");
+    }
+    
+    return { text: output.text };
   }
 );
