@@ -13,8 +13,10 @@ import {
   writeBatch,
   documentId,
   updateDoc,
-  arrayUnion
+  arrayUnion,
+  increment
 } from 'firebase/firestore';
+import { incrementUserStats } from './stats-service';
 
 export interface UserProfile {
     uid: string;
@@ -148,6 +150,10 @@ export const acceptFriendRequest = async (requesterId: string, currentUserId: st
     const friendshipRef = doc(db, 'friendships', friendshipId);
     
     await setDoc(friendshipRef, { status: 'accepted' }, { merge: true });
+
+    // Increment study mate count for both users
+    await incrementUserStats(currentUserId, { studyMateCount: 1 });
+    await incrementUserStats(requesterId, { studyMateCount: 1 });
 };
 
 // Remove a friend or decline a request
@@ -156,7 +162,15 @@ export const removeFriend = async (currentUserId: string, friendId: string) => {
     const friendshipId = [currentUserId, friendId].sort().join('_');
     const friendshipRef = doc(db, 'friendships', friendshipId);
 
+    const friendshipSnap = await getDoc(friendshipRef);
+
     const batch = writeBatch(db);
     batch.delete(friendshipRef);
     await batch.commit();
+    
+    // Decrement study mate count for both users if they were friends
+    if (friendshipSnap.exists() && friendshipSnap.data().status === 'accepted') {
+        await incrementUserStats(currentUserId, { studyMateCount: -1 });
+        await incrementUserStats(friendId, { studyMateCount: -1 });
+    }
 };

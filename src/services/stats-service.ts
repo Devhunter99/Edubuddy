@@ -15,7 +15,7 @@ const defaultStats: UserStats = {
     sessions40min: 0,
     sessions60min: 0,
     firstSubjectCreated: 0,
-    subjectCount: 0,
+    studyMateCount: 0,
 };
 
 // Get a user's stats, creating them if they don't exist

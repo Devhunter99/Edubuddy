@@ -10,26 +10,36 @@ import { Progress } from "@/components/ui/progress";
 import { getUserProfile, type UserProfile } from "@/services/user-service";
 import { getUserStats, type UserStats } from "@/services/stats-service";
 import { allAchievements, type Achievement } from "@/lib/achievements";
+import { allStickers } from "@/lib/stickers";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { CheckCircle, Trophy } from "lucide-react";
 
 function AchievementCard({ achievement, stats, subjectCount }: { achievement: Achievement, stats: UserStats, subjectCount: number }) {
-    const { isUnlocked, progress, progressText } = achievement.progress(stats, subjectCount);
+    const { isUnlocked, progress, progressText } = achievement.progress(stats, subjectCount, [], allStickers);
     const Icon = achievement.icon;
+    const tierColor = {
+        'bronze': 'border-amber-700/50', 
+        'silver': 'border-gray-400/50', 
+        'gold': 'border-amber-500/50',
+        'platinum': 'border-purple-500/50'
+    }[achievement.tier];
+    const tierBg = {
+        'bronze': 'bg-amber-700/10 text-amber-700',
+        'silver': 'bg-gray-400/10 text-gray-500',
+        'gold': 'bg-amber-500/10 text-amber-500',
+        'platinum': 'bg-purple-500/10 text-purple-500'
+    }[achievement.tier];
+
 
     return (
         <Card className={cn(
             "p-4 flex items-center gap-4 transition-all",
-            isUnlocked ? `border-2 ${ {bronze: 'border-amber-700/50', silver: 'border-gray-400/50', gold: 'border-amber-500/50'}[achievement.tier] }` : 'bg-muted/50'
+            isUnlocked ? `border-2 ${tierColor}` : 'bg-muted/50'
         )}>
             <div className={cn(
                 "p-3 rounded-lg",
-                 isUnlocked ? {
-                    'bronze': 'bg-amber-700/10 text-amber-700',
-                    'silver': 'bg-gray-400/10 text-gray-500',
-                    'gold': 'bg-amber-500/10 text-amber-500'
-                 }[achievement.tier] : "bg-background/50 text-muted-foreground"
+                 isUnlocked ? tierBg : "bg-background/50 text-muted-foreground"
             )}>
                 <Icon className="h-8 w-8" />
             </div>

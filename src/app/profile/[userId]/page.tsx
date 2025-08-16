@@ -96,7 +96,7 @@ export default function ProfilePage() {
     }
 
     const collectedStickers = profile.collectedStickerIds?.map(getStickerById).filter(Boolean) as Sticker[] || [];
-    const unlockedAchievements = getUnlockedAchievements(stats, profile.collectedStickerIds, subjectCount);
+    const unlockedAchievements = getUnlockedAchievements(stats, profile.collectedStickerIds, subjectCount, allStickers);
     const unlockedAchievementIds = new Set(unlockedAchievements.map(a => a.id));
 
 
@@ -156,22 +156,26 @@ export default function ProfilePage() {
                                     {allAchievements.slice(0, 10).map((ach) => {
                                         const isUnlocked = unlockedAchievementIds.has(ach.id);
                                         const Icon = ach.icon;
+                                        const tierBorder = {
+                                            'bronze': 'border-amber-700/50 bg-amber-700/10',
+                                            'silver': 'border-gray-400/50 bg-gray-400/10',
+                                            'gold': 'border-amber-500/50 bg-amber-500/10',
+                                            'platinum': 'border-purple-500/50 bg-purple-500/10',
+                                        }[ach.tier];
+                                        const tierIcon = {
+                                             'bronze': 'text-amber-700',
+                                            'silver': 'text-gray-500',
+                                            'gold': 'text-amber-500',
+                                            'platinum': 'text-purple-500',
+                                        }[ach.tier];
                                         return (
                                             <Tooltip key={ach.id}>
                                                 <TooltipTrigger asChild>
                                                     <div className={cn(
                                                         "p-3 flex flex-col items-center justify-center aspect-square shadow-sm rounded-lg bg-card border-2 transition-all",
-                                                        isUnlocked ? {
-                                                            'bronze': 'border-amber-700/50 bg-amber-700/10',
-                                                            'silver': 'border-gray-400/50 bg-gray-400/10',
-                                                            'gold': 'border-amber-500/50 bg-amber-500/10'
-                                                        }[ach.tier] : "border-border/50 bg-muted/50 grayscale opacity-60"
+                                                        isUnlocked ? tierBorder : "border-border/50 bg-muted/50 grayscale opacity-60"
                                                     )}>
-                                                        <Icon className={cn("h-8 w-8", isUnlocked ? {
-                                                            'bronze': 'text-amber-700',
-                                                            'silver': 'text-gray-500',
-                                                            'gold': 'text-amber-500'
-                                                        }[ach.tier] : "text-muted-foreground")} />
+                                                        <Icon className={cn("h-8 w-8", isUnlocked ? tierIcon : "text-muted-foreground")} />
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent className="max-w-xs text-center">
