@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award, ArrowLeft } from "lucide-react";
 import DashboardCard from "@/components/rewisepanda/dashboard-card";
 import McqItem from "@/components/rewisepanda/mcq-item";
 import RandomMcqCard from "@/components/rewisepanda/random-mcq-card";
@@ -26,7 +26,7 @@ import QuizResultsSummary from "@/components/rewisepanda/quiz-results-summary";
 import type { QuizResult } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useRewards } from "@/hooks/use-rewards";
 import DashboardProfileSummary from "@/components/rewisepanda/dashboard-profile-summary";
 
@@ -88,6 +88,7 @@ export default function Home() {
     const [dailyQuiz, setDailyQuiz] = useState<GenerateMCQOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
+    const [carouselApi, setCarouselApi] = useState<CarouselApi>();
     
     // State for quiz answers and results
     const [quizAnswers, setQuizAnswers] = useState<Record<number, { selected: string; isCorrect: boolean }>>({});
@@ -229,7 +230,7 @@ export default function Home() {
                                             onFinish={() => setIsQuizDialogOpen(false)}
                                         />
                                     ) : dailyQuiz?.mcqs ? (
-                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} >
+                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} setApi={setCarouselApi}>
                                             <CarouselContent>
                                                 {dailyQuiz.mcqs.map((mcq, index) => (
                                                      <CarouselItem key={`${dailyQuiz.mcqs[0].question}-${index}`}>
@@ -238,13 +239,16 @@ export default function Home() {
                                                                 mcq={mcq} 
                                                                 index={index}
                                                                 onAnswer={quizAnswers[index] ? undefined : handleAnswer}
+                                                                showNavigation={dailyQuiz.mcqs.length > 1}
+                                                                onNext={() => carouselApi?.scrollNext()}
+                                                                onPrev={() => carouselApi?.scrollPrev()}
+                                                                hasNext={carouselApi?.canScrollNext()}
+                                                                hasPrev={carouselApi?.canScrollPrev()}
                                                             />
                                                         </div>
                                                     </CarouselItem>
                                                 ))}
                                             </CarouselContent>
-                                            <CarouselPrevious />
-                                            <CarouselNext />
                                         </Carousel>
                                     ) : (
                                         <p>No quiz generated yet.</p>
@@ -351,7 +355,7 @@ export default function Home() {
                                             onFinish={() => setIsQuizDialogOpen(false)}
                                         />
                                     ) : dailyQuiz?.mcqs ? (
-                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }}>
+                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} setApi={setCarouselApi}>
                                             <CarouselContent>
                                                 {dailyQuiz.mcqs.map((mcq, index) => (
                                                     <CarouselItem key={`${dailyQuiz.mcqs[0].question}-${index}`}>
@@ -360,13 +364,16 @@ export default function Home() {
                                                                 mcq={mcq} 
                                                                 index={index}
                                                                 onAnswer={quizAnswers[index] ? undefined : handleAnswer}
+                                                                showNavigation={dailyQuiz.mcqs.length > 1}
+                                                                onNext={() => carouselApi?.scrollNext()}
+                                                                onPrev={() => carouselApi?.scrollPrev()}
+                                                                hasNext={carouselApi?.canScrollNext()}
+                                                                hasPrev={carouselApi?.canScrollPrev()}
                                                             />
                                                         </div>
                                                     </CarouselItem>
                                                 ))}
                                             </CarouselContent>
-                                            <CarouselPrevious />
-                                            <CarouselNext />
                                         </Carousel>
                                      ) : (
                                          <p>No quiz generated yet.</p>
@@ -381,5 +388,4 @@ export default function Home() {
       </div>
     </SidebarInset>
   );
-
-    
+}

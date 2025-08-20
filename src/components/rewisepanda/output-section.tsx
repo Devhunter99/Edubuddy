@@ -12,7 +12,7 @@ import { Download, RefreshCw, FileText, BotMessageSquare, Sparkles, Library, Che
 import { Skeleton } from "@/components/ui/skeleton";
 import Flashcard from "./flashcard";
 import McqItem from "./mcq-item";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -75,6 +75,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
   const [showDetailedSummary, setShowDetailedSummary] = useState(false);
   const { addCoinForQuestion } = useRewards();
   const { user } = useAuth();
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
 
   useEffect(() => {
     if (content.detailedSummary) {
@@ -310,27 +311,26 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
                   onRetake={handleRetakeMcqs}
               />
             ) : content.mcqs && content.mcqs.mcqs.length > 0 ? (
-              <>
-                <div className="space-y-4" key={mcqKey}>
-                  {content.mcqs.mcqs.map((mcq, index) => (
-                    <McqItem 
-                      key={index} 
-                      mcq={mcq} 
-                      index={index}
-                      onAnswer={handleAnswer} 
-                  />
-                  ))}
-                </div>
-                <div className="mt-6 text-center">
-                    <Button 
-                        onClick={handleShowResults}
-                        disabled={Object.keys(quizAnswers).length === 0}
-                    >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Show Results
-                    </Button>
-                </div>
-              </>
+               <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} setApi={setCarouselApi}>
+                  <CarouselContent>
+                      {content.mcqs.mcqs.map((mcq, index) => (
+                           <CarouselItem key={`${mcq.question}-${index}`}>
+                              <div className="p-1">
+                                  <McqItem 
+                                      mcq={mcq} 
+                                      index={index}
+                                      onAnswer={quizAnswers[index] ? undefined : handleAnswer}
+                                      showNavigation={content.mcqs!.length > 1}
+                                      onNext={() => carouselApi?.scrollNext()}
+                                      onPrev={() => carouselApi?.scrollPrev()}
+                                      hasNext={carouselApi?.canScrollNext()}
+                                      hasPrev={carouselApi?.canScrollPrev()}
+                                  />
+                              </div>
+                          </CarouselItem>
+                      ))}
+                  </CarouselContent>
+              </Carousel>
             ) : ( 
               <Card className="min-h-[50vh] flex items-center justify-center">
                 <p className="text-muted-foreground text-center">Generate MCQs to see them here.</p>

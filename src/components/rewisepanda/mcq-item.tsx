@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface McqItemProps {
@@ -15,9 +15,24 @@ interface McqItemProps {
   index: number;
   onAnswer?: (index: number, selectedAnswer: string, isCorrect: boolean) => void;
   actionButton?: React.ReactNode;
+  showNavigation?: boolean;
+  onNext?: () => void;
+  onPrev?: () => void;
+  hasNext?: boolean;
+  hasPrev?: boolean;
 }
 
-export default function McqItem({ mcq, index, onAnswer, actionButton }: McqItemProps) {
+export default function McqItem({ 
+    mcq, 
+    index, 
+    onAnswer, 
+    actionButton,
+    showNavigation = false,
+    onNext,
+    onPrev,
+    hasNext,
+    hasPrev,
+}: McqItemProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isChecked, setIsChecked] = useState(false);
 
@@ -94,18 +109,30 @@ export default function McqItem({ mcq, index, onAnswer, actionButton }: McqItemP
           })}
         </RadioGroup>
       </CardContent>
-      {(onAnswer || actionButton) && (
-        <CardFooter className="p-4 pt-0 justify-end space-x-2">
-            {onAnswer && !isChecked && (
-                 <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
-                    Check Answer
-                </Button>
-            )}
-            {isChecked && actionButton}
+      {(onAnswer || actionButton || showNavigation) && (
+        <CardFooter className="p-4 pt-0 flex justify-between items-center">
+            <div>
+              {showNavigation && isChecked && (
+                 <div className="flex gap-1">
+                    <Button onClick={onPrev} variant="outline" size="icon" disabled={!hasPrev}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={onNext} variant="outline" size="icon" disabled={!hasNext}>
+                        <ArrowRight className="h-4 w-4" />
+                    </Button>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              {onAnswer && !isChecked && (
+                   <Button onClick={handleCheckAnswer} disabled={!selectedAnswer} size="sm">
+                      Check Answer
+                  </Button>
+              )}
+              {isChecked && actionButton}
+            </div>
         </CardFooter>
       )}
     </Card>
   );
 }
-
-    
