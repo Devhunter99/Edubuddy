@@ -8,6 +8,7 @@ import AppSidebar from "@/components/rewisepanda/app-sidebar";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/rewisepanda/theme-provider";
 import { RewardProvider } from "@/hooks/use-rewards";
+import NotificationManager from "@/services/notification-manager";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({
                     {children}
                   </main>
                 </div>
+                <NotificationManager />
               </SidebarProvider>
             </RewardProvider>
           </AuthProvider>

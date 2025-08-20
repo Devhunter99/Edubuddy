@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import AvatarPicker from "@/components/rewisepanda/avatar-picker";
 import { Skeleton } from "@/components/ui/skeleton";
+import NotificationSettings from "@/components/rewisepanda/notification-settings";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -57,6 +58,8 @@ export default function SettingsPage() {
 
             <AvatarPicker />
             
+            <NotificationSettings />
+
             <Card>
               <CardHeader>
                 <CardTitle>More Settings</CardTitle>

@@ -26,3 +26,14 @@ export type QuizResult = {
   answers: Record<number, { selected: string; isCorrect: boolean }>;
   score: number;
 }
+
+export type NotificationSettings = {
+    enabled: boolean;
+    frequency: 'hourly' | '2-hours' | '4-hours' | 'daily';
+    sound: boolean;
+    vibrate: boolean;
+    content: {
+        tips: boolean;
+        flashcards: boolean;
+    };
+};
