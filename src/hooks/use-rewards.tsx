@@ -12,6 +12,8 @@ interface RewardContextType {
   addRewards: (coinsToAdd: number, stickerId: string | undefined, sessionId: string) => void;
   hasCompletedSession: (sessionId: string) => boolean;
   loading: boolean;
+  spendCoins: (amount: number) => void;
+  addSticker: (stickerId: string) => void;
 }
 
 const RewardContext = createContext<RewardContextType | undefined>(undefined);
@@ -155,8 +157,33 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         return completedItems.has(sessionId);
     }, [completedItems]);
 
+    const spendCoins = useCallback((amount: number) => {
+        if (!user) throw new Error("You must be logged in to spend coins.");
+        if (coins < amount) throw new Error("Not enough coins.");
+        updateCoins(coins - amount);
+    }, [user, coins]);
+    
+    const addSticker = useCallback(async (stickerId: string) => {
+        if (!user) throw new Error("You must be logged in to add stickers.");
+        if (collectedStickers.has(stickerId)) return;
+        
+        const newStickerSet = new Set(collectedStickers).add(stickerId);
+        updateStickers(newStickerSet);
+        
+        try {
+            await addStickerToProfile(user.uid, stickerId);
+        } catch (error) {
+            console.error("Failed to save sticker to profile:", error);
+            // Optionally, revert the local state if Firestore update fails
+            const revertedStickers = new Set(collectedStickers);
+            revertedStickers.delete(stickerId);
+            updateStickers(revertedStickers);
+            throw new Error("Could not save sticker. Please try again.");
+        }
+    }, [user, collectedStickers]);
 
-    const value = { coins, collectedStickers, addCoinForQuestion, addRewards, hasCompletedSession, loading };
+
+    const value = { coins, collectedStickers, addCoinForQuestion, addRewards, hasCompletedSession, loading, spendCoins, addSticker };
 
     return <RewardContext.Provider value={value}>{children}</RewardContext.Provider>;
 }
