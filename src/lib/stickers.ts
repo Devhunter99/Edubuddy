@@ -13,7 +13,7 @@ export const allStickers: Sticker[] = [
     { id: 's1', name: 'Focused Atom', tier: 'Small', src: 'https://placehold.co/100x100/A7C7E7/FFFFFF.png?text=⚛️', aiHint: 'atom science', cost: 25 },
     { id: 's2', name: 'Happy Flask', tier: 'Small', src: 'https://placehold.co/100x100/C1E1C1/FFFFFF.png?text=🧪', aiHint: 'chemistry flask', cost: 25 },
     { id: 's3', name: 'Clever Cactus', tier: 'Small', src: 'https://placehold.co/100x100/FAD2E1/FFFFFF.png?text=🌵', aiHint: 'smart cactus', cost: 30 },
-    { id: 's4', name: 'Studious Panda', tier: 'Small', src: 'https://storage.googleapis.com/starthinker-ui-misc-public/project_10/panda_sticker.png', aiHint: 'studious panda', cost: 30 },
+    { id: 's4', name: 'Studious Panda', tier: 'Small', src: '/stickers/small/studious-panda.png', aiHint: 'studious panda', cost: 30 },
     
     // Medium Stickers (40-59 mins)
     { id: 'm1', name: 'Stellar Scholar', tier: 'Medium', src: 'https://placehold.co/150x150/FFDDC1/FFFFFF.png?text=⭐', aiHint: 'scholar star', cost: 50 },
