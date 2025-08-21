@@ -20,6 +20,7 @@ import {
   runTransaction,
 } from 'firebase/firestore';
 import type { UserProfile } from './user-service';
+import { generateCubbyComment } from '@/ai/flows/generate-cubby-comment';
 
 export type ReactionType = 'like' | 'brain';
 
@@ -54,6 +55,14 @@ export interface CommentWithAuthor extends Comment {
     author: UserProfile;
 }
 
+const getCubbyProfile = (): UserProfile => ({
+    uid: 'cubby-ai-assistant',
+    displayName: 'Cubby',
+    email: 'cubby@rewisepanda.app',
+    photoURL: '/stickers/small/studious-panda.png',
+});
+
+
 // Get all public posts with author details and comments
 export const getPosts = async (): Promise<PostWithAuthor[]> => {
     const db = getDb();
@@ -78,6 +87,8 @@ export const getPosts = async (): Promise<PostWithAuthor[]> => {
     
     const profiles = await getBulkUserProfiles(Array.from(authorIds));
     const profilesMap = new Map(profiles.map(p => [p.uid, p]));
+    profilesMap.set('cubby-ai-assistant', getCubbyProfile());
+
 
     return posts.map((post, index) => ({
         ...post,
@@ -95,7 +106,7 @@ export const createPost = async (
 ) => {
     const db = getDb();
     const postsRef = collection(db, 'posts');
-    await addDoc(postsRef, {
+    const newPostRef = await addDoc(postsRef, {
         authorId: author.uid,
         content,
         visibility,
@@ -103,6 +114,17 @@ export const createPost = async (
         commentCount: 0,
         reactions: { like: { count: 0, reactors: [] }, brain: { count: 0, reactors: [] } },
     });
+
+    // After creating the post, have Cubby generate and add a comment
+    try {
+        const { comment } = await generateCubbyComment({ postContent: content });
+        if (comment) {
+            await addCommentToPost(newPostRef.id, getCubbyProfile(), comment);
+        }
+    } catch (error) {
+        console.error("Failed to generate Cubby's comment:", error);
+        // Don't block post creation if Cubby fails
+    }
 };
 
 // Add a comment to a post
@@ -145,6 +167,7 @@ export const getCommentsForPost = async (postId: string): Promise<CommentWithAut
     const authorIds = comments.map(c => c.authorId);
     const profiles = await getBulkUserProfiles(authorIds);
     const profilesMap = new Map(profiles.map(p => [p.uid, p]));
+    profilesMap.set('cubby-ai-assistant', getCubbyProfile());
 
     return comments.map(comment => ({
         ...comment,
@@ -187,9 +210,10 @@ export const reactToPost = async (postId: string, userId: string, reaction: Reac
 // Helper function to get multiple user profiles at once
 const getBulkUserProfiles = async (uids: string[]): Promise<UserProfile[]> => {
     const db = getDb();
-    if (uids.length === 0) return [];
+    const cleanUids = uids.filter(uid => uid !== 'cubby-ai-assistant'); // Don't query for Cubby
+    if (cleanUids.length === 0) return [];
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where(documentId(), 'in', uids));
+    const q = query(usersRef, where(documentId(), 'in', cleanUids));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as UserProfile);
 }
