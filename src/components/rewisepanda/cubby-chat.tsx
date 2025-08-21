@@ -38,18 +38,13 @@ export default function CubbyChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
-  
-  useEffect(() => {
-      if(isOpen && messages.length === 0) {
-          handleInitialGreeting();
-      }
-  }, [isOpen]);
 
   const handleInitialGreeting = async () => {
     setIsLoading(true);
     try {
         const result = await chatWithCubby({ history: [], message: "" });
-        setMessages([{ role: 'model', content: [{ text: result.response }] }]);
+        const greetingMessage = { role: 'model', content: [{ text: result.response }] } as MessageData;
+        setMessages([greetingMessage]);
     } catch (error) {
         console.error("Failed to get initial greeting:", error);
         setMessages([{ role: 'model', content: [{ text: "I'm having a little trouble connecting right now. Please try again later." }] }]);
@@ -57,6 +52,33 @@ export default function CubbyChat() {
         setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const storedMessages = localStorage.getItem('cubby-chat-history');
+        if (storedMessages) {
+          setMessages(JSON.parse(storedMessages));
+        } else {
+            handleInitialGreeting();
+        }
+      } catch (error) {
+        console.error("Failed to load chat history from localStorage", error);
+        handleInitialGreeting();
+      }
+    }
+  }, [isOpen]);
+  
+  useEffect(() => {
+      if (isOpen && messages.length > 0) {
+        try {
+          localStorage.setItem('cubby-chat-history', JSON.stringify(messages));
+        } catch (error) {
+          console.error("Failed to save chat history to localStorage", error);
+        }
+      }
+  }, [messages, isOpen]);
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
