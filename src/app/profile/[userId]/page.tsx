@@ -19,6 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
+import FramedAvatar from "@/components/rewisepanda/framed-avatar";
 
 
 const getStickerById = (id: string): Sticker | undefined => {
@@ -112,10 +113,11 @@ export default function ProfilePage() {
                         <div className="h-32 bg-gradient-to-r from-primary to-purple-600" />
                         <div className="p-6 pt-0">
                             <div className="flex justify-center -mt-16">
-                                <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                                    <AvatarImage src={profile.photoURL ?? undefined} alt={profile.displayName} />
-                                    <AvatarFallback>{profile.displayName?.[0]}</AvatarFallback>
-                                </Avatar>
+                                <FramedAvatar
+                                    profile={profile}
+                                    className="h-32 w-32 border-4 border-background shadow-xl"
+                                    fallbackClassName="text-4xl"
+                                />
                             </div>
                              <div className="text-center mt-4">
                                 <div className="flex justify-center items-center gap-2">

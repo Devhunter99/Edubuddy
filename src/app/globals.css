@@ -58,3 +58,44 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+    @keyframes pulse-glow-blue {
+      0%, 100% {
+        background-color: #3b82f6; /* blue-500 */
+        box-shadow: 0 0 5px #3b82f6, 0 0 10px #3b82f6;
+      }
+      50% {
+        background-color: #60a5fa; /* blue-400 */
+        box-shadow: 0 0 15px #60a5fa, 0 0 25px #60a5fa;
+      }
+    }
+    .animate-pulse-glow-blue {
+      animation: pulse-glow-blue 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow-pink {
+      0%, 100% {
+        background-color: #ec4899; /* pink-500 */
+        box-shadow: 0 0 5px #ec4899, 0 0 10px #ec4899;
+      }
+      50% {
+        background-color: #f472b6; /* pink-400 */
+        box-shadow: 0 0 15px #f472b6, 0 0 25px #f472b6;
+      }
+    }
+    .animate-pulse-glow-pink {
+      animation: pulse-glow-pink 2s ease-in-out infinite;
+    }
+
+    @keyframes rgb-gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .animate-rgb-gradient {
+        background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet, red);
+        background-size: 400% 400%;
+        animation: rgb-gradient 8s ease infinite;
+    }
+}
