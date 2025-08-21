@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Bot, Loader2 } from 'lucide-react';
+import { SendHorizonal, Bot } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { chatWithCubby } from '@/ai/flows/cubby-chat';
@@ -26,25 +26,20 @@ export default function CubbyChat() {
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   
-  // Ref for the viewport element of the scroll area
   const viewportRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
 
   useEffect(() => {
-    // Scroll to bottom when new messages are added
-    if (viewportRef.current) {
-        setTimeout(() => {
-            if (viewportRef.current) {
-                viewportRef.current.scrollTo({ top: viewportRef.current.scrollHeight, behavior: 'smooth' });
-            }
-        }, 100);
-    }
+    scrollToBottom();
   }, [messages, isLoading]);
   
   useEffect(() => {
-      // Greet the user when the chat opens for the first time
       if(isOpen && messages.length === 0) {
           handleInitialGreeting();
       }
@@ -75,7 +70,7 @@ export default function CubbyChat() {
 
     try {
       const result = await chatWithCubby({
-        history: newMessages.slice(0, -1), // Send history without the latest user message
+        history: newMessages.slice(0, -1),
         message: input,
       });
       const cubbyResponse: MessageData = { role: 'model', content: [{ text: result.response }] };
@@ -92,7 +87,7 @@ export default function CubbyChat() {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg" aria-label="Open Cubby Chat">
+        <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg z-50" aria-label="Open Cubby Chat">
           <Bot className="h-8 w-8" />
         </Button>
       </PopoverTrigger>
@@ -142,6 +137,7 @@ export default function CubbyChat() {
                     </div>
                 </div>
               )}
+               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
           <form onSubmit={handleSendMessage} className="p-4 border-t flex items-center gap-2">
