@@ -29,6 +29,7 @@ import {
   User,
   Trophy,
   ShoppingCart,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
@@ -43,6 +44,7 @@ const menuItems = [
   { href: "/results", label: "Results", icon: PieChart },
   { href: "/rewards", label: "Rewards", icon: Star },
   { href: "/store", label: "Store", icon: ShoppingCart },
+  { href: "/community", label: "Community", icon: MessageSquare },
   { href: "/study-mates", label: "Study Mates", icon: Users },
   { href: "/achievements", label: "Achievements", icon: Trophy },
 ];
