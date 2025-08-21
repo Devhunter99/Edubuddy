@@ -10,23 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ThumbsUp, Brain, MessageSquare } from 'lucide-react';
 import { type PostWithAuthor, type CommentWithAuthor, type ReactionType } from '@/services/forum-service';
-import { type User } from 'firebase/auth';
+import { type UserProfile } from '@/services/user-service';
 import { cn } from '@/lib/utils';
+import FramedAvatar from './framed-avatar';
 
-interface PostCardProps {
-    post: PostWithAuthor;
-    onAddComment: (postId: string, commentText: string) => Promise<void>;
-    onReact: (postId: string, reaction: ReactionType) => Promise<void>;
-    currentUser: User | null;
-}
 
 const Comment = ({ comment }: { comment: CommentWithAuthor }) => (
     <div className="flex gap-3">
         <Link href={`/profile/${comment.author.uid}`}>
-            <Avatar className="h-8 w-8">
-                <AvatarImage src={comment.author.photoURL ?? undefined} />
-                <AvatarFallback>{comment.author.displayName?.[0] ?? 'U'}</AvatarFallback>
-            </Avatar>
+            <FramedAvatar profile={comment.author} className="h-8 w-8" />
         </Link>
         <div className="bg-muted p-3 rounded-lg flex-1">
             <div className="flex items-center gap-2">
@@ -42,7 +34,12 @@ const Comment = ({ comment }: { comment: CommentWithAuthor }) => (
     </div>
 );
 
-export default function PostCard({ post, onAddComment, onReact, currentUser }: PostCardProps) {
+export default function PostCard({ post, onAddComment, onReact, currentUser }: {
+    post: PostWithAuthor;
+    onAddComment: (postId: string, commentText: string) => Promise<void>;
+    onReact: (postId: string, reaction: ReactionType) => Promise<void>;
+    currentUser: UserProfile | null;
+}) {
     const [commentText, setCommentText] = useState("");
     const [showComments, setShowComments] = useState(false);
     
@@ -64,10 +61,7 @@ export default function PostCard({ post, onAddComment, onReact, currentUser }: P
         <Card>
             <CardHeader className="flex flex-row items-center gap-4">
                 <Link href={`/profile/${post.author.uid}`}>
-                    <Avatar>
-                        <AvatarImage src={post.author.photoURL ?? undefined} />
-                        <AvatarFallback>{post.author.displayName?.[0] ?? 'A'}</AvatarFallback>
-                    </Avatar>
+                    <FramedAvatar profile={post.author} />
                 </Link>
                 <div>
                     <Link href={`/profile/${post.author.uid}`}>
@@ -118,10 +112,7 @@ export default function PostCard({ post, onAddComment, onReact, currentUser }: P
                         {currentUser && (
                             <form onSubmit={handleCommentSubmit} className="flex gap-3 pt-2">
                                  <Link href={`/profile/${currentUser.uid}`}>
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={currentUser.photoURL ?? undefined} />
-                                        <AvatarFallback>{currentUser.displayName?.[0] ?? 'U'}</AvatarFallback>
-                                    </Avatar>
+                                    <FramedAvatar profile={currentUser} className="h-8 w-8" />
                                 </Link>
                                 <Textarea
                                     placeholder="Write a comment..."

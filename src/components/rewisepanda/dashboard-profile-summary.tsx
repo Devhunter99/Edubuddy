@@ -4,13 +4,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
-import { getUserProfile, type UserProfile } from "@/services/user-service";
 import { getUserStats, type UserStats } from "@/services/stats-service";
 import { getUnlockedAchievements } from "@/lib/achievements";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Clock } from "lucide-react";
+import FramedAvatar from "./framed-avatar";
+import type { UserProfile } from "@/services/user-service";
 
 export default function DashboardProfileSummary() {
     const { user, loading: authLoading } = useAuth();
@@ -21,6 +21,10 @@ export default function DashboardProfileSummary() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setProfile(user); // Optimistically set profile from auth context
+    }, [user]);
+
+    useEffect(() => {
         const fetchProfileData = async () => {
             if (!user) {
                 if (!authLoading) setLoading(false);
@@ -28,11 +32,8 @@ export default function DashboardProfileSummary() {
             };
             setLoading(true);
             try {
-                const [userProfile, userStats] = await Promise.all([
-                    getUserProfile(user.uid),
-                    getUserStats(user.uid)
-                ]);
-                setProfile(userProfile);
+                // user is already a profile object from the hook
+                const userStats = await getUserStats(user.uid);
                 setStats(userStats);
 
                 if (typeof window !== 'undefined') {
@@ -41,8 +42,8 @@ export default function DashboardProfileSummary() {
                     setSubjectCount(subjectList.length);
                 }
 
-                if (userStats && userProfile) {
-                    const unlocked = getUnlockedAchievements(userStats, userProfile.collectedStickerIds || [], subjectCount);
+                if (userStats && user) {
+                    const unlocked = getUnlockedAchievements(userStats, user.collectedStickerIds || [], subjectCount);
                     setUnlockedAchievementCount(unlocked.length);
                 }
 
@@ -81,10 +82,7 @@ export default function DashboardProfileSummary() {
         <Link href={`/profile/${user.uid}`}>
             <Card className="mb-8 p-4 hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-4">
-                    <Avatar className="h-14 w-14">
-                        <AvatarImage src={profile.photoURL ?? undefined} alt={profile.displayName} />
-                        <AvatarFallback>{profile.displayName?.[0]}</AvatarFallback>
-                    </Avatar>
+                    <FramedAvatar profile={profile} className="h-14 w-14" />
                     <div>
                         <h2 className="text-xl font-bold">{profile.displayName}</h2>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">

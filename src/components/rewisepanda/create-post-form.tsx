@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, Globe, Users } from "lucide-react";
 import {
   Select,
@@ -16,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Post } from "@/services/forum-service";
+import FramedAvatar from "./framed-avatar";
 
 
 interface CreatePostFormProps {
@@ -45,10 +45,7 @@ export default function CreatePostForm({ onSubmit }: CreatePostFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex gap-4">
-                <Avatar>
-                    <AvatarImage src={user?.photoURL ?? undefined} />
-                    <AvatarFallback>{user?.displayName?.[0] ?? 'U'}</AvatarFallback>
-                </Avatar>
+                <FramedAvatar profile={user} />
                 <Textarea
                     placeholder="What's on your mind? Share a study tip or ask a question..."
                     value={content}

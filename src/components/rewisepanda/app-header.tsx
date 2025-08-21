@@ -19,12 +19,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StudyTimer } from "./study-timer";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useRewards } from "@/hooks/use-rewards";
 import { Skeleton } from "../ui/skeleton";
+import FramedAvatar from "./framed-avatar";
 
 export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
@@ -52,11 +52,8 @@ export default function AppHeader() {
       return (
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? 'User'} />
-                    <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
-                </Avatar>
+              <Button variant="ghost" className="rounded-full p-0 w-10 h-10">
+                 <FramedAvatar profile={user} className="h-8 w-8" />
                 <span className="sr-only">User Menu</span>
               </Button>
             </DropdownMenuTrigger>

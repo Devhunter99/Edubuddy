@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { chatWithCubby } from '@/ai/flows/cubby-chat';
 import { type MessageData } from 'genkit';
 import { useAuth } from '@/hooks/use-auth';
+import FramedAvatar from './framed-avatar';
 
 const TypingIndicator = () => (
     <div className="flex items-center gap-1">
@@ -141,10 +142,7 @@ export default function CubbyChat() {
                     {msg.content[0].text}
                   </div>
                   {msg.role === 'user' && (
-                     <Avatar className="h-8 w-8">
-                       <AvatarImage src={user?.photoURL ?? undefined} />
-                       <AvatarFallback>{user?.displayName?.[0] ?? 'U'}</AvatarFallback>
-                    </Avatar>
+                    <FramedAvatar profile={user} className="h-8 w-8" />
                   )}
                 </div>
               ))}

@@ -9,7 +9,7 @@ import { updateUserProfile, getUserProfile, type UserProfile } from '@/services/
 import { updateUserLoginStreak } from '@/services/stats-service';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null; // Changed from User to UserProfile
   loading: boolean;
   googleLogin: () => Promise<any>;
   logout: () => Promise<void>;
@@ -18,57 +18,40 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper function to create a new user object with an updated photoURL
-const createUserWithPhoto = (user: User, photoURL: string | null): User => {
-  return {
-      ...user,
-      displayName: user.displayName,
-      email: user.email,
-      photoURL: photoURL,
-      providerId: user.providerId,
-      uid: user.uid,
-  } as User;
-}
-
 const syncUserProfile = async (user: User): Promise<UserProfile> => {
-    // Check if user already exists in Firestore
     const existingProfile = await getUserProfile(user.uid);
 
-    // Use existing profile data as a fallback, or user data, or empty strings
     const profile: UserProfile = {
         uid: user.uid,
         email: user.email || existingProfile?.email || '',
         displayName: user.displayName || existingProfile?.displayName || 'New User',
-        photoURL: existingProfile?.photoURL ?? user.photoURL, // Preserve existing photoURL if it exists
+        photoURL: existingProfile?.photoURL ?? user.photoURL,
+        collectedStickerIds: existingProfile?.collectedStickerIds || [],
+        unlockedFrameIds: existingProfile?.unlockedFrameIds || [],
+        equippedFrameId: existingProfile?.equippedFrameId,
     };
     
-    // Only update if there is something to update
     if (profile.email && profile.displayName) {
         await updateUserProfile(profile);
     }
     
-    // Update login streak
     await updateUserLoginStreak(user.uid);
 
     return profile;
 }
 
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const auth = getAuthInstance();
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // User is signed in
-        const profile = await syncUserProfile(user); // Sync profile and login streak
-        const userWithPhoto = createUserWithPhoto(user, profile.photoURL || user.photoURL);
-        setUser(userWithPhoto);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const profile = await syncUserProfile(firebaseUser);
+        setUser(profile);
       } else {
-        // User is signed out
         setUser(null);
       }
       setLoading(false);
@@ -92,11 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserPhotoURL = async (photoURL: string) => {
     const auth = getAuthInstance();
     if (auth.currentUser) {
-      // Update the user state in the context to trigger a re-render immediately
-      const updatedUser = createUserWithPhoto(auth.currentUser, photoURL);
-      setUser(updatedUser);
-
-      // Also update it in Firestore
+      // Optimistically update local state
+      if (user) {
+        setUser({ ...user, photoURL });
+      }
+      
       await updateUserProfile({
           uid: auth.currentUser.uid,
           photoURL: photoURL,

@@ -73,6 +73,23 @@ export const addStickerToProfile = async (uid: string, stickerId: string) => {
     });
 };
 
+// Add a frame to a user's collection
+export const addFrameToProfile = async (uid: string, frameId: string) => {
+    const db = getDb();
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+        unlockedFrameIds: arrayUnion(frameId)
+    });
+};
+
+// Equip a frame for a user
+export const equipFrameInProfile = async (uid: string, frameId: string | null) => {
+    const db = getDb();
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+        equippedFrameId: frameId
+    });
+};
 
 // Send a friend request
 export const sendFriendRequest = async (currentUserId: string, targetUserId: string) => {

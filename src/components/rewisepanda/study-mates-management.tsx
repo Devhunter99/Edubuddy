@@ -18,7 +18,7 @@ import {
   removeFriend,
   type StudyMate,
 } from "@/services/user-service";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import FramedAvatar from "./framed-avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -156,10 +156,7 @@ export default function StudyMatesManagement() {
                     {pendingRequests.map(req => (
                         <div key={req.uid} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                             <div className="flex items-center gap-3">
-                                <Avatar>
-                                    <AvatarImage src={req.photoURL ?? undefined} alt={req.displayName} />
-                                    <AvatarFallback>{req.displayName?.[0]}</AvatarFallback>
-                                </Avatar>
+                                <FramedAvatar profile={req} />
                                 <div>
                                     <p className="font-semibold">{req.displayName}</p>
                                     <p className="text-sm text-muted-foreground">{req.email}</p>
@@ -182,10 +179,7 @@ export default function StudyMatesManagement() {
                         {currentMates.map(mate => (
                             <div key={mate.uid} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                                 <Link href={`/profile/${mate.uid}`} className="flex items-center gap-3 flex-grow">
-                                    <Avatar>
-                                        <AvatarImage src={mate.photoURL ?? undefined} alt={mate.displayName} />
-                                        <AvatarFallback>{mate.displayName?.[0]}</AvatarFallback>
-                                    </Avatar>
+                                    <FramedAvatar profile={mate} />
                                     <div>
                                         <p className="font-semibold">{mate.displayName}</p>
                                         <p className="text-sm text-muted-foreground">{mate.email}</p>

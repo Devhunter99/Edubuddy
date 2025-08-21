@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import FramedAvatar from './framed-avatar';
 
 const preMadeAvatars = [
   'https://placehold.co/128x128/6B8E23/F5F5DC.png?text=A',
@@ -35,13 +36,11 @@ export default function AvatarPicker() {
     if (!user) return;
     setIsLoading(true);
     try {
-      // This now saves to Firestore via the auth hook
       await updateUserPhotoURL(url);
       toast({ title: 'Success', description: 'Profile picture updated!' });
     } catch (error: any) {
       console.error('Failed to update profile picture', error);
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      // Revert on error by reading from the user state again, which should hold the last valid URL
       setSelectedAvatar(user?.photoURL || '');
     } finally {
       setIsLoading(false);
@@ -106,12 +105,11 @@ export default function AvatarPicker() {
             disabled={isLoading}
         />
         <div className="flex items-center gap-6">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={selectedAvatar} alt="Current profile picture" />
-            <AvatarFallback>
-                {isLoading ? <Loader2 className="animate-spin" /> : <ImageIcon />}
-            </AvatarFallback>
-          </Avatar>
+          <FramedAvatar 
+            profile={user} 
+            className="h-20 w-20"
+            fallbackClassName='text-2xl'
+          />
           <Button onClick={handleUploadClick} disabled={isLoading} variant="outline">
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
              {isLoading ? 'Saving...' : 'Upload Image'}
