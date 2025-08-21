@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import AvatarPicker from "@/components/rewisepanda/avatar-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import NotificationSettings from "@/components/rewisepanda/notification-settings";
+import { Lock } from "lucide-react";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -59,6 +60,55 @@ export default function SettingsPage() {
             <AvatarPicker />
             
             <NotificationSettings />
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Lock /> Privacy Settings</CardTitle>
+                <CardDescription>
+                  Control who can see your profile information and activity.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                      <Label htmlFor="profile-privacy" className="text-base font-medium">Private Profile</Label>
+                      <p className="text-sm text-muted-foreground">
+                          If enabled, only your study mates can view your full profile.
+                      </p>
+                  </div>
+                  <Switch
+                    id="profile-privacy"
+                    disabled // This is a UI-only change for now
+                  />
+                </div>
+                 <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                      <Label htmlFor="achievements-visibility" className="text-base font-medium">Show Achievements</Label>
+                      <p className="text-sm text-muted-foreground">
+                          Allow others to see the achievements you've unlocked.
+                      </p>
+                  </div>
+                  <Switch
+                    id="achievements-visibility"
+                    defaultChecked
+                    disabled // This is a UI-only change for now
+                  />
+                </div>
+                 <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                      <Label htmlFor="study-time-visibility" className="text-base font-medium">Show Study Time</Label>
+                      <p className="text-sm text-muted-foreground">
+                          Allow others to see your total study time.
+                      </p>
+                  </div>
+                  <Switch
+                    id="study-time-visibility"
+                    defaultChecked
+                    disabled // This is a UI-only change for now
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader>
