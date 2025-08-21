@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ThemeProvider } from "@/components/rewisepanda/theme-provider";
 import { RewardProvider } from "@/hooks/use-rewards";
 import NotificationManager from "@/services/notification-manager";
+import CubbyChat from "@/components/rewisepanda/cubby-chat";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
                     {children}
                   </main>
                 </div>
+                <CubbyChat />
                 <NotificationManager />
               </SidebarProvider>
             </RewardProvider>

@@ -8,5 +8,6 @@ import '@/ai/flows/generate-summary.ts';
 import '@/ai/flows/generate-detailed-summary.ts';
 import '@/ai/flows/generate-highlights.ts';
 import '@/ai/flows/process-pdf.ts';
+import '@/ai/flows/cubby-chat.ts';
 import '@/ai/tools/search.ts';
 
