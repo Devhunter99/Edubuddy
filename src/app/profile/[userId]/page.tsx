@@ -13,11 +13,12 @@ import { getUserProfile, type UserProfile } from "@/services/user-service";
 import { getUserStats, type UserStats } from "@/services/stats-service";
 import { allStickers, type Sticker } from "@/lib/stickers";
 import { allAchievements, getUnlockedAchievements } from "@/lib/achievements";
-import { Award, Mail, Star, Trophy, ArrowRight, Calendar, Clock } from "lucide-react";
+import { Award, Mail, Star, Trophy, ArrowRight, Calendar, Clock, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
 
 
 const getStickerById = (id: string): Sticker | undefined => {
@@ -27,6 +28,7 @@ const getStickerById = (id: string): Sticker | undefined => {
 export default function ProfilePage() {
     const params = useParams();
     const userId = params.userId as string;
+    const { user: currentUser } = useAuth();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [stats, setStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -116,7 +118,16 @@ export default function ProfilePage() {
                                 </Avatar>
                             </div>
                              <div className="text-center mt-4">
-                                <CardTitle className="text-3xl">{profile.displayName}</CardTitle>
+                                <div className="flex justify-center items-center gap-2">
+                                  <CardTitle className="text-3xl">{profile.displayName}</CardTitle>
+                                  {currentUser?.uid === userId && (
+                                      <Link href="/settings" passHref>
+                                          <Button variant="ghost" size="icon">
+                                              <Edit className="h-5 w-5 text-muted-foreground" />
+                                          </Button>
+                                      </Link>
+                                  )}
+                                </div>
                                 <CardDescription className="flex items-center justify-center gap-2 mt-1">
                                     <Mail className="h-4 w-4" /> {profile.email}
                                 </CardDescription>
