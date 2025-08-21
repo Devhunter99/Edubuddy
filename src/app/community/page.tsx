@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import PostCard from "@/components/rewisepanda/post-card";
 import CreatePostForm from "@/components/rewisepanda/create-post-form";
-import { getPosts, type PostWithAuthor, createPost, addCommentToPost, reactToPost } from "@/services/forum-service";
+import { getPosts, type PostWithAuthor, createPost, addCommentToPost, reactToPost, ReactionType } from "@/services/forum-service";
 import type { UserProfile } from "@/services/user-service";
 import DashboardProfileSummary from "@/components/rewisepanda/dashboard-profile-summary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -60,10 +60,38 @@ export default function CommunityPage() {
     fetchPosts(); // Refresh to show new comment
   }
 
-  const handleReact = async (postId: string, reaction: 'like' | 'brain') => {
+  const handleReact = async (postId: string, reaction: ReactionType) => {
       if(!user) return;
-      await reactToPost(postId, user.uid, reaction);
-      fetchPosts(); // Refresh to show new reaction
+      
+      // Optimistically update the UI
+      const originalPosts = [...posts];
+      const updatedPosts = posts.map(p => {
+          if (p.id === postId) {
+              const newPost = { ...p };
+              const reactionData = newPost.reactions[reaction] || { count: 0, reactors: [] };
+              const hasReacted = reactionData.reactors.includes(user.uid);
+              
+              if(hasReacted) {
+                  reactionData.count--;
+                  reactionData.reactors = reactionData.reactors.filter(uid => uid !== user.uid);
+              } else {
+                  reactionData.count++;
+                  reactionData.reactors.push(user.uid);
+              }
+              newPost.reactions[reaction] = reactionData;
+              return newPost;
+          }
+          return p;
+      });
+      setPosts(updatedPosts);
+      
+      try {
+        await reactToPost(postId, user.uid, reaction);
+      } catch (error) {
+        console.error("Failed to react to post", error);
+        // Revert on error
+        setPosts(originalPosts);
+      }
   }
 
   if (authLoading || loading) {
