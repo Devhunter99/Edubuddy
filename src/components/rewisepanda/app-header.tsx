@@ -30,7 +30,7 @@ export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { coins, loading: rewardsLoading } = useRewards();
   const [canGoBack, setCanGoBack] = useState(false);
 
@@ -43,7 +43,7 @@ export default function AppHeader() {
   const isAuthPage = pathname === '/login' || pathname === '/signup';
 
 
-  const UserMenu = () => {
+  const UserMenu = ({ logout }: { logout: () => void }) => {
     if (loading) {
       return null;
     }
@@ -160,7 +160,7 @@ export default function AppHeader() {
             </>
           )}
 
-          <UserMenu />
+          <UserMenu logout={logout} />
 
         </div>
       </div>
