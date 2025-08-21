@@ -13,6 +13,14 @@ import { chatWithCubby } from '@/ai/flows/cubby-chat';
 import { type MessageData } from 'genkit';
 import { useAuth } from '@/hooks/use-auth';
 
+const TypingIndicator = () => (
+    <div className="flex items-center gap-1">
+        <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
+        <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
+        <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" />
+    </div>
+);
+
 export default function CubbyChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<MessageData[]>([]);
@@ -27,9 +35,13 @@ export default function CubbyChat() {
   useEffect(() => {
     // Scroll to bottom when new messages are added
     if (viewportRef.current) {
-      viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
+        setTimeout(() => {
+            if (viewportRef.current) {
+                viewportRef.current.scrollTo({ top: viewportRef.current.scrollHeight, behavior: 'smooth' });
+            }
+        }, 100);
     }
-  }, [messages]);
+  }, [messages, isLoading]);
   
   useEffect(() => {
       // Greet the user when the chat opens for the first time
@@ -41,7 +53,7 @@ export default function CubbyChat() {
   const handleInitialGreeting = async () => {
     setIsLoading(true);
     try {
-        const result = await chatWithCubby({ history: [], message: "Hello" });
+        const result = await chatWithCubby({ history: [], message: "" });
         setMessages([{ role: 'model', content: [{ text: result.response }] }]);
     } catch (error) {
         console.error("Failed to get initial greeting:", error);
@@ -106,7 +118,7 @@ export default function CubbyChat() {
                        <AvatarFallback>C</AvatarFallback>
                     </Avatar>
                   )}
-                  <div className={cn("max-w-[80%] p-3 rounded-xl", 
+                  <div className={cn("max-w-[80%] p-3 rounded-xl whitespace-pre-wrap", 
                     msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
                   )}>
                     {msg.content[0].text}
@@ -126,8 +138,7 @@ export default function CubbyChat() {
                        <AvatarFallback>C</AvatarFallback>
                     </Avatar>
                      <div className="max-w-[80%] p-3 rounded-xl bg-muted flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin"/>
-                        <span>Cubby is thinking...</span>
+                        <TypingIndicator />
                     </div>
                 </div>
               )}
