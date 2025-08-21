@@ -130,19 +130,6 @@ export default function AppSidebar() {
               </Link>
             </SidebarMenuItem>
           ))}
-          {!loading && user && (
-               <SidebarMenuItem>
-                 <Link href={`/profile/${user.uid}`} passHref onClick={handleLinkClick}>
-                    <SidebarMenuButton
-                        isActive={isActive(`/profile/${user.uid}`)}
-                        tooltip="Profile"
-                    >
-                        <User className="h-5 w-5" />
-                        <span className="group-data-[collapsed=true]:hidden">Profile</span>
-                    </SidebarMenuButton>
-                 </Link>
-                </SidebarMenuItem>
-          )}
         </SidebarMenu>
 
         <SidebarMenu>
