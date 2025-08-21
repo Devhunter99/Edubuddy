@@ -4,18 +4,19 @@ export interface AvatarFrame {
     name: string;
     description: string;
     tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'special';
-    className: string; // Tailwind classes for styling the frame
+    src: string; // URL to the frame image
+    aiHint: string; // For AI image generation hints
     cost: number;
 }
 
 export const allFrames: AvatarFrame[] = [
-    // --- Metallic Tiers ---
     {
-        id: 'bronze-tier',
-        name: 'Bronze Ring',
-        description: 'A simple, classic bronze frame.',
-        tier: 'bronze',
-        className: 'p-1 bg-gradient-to-br from-amber-200 via-amber-600 to-amber-800',
+        id: 'gold-tier',
+        name: 'Gold Ring',
+        description: 'A brilliant and shining gold frame.',
+        tier: 'gold',
+        src: 'https://placehold.co/256x256/FFD700/000000.png?text=%20',
+        aiHint: 'gold ring',
         cost: 0,
     },
     {
@@ -23,33 +24,26 @@ export const allFrames: AvatarFrame[] = [
         name: 'Silver Ring',
         description: 'A sleek and polished silver frame.',
         tier: 'silver',
-        className: 'p-1 bg-gradient-to-br from-gray-200 via-gray-400 to-gray-500',
+        src: 'https://placehold.co/256x256/C0C0C0/000000.png?text=%20',
+        aiHint: 'silver ring',
         cost: 0,
     },
     {
-        id: 'gold-tier',
-        name: 'Gold Ring',
-        description: 'A brilliant and shining gold frame.',
-        tier: 'gold',
-        className: 'p-1 bg-gradient-to-br from-yellow-200 via-amber-400 to-yellow-600',
+        id: 'bronze-tier',
+        name: 'Bronze Ring',
+        description: 'A simple, classic bronze frame.',
+        tier: 'bronze',
+        src: 'https://placehold.co/256x256/CD7F32/000000.png?text=%20',
+        aiHint: 'bronze ring',
         cost: 0,
     },
-    {
-        id: 'platinum-tier',
-        name: 'Platinum Ring',
-        description: 'An elegant and rare platinum frame.',
-        tier: 'platinum',
-        className: 'p-1 bg-gradient-to-br from-slate-200 via-slate-400 to-slate-300',
-        cost: 0,
-    },
-
-    // --- Glowing / Neon Frames ---
     {
         id: 'neon-blue',
         name: 'Neon Blue',
         description: 'A vibrant, glowing blue neon frame.',
         tier: 'special',
-        className: 'p-0.5 animate-pulse-glow-blue shadow-lg shadow-blue-500/50',
+        src: 'https://placehold.co/256x256/0000FF/000000.png?text=%20',
+        aiHint: 'glowing blue ring',
         cost: 0,
     },
      {
@@ -57,7 +51,8 @@ export const allFrames: AvatarFrame[] = [
         name: 'Neon Pink',
         description: 'A bright, glowing pink neon frame.',
         tier: 'special',
-        className: 'p-0.5 animate-pulse-glow-pink shadow-lg shadow-pink-500/50',
+        src: 'https://placehold.co/256x256/FF00FF/000000.png?text=%20',
+        aiHint: 'glowing pink ring',
         cost: 0,
     },
      {
@@ -65,7 +60,8 @@ export const allFrames: AvatarFrame[] = [
         name: 'RGB Lights',
         description: 'A dynamic, color-shifting frame.',
         tier: 'special',
-        className: 'p-1 animate-rgb-gradient',
+        src: 'https://placehold.co/256x256/FF0000/000000.png?text=%20',
+        aiHint: 'rainbow ring',
         cost: 0,
     },
 ];

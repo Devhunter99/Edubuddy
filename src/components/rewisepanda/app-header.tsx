@@ -30,7 +30,7 @@ export default function AppHeader() {
   const { toggleSidebar } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const { coins, loading: rewardsLoading } = useRewards();
   const [canGoBack, setCanGoBack] = useState(false);
 
@@ -52,8 +52,8 @@ export default function AppHeader() {
       return (
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="rounded-full p-0 w-10 h-10">
-                 <FramedAvatar profile={user} className="h-8 w-8" />
+              <Button variant="ghost" className="rounded-full p-0 w-12 h-12">
+                 <FramedAvatar profile={user} className="h-10 w-10" />
                 <span className="sr-only">User Menu</span>
               </Button>
             </DropdownMenuTrigger>

@@ -9,10 +9,11 @@ import { updateUserProfile, getUserProfile, type UserProfile } from '@/services/
 import { updateUserLoginStreak } from '@/services/stats-service';
 
 interface AuthContextType {
-  user: UserProfile | null; // Changed from User to UserProfile
+  user: UserProfile | null;
   loading: boolean;
   googleLogin: () => Promise<any>;
   logout: () => Promise<void>;
+  updateUser: (updates: Partial<UserProfile>) => void;
   updateUserPhotoURL: (photoURL: string) => Promise<void>;
 }
 
@@ -72,13 +73,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const updateUser = (updates: Partial<UserProfile>) => {
+    if (user) {
+        setUser(prevUser => ({ ...prevUser!, ...updates }));
+    }
+  }
+
   const updateUserPhotoURL = async (photoURL: string) => {
     const auth = getAuthInstance();
     if (auth.currentUser) {
       // Optimistically update local state
-      if (user) {
-        setUser({ ...user, photoURL });
-      }
+      updateUser({ photoURL });
       
       await updateUserProfile({
           uid: auth.currentUser.uid,
@@ -92,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     googleLogin,
     logout,
+    updateUser,
     updateUserPhotoURL,
   };
 

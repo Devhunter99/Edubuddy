@@ -107,7 +107,7 @@ export default function AvatarPicker() {
         <div className="flex items-center gap-6">
           <FramedAvatar 
             profile={user} 
-            className="h-20 w-20"
+            className="h-24 w-24"
             fallbackClassName='text-2xl'
           />
           <Button onClick={handleUploadClick} disabled={isLoading} variant="outline">

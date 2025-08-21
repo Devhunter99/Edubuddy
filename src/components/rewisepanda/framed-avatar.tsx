@@ -1,6 +1,7 @@
 
 "use client";
 
+import Image from "next/image";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getFrameById } from "@/lib/frames";
 import { type UserProfile } from "@/services/user-service";
@@ -17,30 +18,33 @@ export default function FramedAvatar({ profile, className, imageClassName, fallb
 
     const equippedFrame = getFrameById(profile?.equippedFrameId);
     
-    const frameClasses = equippedFrame ? cn(equippedFrame.className, 'rounded-full') : '';
     const avatarClasses = cn(
-        // Default size, can be overridden by className
-        "h-10 w-10",
-        // If there's a frame, we need to ensure the avatar itself is rounded
-        equippedFrame && 'rounded-full',
+        "h-full w-full",
         className
     );
     
     const fallbackText = profile?.displayName ? profile.displayName[0].toUpperCase() : "U";
 
-    if (equippedFrame) {
+    if (equippedFrame && equippedFrame.src) {
         return (
-            <div className={frameClasses}>
-                 <Avatar className={avatarClasses}>
-                    <AvatarImage src={profile?.photoURL ?? undefined} alt={profile?.displayName} className={cn('rounded-full', imageClassName)} />
-                    <AvatarFallback className={cn('rounded-full', fallbackClassName)}>{fallbackText}</AvatarFallback>
+             <div className={cn("relative h-12 w-12", className)}>
+                <Image 
+                    src={equippedFrame.src} 
+                    alt={equippedFrame.name} 
+                    layout="fill" 
+                    className="absolute inset-0 z-10"
+                    data-ai-hint={equippedFrame.aiHint}
+                />
+                <Avatar className={cn("absolute inset-0 m-auto h-[80%] w-[80%]", imageClassName)}>
+                    <AvatarImage src={profile?.photoURL ?? undefined} alt={profile?.displayName} />
+                    <AvatarFallback className={fallbackClassName}>{fallbackText}</AvatarFallback>
                 </Avatar>
             </div>
         )
     }
 
     return (
-        <Avatar className={avatarClasses}>
+        <Avatar className={cn("h-10 w-10", className)}>
             <AvatarImage src={profile?.photoURL ?? undefined} alt={profile?.displayName} className={imageClassName} />
             <AvatarFallback className={fallbackClassName}>{fallbackText}</AvatarFallback>
         </Avatar>

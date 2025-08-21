@@ -35,7 +35,7 @@ const generateQuestionId = (questionText: string) => {
 
 
 export function RewardProvider({ children }: { children: ReactNode }) {
-    const { user, updateUserPhotoURL } = useAuth(); // Need to call this to update user object with frame
+    const { user, updateUser } = useAuth();
     const [coins, setCoins] = useState(0);
     const [collectedStickers, setCollectedStickers] = useState<Set<string>>(new Set());
     const [unlockedFrames, setUnlockedFrames] = useState<Set<string>>(new Set());
@@ -158,7 +158,7 @@ export function RewardProvider({ children }: { children: ReactNode }) {
             const newCompletedSet = new Set(completedItems).add(questionId);
             updateCompletedItems(newCompletedSet);
         }
-    }, [user, coins, completedItems]);
+    }, [user, coins, completedItems, getStorageKey]);
     
     const addRewards = useCallback(async (coinsToAdd: number, stickerId: string | undefined, sessionId: string) => {
         if (!user || (!coinsToAdd && !stickerId)) return;
@@ -173,7 +173,7 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         }
         const newCompletedSet = new Set(completedItems).add(sessionId);
         updateCompletedItems(newCompletedSet);
-    }, [user, coins, collectedStickers, completedItems]);
+    }, [user, coins, collectedStickers, completedItems, getStorageKey]);
     
     const hasCompletedSession = useCallback((sessionId: string) => completedItems.has(sessionId), [completedItems]);
 
@@ -181,7 +181,7 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         if (!user) throw new Error("You must be logged in to spend coins.");
         if (coins < amount) throw new Error("Not enough coins.");
         updateCoins(coins - amount);
-    }, [user, coins]);
+    }, [user, coins, getStorageKey]);
     
     const addSticker = useCallback(async (stickerId: string) => {
         if (!user) throw new Error("You must be logged in.");
@@ -189,7 +189,7 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         const newStickerSet = new Set(collectedStickers).add(stickerId);
         updateStickers(newStickerSet);
         await addStickerToProfile(user.uid, stickerId);
-    }, [user, collectedStickers]);
+    }, [user, collectedStickers, getStorageKey]);
 
     const unlockFrame = useCallback(async (frameId: string) => {
         if (!user) throw new Error("You must be logged in.");
@@ -197,21 +197,17 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         const newFrameSet = new Set(unlockedFrames).add(frameId);
         updateFrames(newFrameSet);
         await addFrameToProfile(user.uid, frameId);
-    }, [user, unlockedFrames]);
+    }, [user, unlockedFrames, getStorageKey]);
     
     const equipFrame = useCallback(async (frameId: string | null) => {
         if (!user) throw new Error("You must be logged in.");
+        // Optimistically update local state first for instant UI feedback
         updateEquippedFrame(frameId);
+        updateUser({ equippedFrameId: frameId });
+        
+        // Then, update the backend
         await equipFrameInProfile(user.uid, frameId);
-        // We need to re-fetch the user profile to update the photo URL in the auth context,
-        // although the frame is not part of the photoURL. This is a bit of a hack.
-        const profile = await getUserProfile(user.uid);
-        if (profile) {
-            // This is a bit of a trick to force a re-render where the avatar is used
-           if(user.photoURL) updateUserPhotoURL(user.photoURL);
-        }
-
-    }, [user, updateUserPhotoURL]);
+    }, [user, updateUser, getStorageKey]);
 
 
     const value = { 
