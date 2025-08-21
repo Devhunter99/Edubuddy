@@ -20,11 +20,14 @@ export default function CubbyChat() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  
+  // Ref for the viewport element of the scroll area
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Scroll to bottom when new messages are added
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    if (viewportRef.current) {
+      viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
     }
   }, [messages]);
   
@@ -60,7 +63,7 @@ export default function CubbyChat() {
 
     try {
       const result = await chatWithCubby({
-        history: messages,
+        history: newMessages.slice(0, -1), // Send history without the latest user message
         message: input,
       });
       const cubbyResponse: MessageData = { role: 'model', content: [{ text: result.response }] };
@@ -93,7 +96,7 @@ export default function CubbyChat() {
               <p className="text-sm text-muted-foreground">Your friendly study panda</p>
             </div>
           </header>
-          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+          <ScrollArea className="flex-1 p-4" viewportRef={viewportRef}>
             <div className="space-y-4">
               {messages.map((msg, index) => (
                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : 'justify-start')}>
