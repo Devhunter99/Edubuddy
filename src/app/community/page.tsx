@@ -10,6 +10,10 @@ import PostCard from "@/components/rewisepanda/post-card";
 import CreatePostForm from "@/components/rewisepanda/create-post-form";
 import { getPosts, type PostWithAuthor, createPost, addCommentToPost, reactToPost } from "@/services/forum-service";
 import type { UserProfile } from "@/services/user-service";
+import DashboardProfileSummary from "@/components/rewisepanda/dashboard-profile-summary";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import StudyMatesManagement from "@/components/rewisepanda/study-mates-management";
+
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth();
@@ -32,7 +36,7 @@ export default function CommunityPage() {
     fetchPosts();
   }, [fetchPosts]);
 
-  const handleCreatePost = async (content: string) => {
+  const handleCreatePost = async (content: string, visibility: 'public' | 'mates_only') => {
     if (!user) return;
     const author: UserProfile = {
       uid: user.uid,
@@ -40,7 +44,7 @@ export default function CommunityPage() {
       email: user.email || "",
       photoURL: user.photoURL
     }
-    await createPost({ author, content, visibility: "public" });
+    await createPost({ author, content, visibility });
     fetchPosts(); // Refresh posts
   };
   
@@ -80,27 +84,37 @@ export default function CommunityPage() {
       <div className="flex flex-col min-h-screen">
         <AppHeader />
         <main className="flex-grow container mx-auto p-4 md:p-8">
-            <div className="max-w-3xl mx-auto space-y-6">
-                <h1 className="text-3xl font-bold">Community Feed</h1>
-                
-                {user && <CreatePostForm onSubmit={handleCreatePost} />}
+            <DashboardProfileSummary />
+            <Tabs defaultValue="feed" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="feed">Community Feed</TabsTrigger>
+                <TabsTrigger value="mates">Study Mates</TabsTrigger>
+              </TabsList>
+              <TabsContent value="feed">
+                <div className="max-w-3xl mx-auto space-y-6 pt-6">
+                  {user && <CreatePostForm onSubmit={handleCreatePost} />}
 
-                {posts.length > 0 ? (
-                    posts.map(post => (
-                        <PostCard 
-                            key={post.id} 
-                            post={post}
-                            onAddComment={handleAddComment}
-                            onReact={handleReact}
-                            currentUser={user}
-                        />
-                    ))
-                ) : (
-                    <div className="text-center py-16 border-2 border-dashed rounded-lg border-border">
-                        <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
-                    </div>
-                )}
-            </div>
+                  {posts.length > 0 ? (
+                      posts.map(post => (
+                          <PostCard 
+                              key={post.id} 
+                              post={post}
+                              onAddComment={handleAddComment}
+                              onReact={handleReact}
+                              currentUser={user}
+                          />
+                      ))
+                  ) : (
+                      <div className="text-center py-16 border-2 border-dashed rounded-lg border-border">
+                          <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
+                      </div>
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="mates">
+                <StudyMatesManagement />
+              </TabsContent>
+            </Tabs>
         </main>
       </div>
     </SidebarInset>

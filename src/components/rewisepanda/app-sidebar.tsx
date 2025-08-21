@@ -44,8 +44,7 @@ const menuItems = [
   { href: "/results", label: "Results", icon: PieChart },
   { href: "/rewards", label: "Rewards", icon: Star },
   { href: "/store", label: "Store", icon: ShoppingCart },
-  { href: "/community", label: "Community", icon: MessageSquare },
-  { href: "/study-mates", label: "Study Mates", icon: Users },
+  { href: "/community", label: "Community", icon: Users },
   { href: "/achievements", label: "Achievements", icon: Trophy },
 ];
 
@@ -75,6 +74,7 @@ export default function AppSidebar() {
     if (href === "/subjects") return pathname.startsWith('/subject') || pathname === '/subjects';
     if (href.startsWith("/profile")) return pathname.startsWith('/profile');
     if (href === "/achievements") return pathname === "/achievements";
+    if (href === "/community") return pathname.startsWith('/community') || pathname.startsWith('/study-mates');
     return pathname.startsWith(href);
   };
 

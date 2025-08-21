@@ -7,14 +7,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send } from "lucide-react";
+import { Send, Globe, Users } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Post } from "@/services/forum-service";
+
 
 interface CreatePostFormProps {
-  onSubmit: (content: string) => Promise<void>;
+  onSubmit: (content: string, visibility: Post['visibility']) => Promise<void>;
 }
 
 export default function CreatePostForm({ onSubmit }: CreatePostFormProps) {
   const [content, setContent] = useState("");
+  const [visibility, setVisibility] = useState<Post['visibility']>("public");
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
@@ -22,7 +32,7 @@ export default function CreatePostForm({ onSubmit }: CreatePostFormProps) {
     e.preventDefault();
     if (!content.trim() || !user) return;
     setIsLoading(true);
-    await onSubmit(content);
+    await onSubmit(content, visibility);
     setContent("");
     setIsLoading(false);
   };
@@ -47,7 +57,20 @@ export default function CreatePostForm({ onSubmit }: CreatePostFormProps) {
                     disabled={isLoading}
                 />
             </div>
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <Select onValueChange={(value: Post['visibility']) => setVisibility(value)} defaultValue={visibility} disabled={isLoading}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="public">
+                        <div className="flex items-center gap-2"><Globe className="h-4 w-4" /> Public</div>
+                    </SelectItem>
+                    <SelectItem value="mates_only">
+                         <div className="flex items-center gap-2"><Users className="h-4 w-4" /> Mates Only</div>
+                    </SelectItem>
+                </SelectContent>
+            </Select>
             <Button type="submit" disabled={isLoading || !content.trim()}>
                 <Send className="mr-2 h-4 w-4" />
                 {isLoading ? "Posting..." : "Post"}
