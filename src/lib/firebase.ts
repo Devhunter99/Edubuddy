@@ -33,7 +33,8 @@ const getAuthInstance = () => {
         try {
             connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
         } catch (e) {
-            // Emulator may not be running
+            // Emulator may not be running, fall back to live service
+            console.warn("Could not connect to auth emulator, using live service.", e);
         }
     }
     return auth;
@@ -45,7 +46,8 @@ const getDb = () => {
         try {
             connectFirestoreEmulator(db, "127.0.0.1", 8080);
         } catch (e) {
-            // Emulator may not be running
+            // Emulator may not be running, fall back to live service
+             console.warn("Could not connect to firestore emulator, using live service.", e);
         }
     }
     return db;
@@ -57,7 +59,8 @@ const getStorageInstance = () => {
        try {
             connectStorageEmulator(storage, "127.0.0.1", 9199);
         } catch (e) {
-            // Emulator may not be running
+            // Emulator may not be running, fall back to live service
+            console.warn("Could not connect to storage emulator, using live service.", e);
         }
     }
     return storage;
