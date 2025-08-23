@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 import { useAuth } from './use-auth';
 import { addStickerToProfile, getUserProfile, addFrameToProfile, equipFrameInProfile } from '@/services/user-service';
+import type { Achievement } from '@/lib/achievements';
 
 interface RewardContextType {
   coins: number;
@@ -18,6 +19,8 @@ interface RewardContextType {
   addSticker: (stickerId: string) => void;
   unlockFrame: (frameId: string) => void;
   equipFrame: (frameId: string | null) => void;
+  claimAchievementRewards: (achievements: Achievement[]) => number;
+  claimedAchievementRewards: Set<string>;
 }
 
 const RewardContext = createContext<RewardContextType | undefined>(undefined);
@@ -41,9 +44,10 @@ export function RewardProvider({ children }: { children: ReactNode }) {
     const [unlockedFrames, setUnlockedFrames] = useState<Set<string>>(new Set());
     const [equippedFrame, setEquippedFrame] = useState<string | null>(null);
     const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+    const [claimedAchievementRewards, setClaimedAchievementRewards] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
 
-    const getStorageKey = useCallback((key: 'coins' | 'stickers' | 'completed' | 'frames' | 'equippedFrame') => {
+    const getStorageKey = useCallback((key: 'coins' | 'stickers' | 'completed' | 'frames' | 'equippedFrame' | 'claimedAchievements') => {
         if (!user) return null;
         return `rewisepanda_${key}_${user.uid}`;
     }, [user]);
@@ -63,12 +67,14 @@ export function RewardProvider({ children }: { children: ReactNode }) {
                     const framesKey = getStorageKey('frames');
                     const equippedFrameKey = getStorageKey('equippedFrame');
                     const completedKey = getStorageKey('completed');
+                    const claimedAchievementsKey = getStorageKey('claimedAchievements');
 
                     const storedCoins = coinsKey ? localStorage.getItem(coinsKey) : '0';
                     const storedStickers = stickersKey ? localStorage.getItem(stickersKey) : '[]';
                     const storedFrames = framesKey ? localStorage.getItem(framesKey) : '[]';
                     const storedEquippedFrame = equippedFrameKey ? localStorage.getItem(equippedFrameKey) : null;
                     const storedCompleted = completedKey ? localStorage.getItem(completedKey) : '[]';
+                    const storedClaimedAchievements = claimedAchievementsKey ? localStorage.getItem(claimedAchievementsKey) : '[]';
                     
                     const localStickers = new Set(storedStickers ? JSON.parse(storedStickers) : []);
                     const localFrames = new Set(storedFrames ? JSON.parse(storedFrames) : []);
@@ -81,6 +87,7 @@ export function RewardProvider({ children }: { children: ReactNode }) {
                     setUnlockedFrames(combinedFrames);
                     setEquippedFrame(userProfile?.equippedFrameId || storedEquippedFrame);
                     setCompletedItems(new Set(storedCompleted ? JSON.parse(storedCompleted) : []));
+                    setClaimedAchievementRewards(new Set(storedClaimedAchievements ? JSON.parse(storedClaimedAchievements) : []));
 
                     // Sync combined data back to localStorage
                      if (stickersKey) localStorage.setItem(stickersKey, JSON.stringify(Array.from(combinedStickers)));
@@ -100,6 +107,7 @@ export function RewardProvider({ children }: { children: ReactNode }) {
                 setUnlockedFrames(new Set());
                 setEquippedFrame(null);
                 setCompletedItems(new Set());
+                setClaimedAchievementRewards(new Set());
                 setLoading(false);
             }
         }
@@ -208,6 +216,31 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         // Then, update the backend
         await equipFrameInProfile(user.uid, frameId);
     }, [user, updateUser, getStorageKey]);
+    
+    const claimAchievementRewards = useCallback((achievements: Achievement[]): number => {
+        if (!user) return 0;
+        
+        let totalCoinsClaimed = 0;
+        const newClaimedSet = new Set(claimedAchievementRewards);
+
+        achievements.forEach(ach => {
+            if (!newClaimedSet.has(ach.id)) {
+                totalCoinsClaimed += ach.coinReward;
+                newClaimedSet.add(ach.id);
+            }
+        });
+
+        if (totalCoinsClaimed > 0) {
+            updateCoins(coins + totalCoinsClaimed);
+            setClaimedAchievementRewards(newClaimedSet);
+            const claimedKey = getStorageKey('claimedAchievements');
+            if (claimedKey) {
+                localStorage.setItem(claimedKey, JSON.stringify(Array.from(newClaimedSet)));
+            }
+        }
+        
+        return totalCoinsClaimed;
+    }, [user, coins, claimedAchievementRewards, getStorageKey]);
 
 
     const value = { 
@@ -222,7 +255,9 @@ export function RewardProvider({ children }: { children: ReactNode }) {
         spendCoins, 
         addSticker,
         unlockFrame,
-        equipFrame
+        equipFrame,
+        claimAchievementRewards,
+        claimedAchievementRewards,
     };
 
     return <RewardContext.Provider value={value}>{children}</RewardContext.Provider>;

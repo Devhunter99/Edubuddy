@@ -5,17 +5,20 @@ import { useState, useEffect } from "react";
 import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { getUserProfile, type UserProfile } from "@/services/user-service";
 import { getUserStats, type UserStats } from "@/services/stats-service";
-import { allAchievements, type Achievement } from "@/lib/achievements";
+import { allAchievements, getUnlockedAchievements, type Achievement } from "@/lib/achievements";
 import { allStickers } from "@/lib/stickers";
 import { useAuth } from "@/hooks/use-auth";
+import { useRewards } from "@/hooks/use-rewards";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Trophy } from "lucide-react";
+import { CheckCircle, Trophy, Coins } from "lucide-react";
 
-function AchievementCard({ achievement, stats, subjectCount }: { achievement: Achievement, stats: UserStats, subjectCount: number }) {
+function AchievementCard({ achievement, stats, subjectCount, isClaimed }: { achievement: Achievement, stats: UserStats, subjectCount: number, isClaimed: boolean }) {
     const { isUnlocked, progress, progressText } = achievement.progress(stats, subjectCount, [], allStickers);
     const Icon = achievement.icon;
     const tierColor = {
@@ -49,7 +52,15 @@ function AchievementCard({ achievement, stats, subjectCount }: { achievement: Ac
                         <h3 className="font-bold text-base">{achievement.name}</h3>
                         <p className="text-sm text-muted-foreground">{achievement.description}</p>
                     </div>
-                    {isUnlocked && <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />}
+                    {isUnlocked && (
+                        <div className="flex items-center gap-2 text-xs font-semibold">
+                            <span className={cn(isClaimed ? "text-muted-foreground" : "text-amber-500")}>
+                                +{achievement.coinReward}
+                            </span>
+                            <Coins className={cn("h-4 w-4", isClaimed ? "text-muted-foreground" : "text-amber-500")} />
+                            <CheckCircle className={cn("h-5 w-5", isClaimed ? "text-green-500" : "text-muted-foreground")} />
+                        </div>
+                    )}
                 </div>
                  <div className="flex items-center gap-3 mt-2">
                     <Progress value={progress} className="h-2" />
@@ -62,6 +73,8 @@ function AchievementCard({ achievement, stats, subjectCount }: { achievement: Ac
 
 export default function AchievementsPage() {
     const { user, loading: authLoading } = useAuth();
+    const { claimAchievementRewards, claimedAchievementRewards } = useRewards();
+    const { toast } = useToast();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [stats, setStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -98,6 +111,23 @@ export default function AchievementsPage() {
         fetchProfileData();
     }, [user, authLoading]);
 
+    const handleClaimRewards = () => {
+        if (!stats) return;
+        const unlocked = getUnlockedAchievements(stats, profile?.collectedStickerIds || [], subjectCount, allStickers);
+        const totalCoinsClaimed = claimAchievementRewards(unlocked);
+        if (totalCoinsClaimed > 0) {
+            toast({
+                title: "Rewards Claimed!",
+                description: `You have received ${totalCoinsClaimed} coins!`,
+            });
+        } else {
+             toast({
+                title: "No New Rewards",
+                description: "You've already claimed all available rewards.",
+            });
+        }
+    };
+
     if (loading || authLoading) {
         return (
              <SidebarInset>
@@ -132,6 +162,9 @@ export default function AchievementsPage() {
             </SidebarInset>
         );
     }
+    
+    const unlockedAchievements = getUnlockedAchievements(stats, profile?.collectedStickerIds || [], subjectCount, allStickers);
+    const hasUnclaimedRewards = unlockedAchievements.some(ach => !claimedAchievementRewards.has(ach.id));
 
     return (
         <SidebarInset>
@@ -141,9 +174,15 @@ export default function AchievementsPage() {
                 <div className="max-w-4xl mx-auto">
                     <Card>
                         <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <Trophy className="h-7 w-7 text-primary" />
-                                <CardTitle className="text-3xl">Achievements</CardTitle>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Trophy className="h-7 w-7 text-primary" />
+                                    <CardTitle className="text-3xl">Achievements</CardTitle>
+                                </div>
+                                <Button onClick={handleClaimRewards} disabled={!hasUnclaimedRewards}>
+                                    <Coins className="mr-2 h-4 w-4" />
+                                    Claim Rewards
+                                </Button>
                             </div>
                             <CardDescription>Track your progress and unlock new milestones on your learning journey.</CardDescription>
                         </CardHeader>
@@ -154,6 +193,7 @@ export default function AchievementsPage() {
                                     achievement={ach}
                                     stats={stats}
                                     subjectCount={subjectCount}
+                                    isClaimed={claimedAchievementRewards.has(ach.id)}
                                 />
                             ))}
                         </CardContent>
