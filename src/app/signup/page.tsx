@@ -140,8 +140,8 @@ export default function SignupPage() {
       console.error("Signup failed:", error);
       toast({
         title: "Signup Failed",
-        description: error.code === 'auth/configuration-not-found' 
-            ? "Email sign-up is not enabled. Please use Google Sign-In or contact support."
+        description: error.code === 'auth/network-request-failed' 
+            ? "Could not connect to authentication service. If you are developing locally, please ensure the Firebase emulators are running."
             : error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
@@ -331,3 +331,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+    
