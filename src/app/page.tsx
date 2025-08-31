@@ -30,6 +30,7 @@ import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, Car
 import { useRewards } from "@/hooks/use-rewards";
 import DashboardProfileSummary from "@/components/rewisepanda/dashboard-profile-summary";
 import MiniMusicPlayer from "@/components/rewisepanda/mini-music-player";
+import { StudyTimer } from "@/components/rewisepanda/study-timer";
 
 
 const useSubjects = () => {
@@ -311,15 +312,9 @@ export default function Home() {
                         icon={Timer}
                         description="Focus your study sessions."
                         className="lg:col-span-1"
+                        headerLink="/study-timer"
                     >
-                        <p className="text-sm text-muted-foreground mt-2">
-                            Set a timer and get in the zone for a productive study session.
-                        </p>
-                       <Link href="/study-timer" className="mt-4">
-                            <Button variant="outline" className="w-full">
-                                Go to Timer <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
+                       <StudyTimer />
                     </DashboardCard>
 
                     {/* Study Music */}

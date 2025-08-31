@@ -28,10 +28,10 @@ export default function DashboardCard({ title, description, icon: Icon, children
     );
 
     return (
-        <Card className={cn("shadow-md hover:shadow-primary/20 transition-shadow", className)}>
+        <Card className={cn("shadow-md hover:shadow-primary/20 transition-shadow flex flex-col", className)}>
             <CardHeader>
                 {headerLink ? (
-                    <Link href={headerLink}>
+                    <Link href={headerLink} className="hover:opacity-80 transition-opacity">
                         <HeaderContent />
                     </Link>
                 ) : (
@@ -39,7 +39,7 @@ export default function DashboardCard({ title, description, icon: Icon, children
                 )}
             </CardHeader>
             {children && (
-              <CardContent>
+              <CardContent className="flex-grow flex flex-col">
                 {children}
               </CardContent>
             )}
