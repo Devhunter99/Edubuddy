@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award, ArrowLeft, Music, Users } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award, ArrowLeft, Music, Users, ShoppingCart } from "lucide-react";
 import DashboardCard from "@/components/rewisepanda/dashboard-card";
 import McqItem from "@/components/rewisepanda/mcq-item";
 import RandomMcqCard from "@/components/rewisepanda/random-mcq-card";
@@ -200,7 +200,7 @@ export default function Home() {
                 
                 <DashboardProfileSummary />
 
-                <div className="flex justify-center items-center gap-4 sm:gap-8 mb-8">
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 mb-8">
                     <ShortcutButton href="/subjects" icon={Book} label="Subjects" />
                     <ShortcutButton href="/study-timer" icon={Timer} label="Study Timer" />
                     <Dialog open={isQuizDialogOpen} onOpenChange={(open) => {
@@ -261,6 +261,9 @@ export default function Home() {
                     </Dialog>
                     <ShortcutButton href="/results" icon={PieChart} label="Results" />
                      <ShortcutButton href="/achievements" icon={Award} label="Achievements" />
+                     <ShortcutButton href="/store" icon={ShoppingCart} label="Store" />
+                     <ShortcutButton href="/study-music" icon={Music} label="Music" />
+                     <ShortcutButton href="/community" icon={Users} label="Community" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
