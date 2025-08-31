@@ -323,11 +323,12 @@ export default function Home() {
                     </DashboardCard>
 
                     {/* Study Music */}
-                    <DashboardCard
+                     <DashboardCard
                         title="Study Music"
                         icon={Music}
                         description="Focus with background music."
                         className="lg:col-span-1"
+                        headerLink="/study-music"
                     >
                          <MiniMusicPlayer />
                     </DashboardCard>
