@@ -320,7 +320,7 @@ export default function OutputSection({ content, isLoading, onRegenerate, mcqDif
                                       mcq={mcq} 
                                       index={index}
                                       onAnswer={quizAnswers[index] ? undefined : handleAnswer}
-                                      showNavigation={content.mcqs!.length > 1}
+                                      showNavigation={content.mcqs!.mcqs.length > 1}
                                       onNext={() => carouselApi?.scrollNext()}
                                       onPrev={() => carouselApi?.scrollPrev()}
                                       hasNext={carouselApi?.canScrollNext()}
