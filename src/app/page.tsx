@@ -29,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useRewards } from "@/hooks/use-rewards";
 import DashboardProfileSummary from "@/components/rewisepanda/dashboard-profile-summary";
+import MiniMusicPlayer from "@/components/rewisepanda/mini-music-player";
 
 
 const useSubjects = () => {
@@ -230,7 +231,7 @@ export default function Home() {
                                             onFinish={() => setIsQuizDialogOpen(false)}
                                         />
                                     ) : dailyQuiz?.mcqs ? (
-                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} setApi={setCarouselApi}>
+                                        <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} setApi={setCarouselApi}>
                                             <CarouselContent>
                                                 {dailyQuiz.mcqs.map((mcq, index) => (
                                                      <CarouselItem key={`${dailyQuiz.mcqs[0].question}-${index}`}>
@@ -328,14 +329,7 @@ export default function Home() {
                         description="Focus with background music."
                         className="lg:col-span-1"
                     >
-                         <p className="text-sm text-muted-foreground mt-2">
-                            Choose from a selection of tracks to help you concentrate.
-                        </p>
-                       <Link href="/study-music" className="mt-4">
-                            <Button variant="outline" className="w-full">
-                                Open Player <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
+                         <MiniMusicPlayer />
                     </DashboardCard>
                     
                     {/* Community */}
