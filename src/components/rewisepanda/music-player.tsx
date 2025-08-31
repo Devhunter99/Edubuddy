@@ -5,7 +5,9 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Coins } from "lucide-react";
+import { useRewards } from "@/hooks/use-rewards";
+import { useAuth } from "@/hooks/use-auth";
 
 type Track = {
     title: string;
@@ -26,6 +28,11 @@ export default function MusicPlayer({ tracks }: MusicPlayerProps) {
     const [volume, setVolume] = useState(0.5);
     const [isMuted, setIsMuted] = useState(false);
 
+    const { user } = useAuth();
+    const { addRewards } = useRewards();
+    const [listeningTime, setListeningTime] = useState(0); // in seconds
+    const [awardedTime, setAwardedTime] = useState(0); // in seconds
+
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const { title, artist, src, image, aiHint } = tracks[trackIndex];
@@ -35,7 +42,38 @@ export default function MusicPlayer({ tracks }: MusicPlayerProps) {
             audioRef.current = new Audio(src);
             audioRef.current.volume = isMuted ? 0 : volume;
         }
+         // When component unmounts, award remaining coins
+        return () => {
+            const coinsToAward = Math.floor((listeningTime - awardedTime) / 600);
+            if (user && coinsToAward > 0) {
+                 addRewards(coinsToAward, undefined, `music-session-${Date.now()}`);
+            }
+        }
     }, []);
+
+    // Effect for handling listening time and rewards
+     useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+        if (isPlaying && user) {
+            interval = setInterval(() => {
+                setListeningTime(prev => {
+                    const newTime = prev + 1;
+                    const tenMinuteMark = Math.floor(newTime / 600);
+                    const lastAwardedMark = Math.floor(awardedTime / 600);
+                    
+                    if (tenMinuteMark > lastAwardedMark) {
+                        const coinsToAward = tenMinuteMark - lastAwardedMark;
+                         addRewards(coinsToAward, undefined, `music-session-${Date.now()}`);
+                        setAwardedTime(newTime);
+                    }
+                    return newTime;
+                });
+            }, 1000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isPlaying, user, awardedTime, addRewards]);
 
     useEffect(() => {
         if (audioRef.current) {
@@ -105,6 +143,8 @@ export default function MusicPlayer({ tracks }: MusicPlayerProps) {
         setIsMuted(!isMuted);
     }
 
+    const coinsEarnedThisSession = Math.floor(listeningTime / 600);
+
     return (
         <div className="flex flex-col items-center gap-4">
             <div className="relative w-48 h-48 rounded-lg overflow-hidden shadow-lg">
@@ -115,6 +155,12 @@ export default function MusicPlayer({ tracks }: MusicPlayerProps) {
                 <h3 className="text-xl font-bold">{title}</h3>
                 <p className="text-muted-foreground">{artist}</p>
             </div>
+             {user && (
+                <div className="flex items-center gap-2 text-sm font-semibold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full">
+                    <Coins className="h-4 w-4" />
+                    <span>{coinsEarnedThisSession} coin{coinsEarnedThisSession === 1 ? '' : 's'} earned</span>
+                </div>
+            )}
 
             <div className="w-full">
                 <Slider
