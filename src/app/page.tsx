@@ -314,7 +314,7 @@ export default function Home() {
                         className="lg:col-span-1"
                         headerLink="/study-timer"
                     >
-                       <StudyTimer />
+                       <StudyTimer compact />
                     </DashboardCard>
 
                     {/* Study Music */}

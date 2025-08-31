@@ -1,7 +1,7 @@
 
 import AppHeader from "@/components/rewisepanda/app-header";
 import { StudyTimer } from "@/components/rewisepanda/study-timer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Timer } from "lucide-react";
 
@@ -17,6 +17,7 @@ export default function StudyTimerPage() {
                     <Timer className="h-10 w-10 text-primary" />
                 </div>
               <CardTitle className="text-2xl">Study Timer</CardTitle>
+              <CardDescription>Set a timer and get in the zone for a productive study session.</CardDescription>
             </CardHeader>
             <CardContent>
               <StudyTimer />

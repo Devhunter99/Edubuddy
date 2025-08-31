@@ -18,7 +18,11 @@ import { incrementUserStats } from "@/services/stats-service";
 
 const PRESETS = [20, 40, 60]; // in minutes
 
-export function StudyTimer() {
+interface StudyTimerProps {
+  compact?: boolean;
+}
+
+export function StudyTimer({ compact = false }: StudyTimerProps) {
   const [initialDuration, setInitialDuration] = useState(20 * 60); // in seconds
   const [timeRemaining, setTimeRemaining] = useState(initialDuration);
   const [isActive, setIsActive] = useState(false);
@@ -160,17 +164,26 @@ export function StudyTimer() {
 
   return (
     <div className="flex flex-col items-center gap-4 py-4">
-        <div className="relative h-48 w-48">
-            <svg className="h-full w-full" viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r={CIRCLE_RADIUS} fill="none" strokeWidth="15" className="stroke-muted" />
-                <circle cx="100" cy="100" r={CIRCLE_RADIUS} fill="none" strokeWidth="15" className="stroke-primary transition-all duration-1000 ease-linear animate-pulse-glow" strokeDasharray={CIRCLE_CIRCUMFERENCE} strokeDashoffset={progressOffset} strokeLinecap="round" transform="rotate(-90 100 100)" />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold font-mono text-primary tabular-nums tracking-wider">
-                {formatTime(timeRemaining)}
-            </div>
-        </div>
+        {!compact && (
+           <div className="relative h-48 w-48">
+              <svg className="h-full w-full" viewBox="0 0 200 200">
+                  <circle cx="100" cy="100" r={CIRCLE_RADIUS} fill="none" strokeWidth="15" className="stroke-muted" />
+                  <circle cx="100" cy="100" r={CIRCLE_RADIUS} fill="none" strokeWidth="15" className="stroke-primary transition-all duration-1000 ease-linear animate-pulse-glow" strokeDasharray={CIRCLE_CIRCUMFERENCE} strokeDashoffset={progressOffset} strokeLinecap="round" transform="rotate(-90 100 100)" />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold font-mono text-primary tabular-nums tracking-wider">
+                  {formatTime(timeRemaining)}
+              </div>
+          </div>
+        )}
+        
+        {compact && (
+          <div className="text-3xl font-bold font-mono text-primary tabular-nums tracking-wider">
+            {formatTime(timeRemaining)}
+          </div>
+        )}
 
-       {initialDuration >= 3600 && ( <p className="text-sm text-muted-foreground text-center px-4">That's a long session! Remember to take a short break every hour.</p> )}
+
+       {initialDuration >= 3600 && !compact &&( <p className="text-sm text-muted-foreground text-center px-4">That's a long session! Remember to take a short break every hour.</p> )}
       
       <div className="w-full space-y-3 px-2">
         <div className="flex w-full justify-center gap-2">
@@ -178,22 +191,26 @@ export function StudyTimer() {
             <Button key={p} variant={initialDuration / 60 === p && customMinutes === "" ? "default" : "outline"} size="sm" onClick={() => selectPreset(p)} className="flex-1">{p} min</Button>
             ))}
         </div>
-        <div className="flex w-full justify-center gap-2">
-            <Input type="number" placeholder="Custom minutes..." value={customMinutes} onChange={(e) => setCustomMinutes(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSetCustomTime()} className="bg-background" />
-            <Button onClick={handleSetCustomTime} variant="secondary">Set</Button>
-        </div>
+        {!compact && (
+          <div className="flex w-full justify-center gap-2">
+              <Input type="number" placeholder="Custom minutes..." value={customMinutes} onChange={(e) => setCustomMinutes(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSetCustomTime()} className="bg-background" />
+              <Button onClick={handleSetCustomTime} variant="secondary">Set</Button>
+          </div>
+        )}
       </div>
       
-       <Separator className="my-2" />
+       {!compact && <Separator className="my-2" />}
 
-        <div className="flex flex-col items-center gap-2 w-full px-2">
-            <h3 className="font-semibold text-center">Your Rewards</h3>
-            <div className="flex items-center justify-center gap-4 text-sm p-3 rounded-lg bg-muted w-full">
-                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400"><Award className="h-5 w-5"/><span>Earn {Math.floor(initialDuration / 60 / 10)}</span></div>
-                <Separator orientation="vertical" className="h-6"/>
-                 <StickerChoiceDialog duration={initialDuration / 60} onSelectSticker={handleSelectSticker} selectedSticker={selectedSticker} open={isChooserOpen} onOpenChange={setIsChooserOpen} />
-            </div>
-        </div>
+       {!compact && (
+          <div className="flex flex-col items-center gap-2 w-full px-2">
+              <h3 className="font-semibold text-center">Your Rewards</h3>
+              <div className="flex items-center justify-center gap-4 text-sm p-3 rounded-lg bg-muted w-full">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400"><Award className="h-5 w-5"/><span>Earn {Math.floor(initialDuration / 60 / 10)}</span></div>
+                  <Separator orientation="vertical" className="h-6"/>
+                  <StickerChoiceDialog duration={initialDuration / 60} onSelectSticker={handleSelectSticker} selectedSticker={selectedSticker} open={isChooserOpen} onOpenChange={setIsChooserOpen} />
+              </div>
+          </div>
+       )}
 
       <div className="flex items-center justify-center gap-4 mt-4">
         <Button onClick={toggleTimer} size="lg" className={cn("w-24", isActive ? "bg-amber-500 hover:bg-amber-600" : "bg-primary hover:bg-primary/90")} disabled={timeRemaining === 0}>{isActive ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}{isActive ? "Pause" : "Start"}</Button>
