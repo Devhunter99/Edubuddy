@@ -39,7 +39,7 @@ export default function DashboardCard({ title, description, icon: Icon, children
                 )}
             </CardHeader>
             {children && (
-              <CardContent className="flex-grow flex flex-col">
+              <CardContent className="flex-grow flex flex-col pt-0">
                 {children}
               </CardContent>
             )}

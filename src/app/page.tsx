@@ -31,6 +31,7 @@ import { useRewards } from "@/hooks/use-rewards";
 import DashboardProfileSummary from "@/components/rewisepanda/dashboard-profile-summary";
 import MiniMusicPlayer from "@/components/rewisepanda/mini-music-player";
 import { StudyTimer } from "@/components/rewisepanda/study-timer";
+import TrendingPosts from "@/components/rewisepanda/trending-posts";
 
 
 const useSubjects = () => {
@@ -334,15 +335,9 @@ export default function Home() {
                         icon={Users}
                         description="Connect with other learners."
                         className="lg:col-span-2"
+                        headerLink="/community"
                     >
-                         <p className="text-sm text-muted-foreground mt-2">
-                            Share tips, ask questions, and find study mates.
-                        </p>
-                       <Link href="/community" className="mt-4">
-                            <Button variant="outline" className="w-full">
-                                Go to Community <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
+                        <TrendingPosts />
                     </DashboardCard>
                 </div>
             </div>
