@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/rewisepanda/app-header";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award, ArrowLeft } from "lucide-react";
+import { Book, Timer, BrainCircuit, ArrowRight, Loader2, Shuffle, Settings, PieChart, User, Award, ArrowLeft, Music, Users } from "lucide-react";
 import DashboardCard from "@/components/rewisepanda/dashboard-card";
 import McqItem from "@/components/rewisepanda/mcq-item";
 import RandomMcqCard from "@/components/rewisepanda/random-mcq-card";
@@ -321,66 +321,38 @@ export default function Home() {
                         </Link>
                     </DashboardCard>
 
-                    {/* Daily Quiz */}
+                    {/* Study Music */}
                     <DashboardCard
-                        title="Daily Quiz"
-                        icon={BrainCircuit}
-                        description="Test your knowledge."
-                         className="lg:col-span-1"
+                        title="Study Music"
+                        icon={Music}
+                        description="Focus with background music."
+                        className="lg:col-span-1"
                     >
-                        <p className="text-sm text-muted-foreground mt-2">
-                            A quick quiz based on your recent activity.
+                         <p className="text-sm text-muted-foreground mt-2">
+                            Choose from a selection of tracks to help you concentrate.
                         </p>
-                         <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="w-full mt-4" onClick={() => handleGenerateQuiz()} disabled={isQuizLoading}>
-                                     {isQuizLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                     {isQuizLoading ? 'Generating...' : (dailyQuiz && user ? 'View Quiz' : 'Start Quiz')}
-                                </Button>
-                            </DialogTrigger>
-                             <DialogContent className="sm:max-w-2xl bg-card border-border">
-                                <DialogHeader>
-                                    <DialogTitle>Daily Quiz</DialogTitle>
-                                </DialogHeader>
-                                 <div className="py-4 max-h-[70vh] overflow-y-auto">
-                                     {isQuizLoading ? (
-                                        <div className="flex justify-center items-center h-40">
-                                            <Loader2 className="h-8 w-8 animate-spin" />
-                                        </div>
-                                    ) : showResults ? (
-                                        <QuizResultsSummary 
-                                            mcqs={dailyQuiz!.mcqs}
-                                            answers={quizAnswers}
-                                            onRetake={() => handleGenerateQuiz(true)}
-                                            onFinish={() => setIsQuizDialogOpen(false)}
-                                        />
-                                    ) : dailyQuiz?.mcqs ? (
-                                         <Carousel className="w-full" opts={{ loop: false, watchDrag: false }} setApi={setCarouselApi}>
-                                            <CarouselContent>
-                                                {dailyQuiz.mcqs.map((mcq, index) => (
-                                                    <CarouselItem key={`${dailyQuiz.mcqs[0].question}-${index}`}>
-                                                        <div className="p-1">
-                                                            <McqItem 
-                                                                mcq={mcq} 
-                                                                index={index}
-                                                                onAnswer={quizAnswers[index] ? undefined : handleAnswer}
-                                                                showNavigation={dailyQuiz.mcqs.length > 1}
-                                                                onNext={() => carouselApi?.scrollNext()}
-                                                                onPrev={() => carouselApi?.scrollPrev()}
-                                                                hasNext={carouselApi?.canScrollNext()}
-                                                                hasPrev={carouselApi?.canScrollPrev()}
-                                                            />
-                                                        </div>
-                                                    </CarouselItem>
-                                                ))}
-                                            </CarouselContent>
-                                        </Carousel>
-                                     ) : (
-                                         <p>No quiz generated yet.</p>
-                                     )}
-                                 </div>
-                             </DialogContent>
-                        </Dialog>
+                       <Link href="/study-music" className="mt-4">
+                            <Button variant="outline" className="w-full">
+                                Open Player <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </DashboardCard>
+                    
+                    {/* Community */}
+                     <DashboardCard
+                        title="Community"
+                        icon={Users}
+                        description="Connect with other learners."
+                        className="lg:col-span-2"
+                    >
+                         <p className="text-sm text-muted-foreground mt-2">
+                            Share tips, ask questions, and find study mates.
+                        </p>
+                       <Link href="/community" className="mt-4">
+                            <Button variant="outline" className="w-full">
+                                Go to Community <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
                     </DashboardCard>
                 </div>
             </div>
